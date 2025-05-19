@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: EventB_Agent
+Bundle-SymbolicName: EventB_Agent
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: eventb_agent.Activator
+Require-Bundle: org.eclipse.core.runtime
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Automatic-Module-Name: EventB.Agent
+Bundle-ActivationPolicy: lazy
