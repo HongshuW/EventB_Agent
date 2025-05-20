@@ -1,22 +1,45 @@
 package eventb_agent;
 
-import org.osgi.framework.BundleActivator;
+import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
 
-public class Activator implements BundleActivator {
+public class Activator extends Plugin {
 
-	private static BundleContext context;
+	public static final String PLUGIN_ID = "eventb_agent";
 
-	static BundleContext getContext() {
-		return context;
+	// The shared instance
+	private static Activator plugin;
+
+	/**
+	 * The constructor
+	 */
+	public Activator() {
 	}
 
-	public void start(BundleContext bundleContext) throws Exception {
-		Activator.context = bundleContext;
+	@Override
+	public void start(BundleContext context) throws Exception {
+		super.start(context);
+		plugin = this;
+		if (isDebugging())
+			configureDebugOptions();
 	}
 
-	public void stop(BundleContext bundleContext) throws Exception {
-		Activator.context = null;
+	private void configureDebugOptions() {
+		// do nothing for the moment
 	}
 
+	@Override
+	public void stop(BundleContext context) throws Exception {
+		plugin = null;
+		super.stop(context);
+	}
+
+	/**
+	 * Returns the shared instance
+	 *
+	 * @return the shared instance
+	 */
+	public static Activator getDefault() {
+		return plugin;
+	}
 }
