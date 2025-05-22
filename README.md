@@ -1,6 +1,7 @@
 # Event-B Agent
 
 Event-B Agent is a Rodin plug-in.
+This project includes both the core and UI components of the plug-in.
 
 ## Prerequisite
 Java 17 <br>
@@ -8,4 +9,8 @@ Java 17 <br>
 
 ## Setup
 TODO
+
+## Project Structure
+**eventb_agent** <br>
+`eventb_agent.Activator`: entry point of the plug-in.
 
