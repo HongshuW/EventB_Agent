@@ -4,7 +4,7 @@
    <extension
          point="org.rodinp.core.attributeTypes">
       <attributeType
-            id="probabilistic"
+            id="EventB_Agent_Core.probabilistic"
             kind="boolean"
             name="Event-B Probabilistic Attribute">
       </attributeType>
@@ -14,21 +14,21 @@
       <relationship
             parentTypeId="org.eventb.core.event">
          <attributeType
-               typeId="probabilistic">
+               typeId="EventB_Agent_Core.probabilistic">
          </attributeType>
       </relationship>
       <relationship
             parentTypeId="org.eventb.core.machineFile">
          <childType
-               typeId="bound">
+               typeId="EventB_Agent_Core.bound">
          </childType>
       </relationship>
    </extension>
    <extension
          point="org.rodinp.core.internalElementTypes">
       <internalElementType
-            class="eventb_agent.example.Bound"
-            id="bound"
+            class="eventb_agent_core.example.Bound"
+            id="EventB_Agent_Core.bound"
             name="Event-B Bound Element">
       </internalElementType>
    </extension>

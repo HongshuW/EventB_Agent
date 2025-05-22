@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: EventB_Agent_Core
+Bundle-SymbolicName: EventB_Agent_Core;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: eventb_agent_core.Activator
+Require-Bundle: org.eclipse.core.resources;bundle-version="3.20.0",
+ org.eclipse.core.runtime,
+ org.rodinp.core;bundle-version="1.10.0",
+ org.eventb.core;bundle-version="3.7.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Automatic-Module-Name: EventB.Agent.Core
+Bundle-ActivationPolicy: lazy
+Export-Package: eventb_agent_core

@@ -1,4 +1,4 @@
-package eventb_agent.example;
+package eventb_agent_core.example;
 
 import org.eventb.core.basis.EventBElement;
 import org.rodinp.core.IInternalElement;
