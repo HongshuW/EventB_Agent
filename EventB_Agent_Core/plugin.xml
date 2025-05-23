@@ -1,35 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension
-         point="org.rodinp.core.attributeTypes">
-      <attributeType
-            id="probabilistic"
-            kind="boolean"
-            name="Event-B Probabilistic Attribute">
-      </attributeType>
-   </extension>
-   <extension
-         point="org.rodinp.core.itemRelations">
-      <relationship
-            parentTypeId="org.eventb.core.event">
-         <attributeType
-               typeId="probabilistic">
-         </attributeType>
-      </relationship>
-      <relationship
-            parentTypeId="org.eventb.core.machineFile">
-         <childType
-               typeId="bound">
-         </childType>
-      </relationship>
-   </extension>
-   <extension
-         point="org.rodinp.core.internalElementTypes">
-      <internalElementType
-            class="eventb_agent_core.example.Bound"
-            id="bound"
-            name="Event-B Bound Element">
-      </internalElementType>
-   </extension>
 </plugin>
