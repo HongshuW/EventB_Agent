@@ -2,42 +2,29 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         point="org.eventb.ui.editorItems">
-      <choiceAttribute
-            class="eventb_agent_ui.example.ProbabilisticAttributeManipulation"
-            expandsHorizontally="false"
-            id="EventB_Agent_UI.probabilistic"
-            required="true"
-            typeId="EventB_Agent_Core.probabilistic">
-      </choiceAttribute>
-      <attributeRelation
-            elementTypeId="org.eventb.core.event">
-         <attributeReference
-               descriptionId="EventB_Agent_UI.probabilistic">
-         </attributeReference>
-      </attributeRelation>
-      <element
-            defaultColumn="0"
-            imagePath="icons/sample.gif"
-            prefix="BOUND"
-            typeId="EventB_Agent_Core.bound">
-      </element>
-      <childRelation
-            parentTypeId="org.eventb.core.machineFile">
-         <childType
-               priority="65"
-               typeId="EventB_Agent_Core.bound">
-         </childType>
-      </childRelation>
-      <attributeRelation
-            elementTypeId="EventB_Agent_Core.bound">
-         <attributeReference
-               descriptionId="org.eventb.ui.expression">
-         </attributeReference>
-         <attributeReference
-               descriptionId="org.eventb.ui.comment">
-         </attributeReference>
-      </attributeRelation>
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            class="eventb_agent_ui.EventBAgentPerspective"
+            icon="icons/bot.png"
+            id="EventB_Agent_UI.perspective"
+            name="Event-B Agent">
+      </perspective>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="EventB_Agent_UI.perspective">
+         <view
+               id="org.eventb.ui.symboltable.view"
+               minimized="false"
+               ratio="0.7"
+               relationship="right"
+               relative="org.eventb.ui.views.RodinProblemView">
+         </view>
+         <viewShortcut
+               id="org.eventb.ui.symboltable.view">
+         </viewShortcut>
+      </perspectiveExtension>
    </extension>
 
 </plugin>
