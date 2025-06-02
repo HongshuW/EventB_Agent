@@ -1,31 +1,29 @@
-package eventb_agent_core;
+package eventb_agent_ui;
 
-import org.eclipse.core.runtime.Plugin;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
-public class Activator extends Plugin {
+/**
+ * This class controls the plug-in life cycle.
+ */
+public class EventBAgentUIPlugin extends AbstractUIPlugin {
 
-	public static final String PLUGIN_ID = "EventB_Agent_Core";
+	// The plug-in ID
+	public static final String AGENT_PLUGIN_ID = "EventB_Agent_UI"; //$NON-NLS-1$
 
 	// The shared instance
-	private static Activator plugin;
+	private static EventBAgentUIPlugin plugin;
 
 	/**
 	 * The constructor
 	 */
-	public Activator() {
+	public EventBAgentUIPlugin() {
 	}
 
 	@Override
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-		if (isDebugging())
-			configureDebugOptions();
-	}
-
-	private void configureDebugOptions() {
-		// do nothing for the moment
 	}
 
 	@Override
@@ -39,7 +37,8 @@ public class Activator extends Plugin {
 	 *
 	 * @return the shared instance
 	 */
-	public static Activator getDefault() {
+	public static EventBAgentUIPlugin getDefault() {
 		return plugin;
 	}
+
 }

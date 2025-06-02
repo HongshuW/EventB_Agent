@@ -26,5 +26,29 @@
          </viewShortcut>
       </perspectiveExtension>
    </extension>
-
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:fr.systerel.explorer.navigator.view?after=additions">
+         <command
+               commandId="EventB_Agent_UI.commands.createMachine"
+               label="Create Event-B Machine"
+               style="push">
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            id="EventB_Agent_UI.commands.createMachine"
+            name="Create Event-B Machine">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="eventb_agent_ui.handlers.CreateMachineHandler"
+            commandId="EventB_Agent_UI.commands.createMachine">
+      </handler>
+   </extension>
 </plugin>

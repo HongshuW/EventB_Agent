@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: EventB_Agent_Core
 Bundle-SymbolicName: EventB_Agent_Core;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: eventb_agent_core.Activator
+Bundle-Activator: eventb_agent_core.EventBAgentCorePlugin
 Require-Bundle: org.eclipse.core.resources;bundle-version="3.20.0",
  org.eclipse.core.runtime,
  org.rodinp.core;bundle-version="1.10.0",

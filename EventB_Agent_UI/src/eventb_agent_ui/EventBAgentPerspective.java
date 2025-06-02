@@ -7,6 +7,10 @@ import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 
+/**
+ * This class contains the perspective for the Event-B Agent. Update the
+ * {@code defineLayout} method to adjust the views.
+ */
 public class EventBAgentPerspective implements IPerspectiveFactory {
 
 	/*
