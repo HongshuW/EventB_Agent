@@ -11,4 +11,5 @@ Require-Bundle: org.eclipse.core.resources;bundle-version="3.20.0",
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: EventB.Agent.Core
 Bundle-ActivationPolicy: lazy
-Export-Package: eventb_agent_core
+Export-Package: eventb_agent_core,
+ eventb_agent_core.llm
