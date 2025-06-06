@@ -51,4 +51,12 @@
             commandId="EventB_Agent_UI.commands.createMachine">
       </handler>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="eventb_agent_ui.preference.EventBAgentPreference"
+            id="EventB_Agent_UI.preference"
+            name="Event-B Agent Preference">
+      </page>
+   </extension>
 </plugin>

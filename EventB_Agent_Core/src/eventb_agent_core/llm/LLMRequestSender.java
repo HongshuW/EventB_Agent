@@ -7,12 +7,26 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
+
+import eventb_agent_core.preference.AgentPreferenceInitializer;
+import eventb_agent_core.utils.Constants;
+
 /**
  * This class is responsible for sending requests to LLM and receiving the
  * responses.
  */
 public class LLMRequestSender {
-	public String sendRequest(String prompt, String apiKey) throws IOException {
+
+	private String apiKey;
+
+	public LLMRequestSender() {
+		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
+		apiKey = prefs.get(AgentPreferenceInitializer.PREF_LLM_KEY, "");
+	}
+
+	public String sendRequest(String prompt) throws IOException {
 		String endpoint = "https://api.openai.com/v1/chat/completions";
 		String payload = "{" + "\"model\": \"gpt-3.5-turbo\"," + "\"messages\": [{\"role\": \"user\", \"content\": \""
 				+ prompt.replace("\"", "\\\"") + "\"}]" + "}";

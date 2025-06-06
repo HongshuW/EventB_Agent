@@ -16,14 +16,12 @@ public class CreateMachineHandler extends AbstractHandler {
 
 	private LLMRequestSender llmRequestSender = new LLMRequestSender();
 
-	private String apiKey = "";
-
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		String prompt = "Generate an Event-B Machine.";
 		String response;
 		try {
-			response = llmRequestSender.sendRequest(prompt, apiKey);
+			response = llmRequestSender.sendRequest(prompt);
 			JSONObject obj = new JSONObject(response);
 			String answer = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
 			System.out.println("Response: " + answer);
