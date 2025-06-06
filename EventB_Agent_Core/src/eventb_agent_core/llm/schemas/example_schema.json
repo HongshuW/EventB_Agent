@@ -1,13 +1,17 @@
 {
-	"type": "object",
-	"properties": {
-		"machine": {
-			"type": "string"
+	"name": "example",
+	"strict": true,
+	"schema": {
+		"type": "object",
+		"properties": {
+			"machine": {
+				"type": "string"
+			},
+			"context": {
+				"type": "string"
+			}
 		},
-		"context": {
-			"type": "string"
-		}
-	},
-	"required": ["machine", "context"],
-	"additionalProperties": false
+		"required": ["machine", "context"],
+		"additionalProperties": false
+	}
 }

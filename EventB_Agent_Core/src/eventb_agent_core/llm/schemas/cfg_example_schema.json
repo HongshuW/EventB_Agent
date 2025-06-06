@@ -1,0 +1,17 @@
+{
+  "name": "labeled_action",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "required": [
+      "label"
+    ],
+    "properties": {
+      "label": {
+        "type": "string",
+        "pattern": "^@[a-zA-Z0-9_]+$"
+      }
+    },
+    "additionalProperties": false
+  }
+}

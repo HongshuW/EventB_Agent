@@ -40,15 +40,10 @@ public class RequestBuilder {
 	}
 
 	public JSONObject getSchema() throws IOException {
-		JSONObject jsonSchema = new JSONObject();
-
-		jsonSchema.put("name", "machine_schema");
-		jsonSchema.put("strict", true);
-		
-		String jsonText = Files.readString(Paths.get("C:\\Users\\admin\\repos\\EventB_Agent\\EventB_Agent_Core\\src\\eventb_agent_core\\llm\\schemas\\example_schema.json"), StandardCharsets.UTF_8);
-		JSONObject machineSchema = new JSONObject(jsonText);
-		
-		jsonSchema.put("schema", machineSchema);
+		String jsonText = Files.readString(Paths.get(
+				"C:\\Users\\admin\\repos\\EventB_Agent\\EventB_Agent_Core\\src\\eventb_agent_core\\llm\\schemas\\eventb_schema.json"),
+				StandardCharsets.UTF_8);
+		JSONObject jsonSchema = new JSONObject(jsonText);
 
 		return jsonSchema;
 	}

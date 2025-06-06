@@ -1,0 +1,99 @@
+{
+  "name": "eventb_schema",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "required": [
+      "context",
+      "machine"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "context": {
+        "type": "object",
+        "required": [
+          "CONTEXT",
+          "SETS",
+          "CONSTANTS"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "CONTEXT": {
+            "$ref": "#/$defs/identifier"
+          },
+          "SETS": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/identifier"
+            }
+          },
+          "CONSTANTS": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/identifier"
+            }
+          }
+        }
+      },
+      "machine": {
+        "type": "object",
+        "required": [
+          "MACHINE",
+          "SEES",
+          "VARIABLES",
+          "INVARIANTS"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "MACHINE": {
+            "$ref": "#/$defs/identifier"
+          },
+          "SEES": {
+            "$ref": "#/$defs/identifier"
+          },
+          "VARIABLES": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/identifier"
+            }
+          },
+          "INVARIANTS": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/labeled_predicate"
+            }
+          }
+        }
+      }
+    },
+    "$defs": {
+      "identifier": {
+        "type": "string",
+        "pattern": "^[a-zA-Z_]+$"
+      },
+      "label": {
+        "type": "string",
+        "pattern": "^@[a-zA-Z0-9_]+$"
+      },
+      "expression": {
+        "type": "string"
+      },
+      "labeled_predicate": {
+        "type": "object",
+        "required": [
+          "label_name",
+          "predicate"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "label_name": {
+            "$ref": "#/$defs/identifier"
+          },
+          "predicate": {
+            "$ref": "#/$defs/expression"
+          }
+        }
+      }
+    }
+  }
+}
