@@ -24,7 +24,7 @@ public class CreateMachineHandler extends AbstractHandler {
 			response = llmRequestSender.sendRequest(prompt);
 			JSONObject obj = new JSONObject(response);
 			String answer = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
-			System.out.println("Response: " + answer);
+			System.out.println(answer);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

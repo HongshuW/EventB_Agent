@@ -1,0 +1,13 @@
+{
+	"type": "object",
+	"properties": {
+		"machine": {
+			"type": "string"
+		},
+		"context": {
+			"type": "string"
+		}
+	},
+	"required": ["machine", "context"],
+	"additionalProperties": false
+}
