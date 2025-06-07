@@ -17,4 +17,5 @@ Bundle-ActivationPolicy: lazy
 Export-Package: eventb_agent_core,
  eventb_agent_core.llm,
  eventb_agent_core.preference,
- eventb_agent_core.utils
+ eventb_agent_core.utils,
+ org.json
