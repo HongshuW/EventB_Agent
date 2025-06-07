@@ -3,23 +3,118 @@
   "strict": true,
   "schema": {
     "type": "object",
+    "$defs": {
+      "event": {
+        "type": "object",
+        "required": [
+          "event_name",
+          "REFINES",
+          "ANY",
+          "WHERE",
+          "WITH",
+          "THEN"
+        ],
+        "properties": {
+          "event_name": {
+            "$ref": "#/$defs/identifier"
+          },
+          "REFINES": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/identifier"
+            }
+          },
+          "ANY": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/identifier"
+            }
+          },
+          "WHERE": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/labeled_predicate"
+            }
+          },
+          "WITH": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/labeled_predicate"
+            }
+          },
+          "THEN": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/labeled_predicate"
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "predicate": {
+        "type": "string"
+      },
+      "identifier": {
+        "type": "string",
+        "pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+      },
+      "init_event": {
+        "type": "object",
+        "required": [
+          "THEN"
+        ],
+        "properties": {
+          "THEN": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/labeled_predicate"
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "labeled_predicate": {
+        "type": "object",
+        "required": [
+          "label_name",
+          "predicate"
+        ],
+        "properties": {
+          "predicate": {
+            "$ref": "#/$defs/predicate"
+          },
+          "label_name": {
+            "$ref": "#/$defs/identifier"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
     "required": [
       "context",
       "machine"
     ],
-    "additionalProperties": false,
     "properties": {
       "context": {
         "type": "object",
         "required": [
           "CONTEXT",
+          "EXTENDS",
           "SETS",
-          "CONSTANTS"
+          "CONSTANTS",
+          "AXIOMS"
         ],
-        "additionalProperties": false,
         "properties": {
-          "CONTEXT": {
+		  "CONTEXT": {
             "$ref": "#/$defs/identifier"
+          },
+          "EXTENDS": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/identifier"
+            }
           },
           "SETS": {
             "type": "array",
@@ -32,24 +127,43 @@
             "items": {
               "$ref": "#/$defs/identifier"
             }
+          },
+          "AXIOMS": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/labeled_predicate"
+            }
           }
-        }
+        },
+        "additionalProperties": false
       },
       "machine": {
         "type": "object",
         "required": [
           "MACHINE",
+          "REFINES",
           "SEES",
           "VARIABLES",
-          "INVARIANTS"
+          "INVARIANTS",
+          "VARIANTS",
+          "INITIALISATION",
+          "EVENTS"
         ],
-        "additionalProperties": false,
         "properties": {
           "MACHINE": {
             "$ref": "#/$defs/identifier"
           },
+          "REFINES": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/identifier"
+            }
+          },
           "SEES": {
-            "$ref": "#/$defs/identifier"
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/identifier"
+            }
           },
           "VARIABLES": {
             "type": "array",
@@ -62,38 +176,26 @@
             "items": {
               "$ref": "#/$defs/labeled_predicate"
             }
+          },
+          "VARIANTS": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/labeled_predicate"
+            }
+          },
+          "INITIALISATION": {
+            "$ref": "#/$defs/init_event"
+          },
+          "EVENTS": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/event"
+            }
           }
-        }
+        },
+        "additionalProperties": false
       }
     },
-    "$defs": {
-      "identifier": {
-        "type": "string",
-        "pattern": "^[a-zA-Z_]+$"
-      },
-      "label": {
-        "type": "string",
-        "pattern": "^@[a-zA-Z0-9_]+$"
-      },
-      "expression": {
-        "type": "string"
-      },
-      "labeled_predicate": {
-        "type": "object",
-        "required": [
-          "label_name",
-          "predicate"
-        ],
-        "additionalProperties": false,
-        "properties": {
-          "label_name": {
-            "$ref": "#/$defs/identifier"
-          },
-          "predicate": {
-            "$ref": "#/$defs/expression"
-          }
-        }
-      }
-    }
+    "additionalProperties": false
   }
 }

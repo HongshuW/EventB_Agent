@@ -35,8 +35,6 @@ public class LLMRequestSender {
 
 		String payload = request.toString();
 
-		System.out.println(payload);
-
 		URL url = new URL(endpoint);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		conn.setRequestMethod("POST");
@@ -66,28 +64,30 @@ public class LLMRequestSender {
 				response.append(inputLine);
 			}
 
-//			System.out.println();
-//			System.out.println(response.toString());
 			return response.toString();
 		}
 	}
 
 	public static void main(String[] args) {
 		LLMRequestSender llmRequestSender = new LLMRequestSender();
+		LLMResponseParser llmResponseParser = new LLMResponseParser();
 
 		String prompt = "Generate an Event-B Machine.";
+
 		String response;
 		try {
 			response = llmRequestSender.sendRequest(prompt);
 			JSONObject obj = new JSONObject(response);
 			String answer = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
-			
-			JSONObject machine = new JSONObject(answer);
-			System.out.println();
-			System.out.println(machine.get("machine"));
-			
-			System.out.println();
-			System.out.println(machine.get("context"));
+
+			JSONObject answerJson = new JSONObject(answer);
+			String context = llmResponseParser.getContextString(answerJson);
+			String machine = llmResponseParser.getMachineString(answerJson);
+
+			System.out.println(context);
+			System.out.println("--------------");
+			System.out.println(machine);
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
