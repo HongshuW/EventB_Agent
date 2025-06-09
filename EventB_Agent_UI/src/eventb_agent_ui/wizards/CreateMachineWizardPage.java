@@ -127,7 +127,7 @@ public class CreateMachineWizardPage extends WizardPage {
 	 * Tests if the current workbench selection is a suitable project to use.
 	 */
 	private void initialize() {
-		promptText.setText("Generate an Event-B machine.");
+		promptText.setText("Generate an Event-B machine. Each VARIABLE must have a type specified in INVARIANTS.");
 
 		final IRodinProject project;
 		project = getProjectFromSelection();

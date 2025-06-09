@@ -4,6 +4,65 @@
   "schema": {
     "type": "object",
     "$defs": {
+      "predicate": {
+        "type": "string"
+      },
+      "assignment": {
+		"type": "string",
+		"pattern": "^.*:=.*$"
+	  },
+      "identifier": {
+        "type": "string",
+        "pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+      },
+      "labeled_predicate": {
+        "type": "object",
+        "required": [
+          "label_name",
+          "predicate"
+        ],
+        "properties": {
+		  "label_name": {
+            "$ref": "#/$defs/identifier"
+          },
+          "predicate": {
+            "$ref": "#/$defs/predicate"
+          }
+        },
+        "additionalProperties": false
+      },
+      "labeled_assignment": {
+        "type": "object",
+        "required": [
+          "label_name",
+          "assignment"
+        ],
+        "properties": {
+			"label_name": {
+            "$ref": "#/$defs/identifier"
+          },
+          "assignment": {
+            "$ref": "#/$defs/assignment"
+          }
+        },
+        "additionalProperties": false
+      },
+      "init_event": {
+        "type": "object",
+        "required": [
+          "THEN"
+        ],
+        "properties": {
+          "THEN": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/labeled_assignment"
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      },
       "event": {
         "type": "object",
         "required": [
@@ -45,48 +104,9 @@
           "THEN": {
             "type": "array",
             "items": {
-              "$ref": "#/$defs/labeled_predicate"
+              "$ref": "#/$defs/labeled_assignment"
             },
             "minItems": 1
-          }
-        },
-        "additionalProperties": false
-      },
-      "predicate": {
-        "type": "string"
-      },
-      "identifier": {
-        "type": "string",
-        "pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
-      },
-      "init_event": {
-        "type": "object",
-        "required": [
-          "THEN"
-        ],
-        "properties": {
-          "THEN": {
-            "type": "array",
-            "items": {
-              "$ref": "#/$defs/labeled_predicate"
-            },
-            "minItems": 1
-          }
-        },
-        "additionalProperties": false
-      },
-      "labeled_predicate": {
-        "type": "object",
-        "required": [
-          "label_name",
-          "predicate"
-        ],
-        "properties": {
-          "predicate": {
-            "$ref": "#/$defs/predicate"
-          },
-          "label_name": {
-            "$ref": "#/$defs/identifier"
           }
         },
         "additionalProperties": false
