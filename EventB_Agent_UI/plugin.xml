@@ -44,7 +44,7 @@
             category="EventB_Agent_UI.category"
             class="eventb_agent_ui.wizards.CreateMachineWizard"
             icon="icons/bot.png"
-            id="EventB_Agent_UI.wizard"
+            id="EventB_Agent_UI.wizards.CreateMachine"
             name="Event-B Agent: Context and Machine Synthesis">
       </wizard>
    </extension>
@@ -55,12 +55,12 @@
             name="Context and Machine Synthesis">
          <commonWizard
                type="import"
-               wizardId="EventB_Agent_UI.wizard">
+               wizardId="EventB_Agent_UI.wizards.CreateMachine">
             <enablement></enablement>
          </commonWizard>
          <triggerPoints>
             <triggerPoint pattern="*"/>
          </triggerPoints>
       </navigatorContent>
-   </extension>
+   </extension>>
 </plugin>

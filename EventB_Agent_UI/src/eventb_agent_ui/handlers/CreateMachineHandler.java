@@ -8,7 +8,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.json.JSONObject;
 
 import eventb_agent_core.llm.LLMRequestSender;
-import eventb_agent_core.llm.LLMResponseParser;
+import eventb_agent_core.llm.LLMResponsePrinter;
 
 /**
  * This handler is responsible for calling LLMs to generate an Event-B Machine.
@@ -16,7 +16,7 @@ import eventb_agent_core.llm.LLMResponseParser;
 public class CreateMachineHandler extends AbstractHandler {
 
 	private LLMRequestSender llmRequestSender = new LLMRequestSender();
-	private LLMResponseParser llmResponseParser = new LLMResponseParser();
+	private LLMResponsePrinter llmResponsePrinter = new LLMResponsePrinter();
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -29,8 +29,8 @@ public class CreateMachineHandler extends AbstractHandler {
 			String answer = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
 
 			JSONObject answerJson = new JSONObject(answer);
-			String context = llmResponseParser.getContextString(answerJson);
-			String machine = llmResponseParser.getMachineString(answerJson);
+			String context = llmResponsePrinter.getContextString(answerJson);
+			String machine = llmResponsePrinter.getMachineString(answerJson);
 
 			System.out.println(context);
 			System.out.println("--------------");

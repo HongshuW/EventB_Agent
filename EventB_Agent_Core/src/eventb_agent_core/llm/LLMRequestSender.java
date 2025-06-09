@@ -70,7 +70,7 @@ public class LLMRequestSender {
 
 	public static void main(String[] args) {
 		LLMRequestSender llmRequestSender = new LLMRequestSender();
-		LLMResponseParser llmResponseParser = new LLMResponseParser();
+		LLMResponsePrinter llmResponsePrinter = new LLMResponsePrinter();
 
 		String prompt = "Generate an Event-B Machine.";
 
@@ -81,8 +81,8 @@ public class LLMRequestSender {
 			String answer = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
 
 			JSONObject answerJson = new JSONObject(answer);
-			String context = llmResponseParser.getContextString(answerJson);
-			String machine = llmResponseParser.getMachineString(answerJson);
+			String context = llmResponsePrinter.getContextString(answerJson);
+			String machine = llmResponsePrinter.getMachineString(answerJson);
 
 			System.out.println(context);
 			System.out.println("--------------");
