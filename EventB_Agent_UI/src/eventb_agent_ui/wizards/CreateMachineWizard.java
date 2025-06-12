@@ -35,6 +35,7 @@ import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_ui.EventBAgentUIPlugin;
 import eventb_agent_ui.utils.CreateMachineUtils;
+import eventb_agent_ui.utils.JSONUtils;
 
 public class CreateMachineWizard extends Wizard implements INewWizard {
 
@@ -81,6 +82,7 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 		final String prompt = page.getPrompt();
 
 		JSONObject response = getLLMResponse(prompt);
+//		JSONObject response = JSONUtils.readJSON("C:\\Users\\admin\\repos\\EventB_Agent\\resources\\exampleResponse.json");
 
 		final String contextFileName = parser.getContextName(response) + "." + page.getContextFileType();
 		final String machineFileName = parser.getMachineName(response) + "." + page.getMachineFileType();

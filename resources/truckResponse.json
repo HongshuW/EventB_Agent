@@ -1,0 +1,69 @@
+{
+	"context": {
+		"EXTENDS": [],
+		"CONSTANTS": [
+			"dishName",
+			"price"
+		],
+		"AXIOMS": [
+			{
+				"predicate": "TRUE",
+				"label_name": "Axiom1"
+			}
+		],
+		"SETS": [
+			"Dishes"
+		],
+		"CONTEXT": "FoodTruckContext"
+	},
+	"machine": {
+		"EVENTS": [
+			{
+				"event_name": "AddDish",
+				"THEN": [
+					{
+						"assignment": "menu := menu  dishName  price; // Add new dish to menu.",
+						"label_name": "AddDished"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"dishName",
+					"price"
+				],
+				"WHERE": [],
+				"WITH": []
+			}
+		],
+		"VARIANTS": [],
+		"INVARIANTS": [
+			{
+				"predicate": "∀ d·(d ∈ menu ⇒ price(d) ≥ 0)",
+				"label_name": "MenuPricesNonNegative"
+			},
+			{
+				"predicate": "∀ s·(s ∈ salesLog ⇒ ∃ d·(d ∈ menu ∧ s = [d: n] ∧ n ≥ 0))",
+				"label_name": "SalesLogConsistency"
+			}
+		],
+		"SEES": [],
+		"VARIABLES": [
+			"menu",
+			"salesLog"
+		],
+		"MACHINE": "FoodTruckManagement",
+		"INITIALISATION": {
+			"THEN": [
+				{
+					"assignment": "menu := ∅; // Initialize empty menu",
+					"label_name": "InitMenu"
+				},
+				{
+					"assignment": "salesLog := ∅; // Initialize empty sales log",
+					"label_name": "InitSalesLog"
+				}
+			]
+		},
+		"REFINES": []
+	}
+}

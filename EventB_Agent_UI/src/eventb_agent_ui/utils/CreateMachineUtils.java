@@ -165,7 +165,8 @@ public class CreateMachineUtils {
 				if (key.equals(SchemaKeys.EVENT_NAME))
 					event.setLabel((String) eventInfo.get(key), pMonitor);
 				if (key.equals(SchemaKeys.REFINES))
-					addRefinesEventsChildren(event, pMonitor, (List<String>) eventInfo.get(key));
+					// TODO: add this later
+//					addRefinesEventsChildren(event, pMonitor, (List<String>) eventInfo.get(key));
 				if (key.equals(SchemaKeys.ANY))
 					addParametersChildren(event, pMonitor, (List<String>) eventInfo.get(key));
 				if (key.equals(SchemaKeys.WHERE))

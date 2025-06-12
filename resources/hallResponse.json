@@ -1,0 +1,147 @@
+{
+	"context": {
+		"EXTENDS": [],
+		"CONSTANTS": [
+			"DATE",
+			"ARTIST",
+			"NATURAL"
+		],
+		"AXIOMS": [
+			{
+				"predicate": "DATE : TYPE",
+				"label_name": "date_type"
+			},
+			{
+				"predicate": "ARTIST : TYPE",
+				"label_name": "artist_type"
+			},
+			{
+				"predicate": "NATURAL : TYPE",
+				"label_name": "natural_type"
+			}
+		],
+		"SETS": [
+			"DATE",
+			"ARTIST"
+		],
+		"CONTEXT": "Concert_Planning"
+	},
+	"machine": {
+		"EVENTS": [
+			{
+				"event_name": "schedule_concert",
+				"THEN": [
+					{
+						"assignment": "schedule' := schedule \\/ {date \\mapsto artist}.",
+						"label_name": "scheduling_concert"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"date",
+					"artist"
+				],
+				"WHERE": [
+					{
+						"predicate": "date \\notin dom(schedule)",
+						"label_name": "date_not_scheduled"
+					},
+					{
+						"predicate": "artist \\in artists",
+						"label_name": "valid_artist"
+					}
+				],
+				"WITH": []
+			},
+			{
+				"event_name": "sell_tickets",
+				"THEN": [
+					{
+						"assignment": "ticket_sales' := ticket_sales \\oplus {artist \\mapsto ticket_sales(artist) + number_of_tickets}",
+						"label_name": "update_ticket_sales"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"date",
+					"artist",
+					"number_of_tickets"
+				],
+				"WHERE": [
+					{
+						"predicate": "date \\in dom(schedule)",
+						"label_name": "concert_scheduled"
+					},
+					{
+						"predicate": "number_of_tickets > 0",
+						"label_name": "valid_ticket_number"
+					}
+				],
+				"WITH": []
+			},
+			{
+				"event_name": "retrieve_schedule",
+				"THEN": [
+					{
+						"assignment": "retrieved_dates' := { d \\in dom(schedule) | schedule(d) = artist }",
+						"label_name": "retrieve_artist_dates"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"artist"
+				],
+				"WHERE": [
+					{
+						"predicate": "artist \\in artists",
+						"label_name": "valid_artist"
+					}
+				],
+				"WITH": []
+			}
+		],
+		"VARIANTS": [],
+		"INVARIANTS": [
+			{
+				"predicate": "schedule : DATE \\pfun ARTIST",
+				"label_name": "schedule_function"
+			},
+			{
+				"predicate": "ticket_sales : ARTIST \\pfun NATURAL",
+				"label_name": "ticket_sales_function"
+			},
+			{
+				"predicate": "artists \\subseteq ARTIST",
+				"label_name": "valid_artists"
+			}
+		],
+		"SEES": [
+			"DATE",
+			"ARTIST",
+			"NATURAL"
+		],
+		"VARIABLES": [
+			"schedule",
+			"ticket_sales",
+			"artists"
+		],
+		"MACHINE": "Concert_Scheduling",
+		"INITIALISATION": {
+			"THEN": [
+				{
+					"assignment": "schedule' := {}",
+					"label_name": "init_schedule"
+				},
+				{
+					"assignment": "ticket_sales' := {}",
+					"label_name": "init_ticket_sales"
+				},
+				{
+					"assignment": "artists' := {}",
+					"label_name": "init_artists"
+				}
+			]
+		},
+		"REFINES": []
+	}
+}
