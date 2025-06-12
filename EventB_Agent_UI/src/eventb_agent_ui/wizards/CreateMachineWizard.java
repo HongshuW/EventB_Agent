@@ -33,6 +33,7 @@ import org.eventb.core.IExtendsContext;
 import org.eventb.core.IGuard;
 import org.eventb.core.IInvariant;
 import org.eventb.core.IMachineRoot;
+import org.eventb.core.IParameter;
 import org.eventb.core.IRefinesEvent;
 import org.eventb.core.IRefinesMachine;
 import org.eventb.core.ISeesContext;
@@ -287,7 +288,7 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 				if (key.equals(SchemaKeys.REFINES))
 					addRefinesEventsChildren(event, pMonitor, (List<String>) eventInfo.get(key));
 				if (key.equals(SchemaKeys.ANY))
-					addVariablesChildren(event, pMonitor, (List<String>) eventInfo.get(key));
+					addParametersChildren(event, pMonitor, (List<String>) eventInfo.get(key));
 				if (key.equals(SchemaKeys.WHERE))
 					addGuardsChildren(event, pMonitor, (List<String[]>) eventInfo.get(key));
 				if (key.equals(SchemaKeys.WITH))
@@ -305,6 +306,14 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 		for (String refIdentifier : refines) {
 			IRefinesEvent refinedEvent = internalElement.createChild(IRefinesEvent.ELEMENT_TYPE, null, pMonitor);
 			refinedEvent.setAbstractEventLabel(refIdentifier, pMonitor);
+		}
+	}
+
+	private void addParametersChildren(IInternalElement internalElement, IProgressMonitor pMonitor,
+			List<String> parameters) throws RodinDBException {
+		for (String pIndentifier : parameters) {
+			IParameter parameter = internalElement.createChild(IParameter.ELEMENT_TYPE, null, pMonitor);
+			parameter.setIdentifierString(pIndentifier, pMonitor);
 		}
 	}
 

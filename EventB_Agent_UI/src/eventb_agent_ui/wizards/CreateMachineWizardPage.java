@@ -89,8 +89,9 @@ public class CreateMachineWizardPage extends WizardPage {
 		label = new Label(composite, SWT.NULL);
 		label.setText("&System Description:");
 
-		promptText = new Text(composite, SWT.BORDER | SWT.SINGLE);
-		gd = new GridData(GridData.FILL_HORIZONTAL);
+		promptText = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+		gd.heightHint = 300;
 		promptText.setLayoutData(gd);
 		promptText.addModifyListener(listener);
 
@@ -127,7 +128,7 @@ public class CreateMachineWizardPage extends WizardPage {
 	 * Tests if the current workbench selection is a suitable project to use.
 	 */
 	private void initialize() {
-		promptText.setText("Generate an Event-B machine. Each VARIABLE must have a type specified in INVARIANTS.");
+		promptText.setText("Generate an Event-B machine.");
 
 		final IRodinProject project;
 		project = getProjectFromSelection();
