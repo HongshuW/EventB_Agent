@@ -42,7 +42,8 @@ public class CreateMachineUtils {
 		List<String> constants = parser.getConstants(json);
 		List<String[]> axioms = parser.getAxioms(json);
 
-		addExtendsChildren(rodinRoot, pMonitor, extendedContexts);
+		// TODO: add this later
+//		addExtendsChildren(rodinRoot, pMonitor, extendedContexts);
 		addSetsChildren(rodinRoot, pMonitor, sets);
 		addConstantsChildren(rodinRoot, pMonitor, constants);
 		addAxiomsChildren(rodinRoot, pMonitor, axioms);
@@ -97,7 +98,8 @@ public class CreateMachineUtils {
 		List<String[]> variants = parser.getVariants(json);
 		List<Map<String, Object>> events = parser.getEvents(json);
 
-		addRefineMachineChildren(rodinRoot, pMonitor, refines);
+		// TODO: add this later
+//		addRefineMachineChildren(rodinRoot, pMonitor, refines);
 		addSeeContextChildren(rodinRoot, pMonitor, sees);
 		addVariablesChildren(rodinRoot, pMonitor, variables);
 		addInvariantsChildren(rodinRoot, pMonitor, invariants);
