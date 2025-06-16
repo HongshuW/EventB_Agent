@@ -1,0 +1,68 @@
+{
+	"context": {
+		"EXTENDS": [],
+		"CONSTANTS": [
+			"DISHES"
+		],
+		"AXIOMS": [],
+		"SETS": [],
+		"CONTEXT": "FoodTruckContext"
+	},
+	"machine": {
+		"EVENTS": [
+			{
+				"event_name": "AddDish",
+				"THEN": [
+					{
+						"assignment": "Menu := Menu ∪ {new_dish}",
+						"label_name": "AddNewDish"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"new_dish"
+				],
+				"WHERE": [],
+				"WITH": []
+			},
+			{
+				"event_name": "SellDish",
+				"THEN": [
+					{
+						"assignment": "SalesLog := SalesLog ⊕ {sold_dish |-> SalesLog[sold_dish] + 1}",
+						"label_name": "UpdateSales"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"sold_dish"
+				],
+				"WHERE": [
+					{
+						"predicate": "sold_dish ∈ Menu",
+						"label_name": "DishOnMenu"
+					}
+				],
+				"WITH": []
+			}
+		],
+		"VARIANTS": [],
+		"INVARIANTS": [
+			{
+				"predicate": "Menu ⊆ DISHES",
+				"label_name": "MenuTypeInvariant"
+			},
+			{
+				"predicate": "SalesLog ⊆ {d | d : Menu ↔ ℕ}",
+				"label_name": "SalesLogTypeInvariant"
+			}
+		],
+		"SEES": [],
+		"VARIABLES": [
+			"Menu",
+			"SalesLog"
+		],
+		"MACHINE": "FoodTruckSystem",
+		"REFINES": []
+	}
+}

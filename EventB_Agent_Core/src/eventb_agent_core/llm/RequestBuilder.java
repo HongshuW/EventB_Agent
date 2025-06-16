@@ -23,18 +23,25 @@ public class RequestBuilder {
 
 		request.put("model", Constants.GPT_MODEL);
 
-		JSONArray messages = new JSONArray();
+		JSONArray input = new JSONArray();
 		JSONObject requestMessage = new JSONObject();
 		requestMessage.put("role", "user");
-		requestMessage.put("content", prompt.replace("\"", "\\\""));
-		messages.put(requestMessage);
-		request.put("messages", messages);
+		JSONArray contentArray = new JSONArray();
+		JSONObject content = new JSONObject();
+		content.put("type", "input_text");
+		content.put("text", prompt);
+		contentArray.put(content);
+		requestMessage.put("content", contentArray);
+		input.put(requestMessage);
+		request.put("input", input);
 
-		JSONObject responseFormat = new JSONObject();
-		responseFormat.put("type", "json_schema");
 		JSONObject jsonSchema = getSchema();
-		responseFormat.put("json_schema", jsonSchema);
-		request.put("response_format", responseFormat);
+		JSONObject textFormat = new JSONObject();
+		textFormat.put("format", jsonSchema);
+		request.put("text", textFormat);
+		
+		request.put("temperature", 1);
+		request.put("top_p", 1);
 
 		return request;
 	}

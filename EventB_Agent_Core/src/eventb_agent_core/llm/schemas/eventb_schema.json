@@ -1,4 +1,5 @@
 {
+  "type": "json_schema",
   "name": "eventb_schema",
   "strict": true,
   "schema": {
@@ -209,7 +210,8 @@
             "type": "array",
             "items": {
               "$ref": "#/$defs/event"
-            }
+            },
+            "minItems": 1
           }
         },
         "additionalProperties": false

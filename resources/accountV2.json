@@ -1,0 +1,128 @@
+{
+	"context": {
+		"EXTENDS": [],
+		"CONSTANTS": [
+			"UsernameAccountPair",
+			"UsernameHashedPasswordPair",
+			"Passwords"
+		],
+		"AXIOMS": [
+			{
+				"predicate": "∀ username, password · (username ∈ UsernameAccountPair) ⇒ (password ∈ Passwords)",
+				"label_name": "valid_username_password_pair"
+			}
+		],
+		"SETS": [
+			"Usernames",
+			"HashedPasswords"
+		],
+		"CONTEXT": "user_account_context"
+	},
+	"machine": {
+		"EVENTS": [
+			{
+				"event_name": "create_account",
+				"THEN": [
+					{
+						"assignment": "accounts := accounts ∪ {account}",
+						"label_name": "account"
+					},
+					{
+						"assignment": "credentials := credentials ∪ {(username, hashed_password)}",
+						"label_name": "credentials"
+					}
+				],
+				"REFINES": [
+					"account_management"
+				],
+				"ANY": [
+					"username",
+					"password",
+					"hashed_password"
+				],
+				"WHERE": [
+					{
+						"predicate": "username ∉ dom(credentials)",
+						"label_name": "unique_username"
+					}
+				],
+				"WITH": [
+					{
+						"predicate": "password ∈ Passwords",
+						"label_name": "valid_password"
+					}
+				]
+			},
+			{
+				"event_name": "login",
+				"THEN": [
+					{
+						"assignment": "logged_in_user := username",
+						"label_name": "set_user"
+					}
+				],
+				"REFINES": [
+					"account_management"
+				],
+				"ANY": [
+					"username",
+					"password",
+					"hashed_password"
+				],
+				"WHERE": [
+					{
+						"predicate": "username ∈ dom(credentials)",
+						"label_name": "existing_user"
+					},
+					{
+						"predicate": "encrypt(password) = hashed_password",
+						"label_name": "correct_password"
+					}
+				],
+				"WITH": []
+			},
+			{
+				"event_name": "logout",
+				"THEN": [
+					{
+						"assignment": "logged_in_user := ∅",
+						"label_name": "clear_user"
+					}
+				],
+				"REFINES": [
+					"account_management"
+				],
+				"ANY": [],
+				"WHERE": [],
+				"WITH": []
+			}
+		],
+		"VARIANTS": [],
+		"INVARIANTS": [
+			{
+				"predicate": "accounts ⊆ UsernameAccountPair",
+				"label_name": "valid_accounts"
+			},
+			{
+				"predicate": "credentials ⊆ UsernameHashedPasswordPair",
+				"label_name": "valid_credentials"
+			},
+			{
+				"predicate": "logged_in_user ∈ dom(credentials) ∨ logged_in_user = ∅",
+				"label_name": "user_logged_in"
+			}
+		],
+		"SEES": [
+			"account_management"
+		],
+		"VARIABLES": [
+			"accounts",
+			"credentials",
+			"logged_in_user"
+		],
+		"MACHINE": "user_account_system",
+		"REFINES": [
+			"user_management"
+		]
+	}
+}

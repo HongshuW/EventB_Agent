@@ -6,7 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
+import java.nio.charset.StandardCharsets;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.json.JSONObject;
@@ -28,7 +28,7 @@ public class LLMRequestSender {
 	}
 
 	public String sendRequest(String prompt) throws IOException {
-		String endpoint = "https://api.openai.com/v1/chat/completions";
+		String endpoint = "https://api.openai.com/v1/responses";
 
 		RequestBuilder requestBuilder = new RequestBuilder();
 		JSONObject request = requestBuilder.getRequest(prompt);
@@ -43,18 +43,19 @@ public class LLMRequestSender {
 		conn.setDoOutput(true);
 
 		try (OutputStream os = conn.getOutputStream()) {
-			os.write(payload.getBytes());
+			os.write(payload.getBytes(StandardCharsets.UTF_8));
 			os.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		int responseCode = conn.getResponseCode();
+
 		InputStreamReader reader;
 		if (responseCode == HttpURLConnection.HTTP_OK) {
-			reader = new InputStreamReader(conn.getInputStream());
+			reader = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8);
 		} else {
-			reader = new InputStreamReader(conn.getErrorStream());
+			reader = new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8);
 		}
 
 		try (BufferedReader in = new BufferedReader(reader)) {
@@ -65,31 +66,6 @@ public class LLMRequestSender {
 			}
 
 			return response.toString();
-		}
-	}
-
-	public static void main(String[] args) {
-		LLMRequestSender llmRequestSender = new LLMRequestSender();
-		LLMResponsePrinter llmResponsePrinter = new LLMResponsePrinter();
-
-		String prompt = "Generate an Event-B Machine.";
-
-		String response;
-		try {
-			response = llmRequestSender.sendRequest(prompt);
-			JSONObject obj = new JSONObject(response);
-			String answer = obj.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
-
-			JSONObject answerJson = new JSONObject(answer);
-			String context = llmResponsePrinter.getContextString(answerJson);
-			String machine = llmResponsePrinter.getMachineString(answerJson);
-
-			System.out.println(context);
-			System.out.println("--------------");
-			System.out.println(machine);
-
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 

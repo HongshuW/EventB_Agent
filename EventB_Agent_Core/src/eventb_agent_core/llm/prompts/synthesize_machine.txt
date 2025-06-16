@@ -1,3 +1,4 @@
-Generate an Event-B machine.
-For each variable, include an invariant to specify its type.
-Make sure an event called "INITIALISATION" is included.
+Generate an Event-B machine. 
+For each variable, include an invariant to specify its type. 
+Do not include comments.
+Respond using only code-points 0x20-0x7E. Do not emit \u0000–\u001F. For Event-B use: \in for '∈', \subseteq for '⊆', not for '¬', etc.

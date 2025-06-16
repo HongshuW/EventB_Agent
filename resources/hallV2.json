@@ -1,0 +1,86 @@
+{
+	"context": {
+		"EXTENDS": [],
+		"CONSTANTS": [
+			"DATE",
+			"ARTIST"
+		],
+		"AXIOMS": [],
+		"SETS": [],
+		"CONTEXT": "Concert_Hall"
+	},
+	"machine": {
+		"EVENTS": [
+			{
+				"event_name": "schedule_concert",
+				"THEN": [
+					{
+						"assignment": "concerts := concerts ∪ {date ← artist}",
+						"label_name": "schedule_assignment"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"date",
+					"artist"
+				],
+				"WHERE": [],
+				"WITH": []
+			},
+			{
+				"event_name": "sell_tickets",
+				"THEN": [
+					{
+						"assignment": "ticket_sales[artist] := ticket_sales[artist] + number",
+						"label_name": "sell_assignment"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"artist",
+					"number"
+				],
+				"WHERE": [
+					{
+						"predicate": "date ∈ dom(concerts)",
+						"label_name": "concert_exists"
+					}
+				],
+				"WITH": []
+			},
+			{
+				"event_name": "retrieve_dates",
+				"THEN": [
+					{
+						"assignment": "perform_dates := {d ∈ dom(concerts) | concerts[d] = artist}",
+						"label_name": "retrieve_assignment"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"artist"
+				],
+				"WHERE": [],
+				"WITH": []
+			}
+		],
+		"VARIANTS": [],
+		"INVARIANTS": [
+			{
+				"predicate": "concerts : DATE ⇸ ARTIST",
+				"label_name": "concerts_type"
+			},
+			{
+				"predicate": "ticket_sales : ARTIST ↦ NAT",
+				"label_name": "ticket_sales_type"
+			}
+		],
+		"SEES": [],
+		"VARIABLES": [
+			"concerts",
+			"ticket_sales"
+		],
+		"MACHINE": "Concert_Hall_Scheduler",
+		"REFINES": []
+	}
+}

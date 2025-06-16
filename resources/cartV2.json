@@ -1,0 +1,106 @@
+{
+	"content": {
+		"EXTENDS": [],
+		"CONSTANTS": [
+			"PRODUCT"
+		],
+		"AXIOMS": [
+			{
+				"predicate": "∀p01 \u2022 p01 ∈ PRODUCT ⇒ store[p01] ≥ 0",
+				"label_name": "non_negative_stock"
+			}
+		],
+		"SETS": [
+			"PRODUCT"
+		],
+		"CONTEXT": "shopping_cart_context"
+	},
+	"machine": {
+		"EVENTS": [
+			{
+				"event_name": "add_product",
+				"THEN": [
+					{
+						"assignment": "cart := cart ∪ {product ↦ quantity}",
+						"label_name": "adding_product"
+					},
+					{
+						"assignment": "store[product] := store[product] - quantity",
+						"label_name": "reduce_store"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"product",
+					"quantity"
+				],
+				"WHERE": [
+					{
+						"predicate": "product ∈ store.keys",
+						"label_name": "product_exists"
+					},
+					{
+						"predicate": "store[product] ≥ quantity",
+						"label_name": "enough_stock"
+					}
+				],
+				"WITH": [
+					{
+						"predicate": "product ∈ cart.keys",
+						"label_name": "product_in_cart"
+					}
+				]
+			},
+			{
+				"event_name": "remove_product",
+				"THEN": [
+					{
+						"assignment": "cart := cart \\\\ {product}",
+						"label_name": "removing_product"
+					},
+					{
+						"assignment": "store[product] := store[product] + cart[product]",
+						"label_name": "restore_stock"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"product"
+				],
+				"WHERE": [
+					{
+						"predicate": "product ∈ cart.keys",
+						"label_name": "product_in_cart"
+					}
+				],
+				"WITH": []
+			}
+		],
+		"VARIANTS": [
+			{
+				"expression": "|cart|",
+				"label_name": "variant_size"
+			}
+		],
+		"INVARIANTS": [
+			{
+				"predicate": "cart ∈ P(PRODUCT × NAT)",
+				"label_name": "invariant_cart"
+			},
+			{
+				"predicate": "store ∈ (PRODUCT ↔ NAT)",
+				"label_name": "invariant_store"
+			}
+		],
+		"SEES": [
+			"PRODUCT",
+			"NAT"
+		],
+		"VARIABLES": [
+			"cart",
+			"store"
+		],
+		"MACHINE": "shopping_cart",
+		"REFINES": []
+	}
+}

@@ -9,7 +9,6 @@ public class ParserUtils {
 	public static String lex(String originalString) {
 
 		Map<String, String> prioritizedMap = new HashMap<>();
-		prioritizedMap.put("\\rightarrow", "→");
 		prioritizedMap.put("||", "∥");
 
 		Map<String, String> stringMap = new HashMap<>();
@@ -31,17 +30,27 @@ public class ParserUtils {
 
 		Map<String, String> specialCharsMap = new HashMap<>();
 		specialCharsMap.put("\\pfun", "⇸");
+		specialCharsMap.put("\subseteq", "⊆");
 		specialCharsMap.put("\\subseteq", "⊆");
-		specialCharsMap.put("\\notin", "∉");
 		specialCharsMap.put("\\in", "∈");
 		specialCharsMap.put("\\mapsto", "↦");
+		specialCharsMap.put("\notin", "∉");
+		specialCharsMap.put("\\notin", "∉");
+		specialCharsMap.put("\rightarrow", "→");
+		specialCharsMap.put("\\rightarrow", "→");
 		specialCharsMap.put("\\/", "∪");
 		specialCharsMap.put("/\\", "∩");
-		specialCharsMap.put("\\", "∖");
+		specialCharsMap.put("\forall", "∀");
 		specialCharsMap.put("\\forall", "∀");
+		specialCharsMap.put("\neq", "≠");
 		specialCharsMap.put("\\neq", "≠");
+		specialCharsMap.put("\times", "×");
 		specialCharsMap.put("\\times", "×");
+		specialCharsMap.put("\u222a", "∪");
 		specialCharsMap.put("\\u222a", "∪");
+		specialCharsMap.put("\\land", "∧");
+		specialCharsMap.put("\bullet", "·");
+		specialCharsMap.put("\\bullet", "·");
 		specialCharsMap.put("{}", "∅");
 		specialCharsMap.put("|", "∣");
 		specialCharsMap.put(":=", "≔");
@@ -56,6 +65,8 @@ public class ParserUtils {
 		specialCharsMap.put("#", "∃");
 		specialCharsMap.put("POW(", "ℙ(");
 		specialCharsMap.put("POW1(", "ℙ1(");
+		specialCharsMap.put("P(", "ℙ(");
+		specialCharsMap.put("P1(", "ℙ1(");
 		specialCharsMap.put("/:", "∉");
 		specialCharsMap.put("/<:", "⊈");
 		specialCharsMap.put("/<<:", "⊄");
@@ -73,7 +84,6 @@ public class ParserUtils {
 		regexMap.put("\\∣([^∣]+)\\∣", "card($1)"); // replace ∣...∣ with card(...)
 		regexMap.put("\\s*//.*$", ""); // remove comments
 		regexMap.put("(?<![|<>+\\\\-])-(?![|<>+\\\\-])", "−"); // replace "-" with "−"
-		regexMap.put("\\\\u00[0-9A-Fa-f]*\\b", ""); // remove invalid unicode
 		regexMap.put("(?<![<])=>", "⇒"); // replace "=>" with "⇒"
 		regexMap.put("!(?![=])", "∀"); // replace "!" with "∀"
 		regexMap.put("(?<![\\\\/=<>:\\|]):(?![\\\\/=<>:\\|])", "∈"); // replace ":" with "∈"
@@ -90,6 +100,9 @@ public class ParserUtils {
 		regexMap.put(">->(?![>])", "↣"); // replace ">->" with "↣"
 		regexMap.put("-->(?![>])", "→"); // replace "-->" with "→"
 
+		Map<String, String> leastPrioritizedMap = new HashMap<>();
+		leastPrioritizedMap.put("\\\\", "∖");
+
 		for (Entry<String, String> entry : prioritizedMap.entrySet()) {
 			originalString = originalString.replace(entry.getKey(), entry.getValue());
 		}
@@ -104,6 +117,10 @@ public class ParserUtils {
 
 		for (Entry<String, String> entry : stringMap.entrySet()) {
 			originalString = originalString.replaceAll("\\b" + entry.getKey() + "\\b", entry.getValue());
+		}
+
+		for (Entry<String, String> entry : leastPrioritizedMap.entrySet()) {
+			originalString = originalString.replace(entry.getKey(), entry.getValue());
 		}
 
 		return originalString;
