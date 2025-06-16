@@ -50,25 +50,14 @@ public class LLMResponseParser {
 		List<String[]> results = new ArrayList<>();
 		for (int i = 0; i < array.length(); i++) {
 			String[] labeledPredInfo = new String[2];
-			JSONObject labeledPred = array.getJSONObject(i);
-			String label = labeledPred.getString(SchemaKeys.LABEL);
-			String predicate = labeledPred.getString(keyForFormulae);
+			JSONObject labeledObject = array.getJSONObject(i);
+			String label = labeledObject.getString(SchemaKeys.LABEL);
+			String predicate = labeledObject.getString(keyForFormulae);
 			labeledPredInfo[0] = label;
 			labeledPredInfo[1] = ParserUtils.lex(predicate);
 			results.add(labeledPredInfo);
 		}
 		return results;
-	}
-
-	private Map<String, Object> getInitEvent(JSONObject json, String key) {
-		JSONObject initEventJson = json.getJSONObject(key);
-		Map<String, Object> initEvent = new HashMap<>();
-		initEvent.put(SchemaKeys.EVENT_NAME, SchemaKeys.INITIALISATION);
-		List<String[]> then = getArrayOfLabeledFormulae(initEventJson, SchemaKeys.THEN, SchemaKeys.ASSIGN);
-		if (!then.isEmpty()) {
-			initEvent.put(SchemaKeys.THEN, then);
-		}
-		return initEvent;
 	}
 
 	private List<Map<String, Object>> getArrayOfEvents(JSONObject json, String key) {
@@ -138,13 +127,11 @@ public class LLMResponseParser {
 	}
 
 	public List<String[]> getVariants(JSONObject machineJSON) {
-		return getArrayOfLabeledFormulae(machineJSON, SchemaKeys.VARIANTS, SchemaKeys.PRED);
+		return getArrayOfLabeledFormulae(machineJSON, SchemaKeys.VARIANTS, SchemaKeys.EXPR);
 	}
 
 	public List<Map<String, Object>> getEvents(JSONObject machineJSON) {
 		List<Map<String, Object>> events = getArrayOfEvents(machineJSON, SchemaKeys.EVENTS);
-		Map<String, Object> initEvent = getInitEvent(machineJSON, SchemaKeys.INITIALISATION);
-		events.add(0, initEvent);
 		return events;
 	}
 

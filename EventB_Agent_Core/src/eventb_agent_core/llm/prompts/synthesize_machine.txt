@@ -1,0 +1,3 @@
+Generate an Event-B machine.
+For each variable, include an invariant to specify its type.
+Make sure an event called "INITIALISATION" is included.

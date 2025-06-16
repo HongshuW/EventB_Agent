@@ -2,6 +2,10 @@ package eventb_agent_ui.wizards;
 
 import static org.rodinp.core.RodinCore.asRodinElement;
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 
 import org.eclipse.jface.viewers.ISelection;
@@ -26,6 +30,8 @@ import org.eventb.ui.EventBUIPlugin;
 import org.rodinp.core.IRodinElement;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
+
+import eventb_agent_core.utils.FileUtils;
 
 public class CreateMachineWizardPage extends WizardPage {
 
@@ -128,7 +134,11 @@ public class CreateMachineWizardPage extends WizardPage {
 	 * Tests if the current workbench selection is a suitable project to use.
 	 */
 	private void initialize() {
-		promptText.setText("Generate an Event-B machine.");
+
+		Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "prompts",
+				"synthesize_machine.txt");
+		String prompt = FileUtils.readText(path);
+		promptText.setText(prompt);
 
 		final IRodinProject project;
 		project = getProjectFromSelection();

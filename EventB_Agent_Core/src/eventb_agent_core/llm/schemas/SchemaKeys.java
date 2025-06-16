@@ -20,7 +20,6 @@ public class SchemaKeys {
 	public static final String VARIABLES = "VARIABLES";
 	public static final String INVARIANTS = "INVARIANTS";
 	public static final String VARIANTS = "VARIANTS";
-	public static final String INITIALISATION = "INITIALISATION";
 	public static final String EVENTS = "EVENTS";
 
 	/* internal keys for labeled predicates */
@@ -28,6 +27,7 @@ public class SchemaKeys {
 	public static final String LABEL = "label_name";
 	public static final String PRED = "predicate";
 	public static final String ASSIGN = "assignment";
+	public static final String EXPR = "expression";
 
 	/* internal keys for events */
 

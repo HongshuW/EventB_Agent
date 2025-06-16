@@ -7,6 +7,9 @@
       "predicate": {
         "type": "string"
       },
+      "expression": {
+		"type": "string"
+	  },
       "assignment": {
 		"type": "string",
 		"pattern": "^.*:=.*$"
@@ -31,6 +34,22 @@
         },
         "additionalProperties": false
       },
+      "labeled_expression": {
+        "type": "object",
+        "required": [
+          "label_name",
+          "expression"
+        ],
+        "properties": {
+		  "label_name": {
+            "$ref": "#/$defs/identifier"
+          },
+          "expression": {
+            "$ref": "#/$defs/expression"
+          }
+        },
+        "additionalProperties": false
+      },
       "labeled_assignment": {
         "type": "object",
         "required": [
@@ -43,22 +62,6 @@
           },
           "assignment": {
             "$ref": "#/$defs/assignment"
-          }
-        },
-        "additionalProperties": false
-      },
-      "init_event": {
-        "type": "object",
-        "required": [
-          "THEN"
-        ],
-        "properties": {
-          "THEN": {
-            "type": "array",
-            "items": {
-              "$ref": "#/$defs/labeled_assignment"
-            },
-            "minItems": 1
           }
         },
         "additionalProperties": false
@@ -166,7 +169,6 @@
           "VARIABLES",
           "INVARIANTS",
           "VARIANTS",
-          "INITIALISATION",
           "EVENTS"
         ],
         "properties": {
@@ -200,11 +202,8 @@
           "VARIANTS": {
             "type": "array",
             "items": {
-              "$ref": "#/$defs/labeled_predicate"
+              "$ref": "#/$defs/labeled_expression"
             }
-          },
-          "INITIALISATION": {
-            "$ref": "#/$defs/init_event"
           },
           "EVENTS": {
             "type": "array",
