@@ -1,0 +1,148 @@
+{
+	"context": {
+		"EXTENDS": [],
+		"CONSTANTS": [
+			"StoreProducts"
+		],
+		"AXIOMS": [
+			{
+				"predicate": "StoreProducts \\subseteq PRODUCT",
+				"label_name": "axm1"
+			}
+		],
+		"SETS": [
+			"PRODUCT"
+		],
+		"CONTEXT": "ShoppingCtx"
+	},
+	"machine": {
+		"EVENTS": [
+			{
+				"event_name": "INITIALISATION",
+				"THEN": [
+					{
+						"assignment": "cart := {}",
+						"label_name": "act1"
+					},
+					{
+						"assignment": "store := StoreProducts \\times {0}",
+						"label_name": "act2"
+					}
+				],
+				"REFINES": [],
+				"ANY": [],
+				"WHERE": [],
+				"WITH": []
+			},
+			{
+				"event_name": "add_product",
+				"THEN": [
+					{
+						"assignment": "cart(p) := (cart(p) \\domsub {p} + q)",
+						"label_name": "act1"
+					},
+					{
+						"assignment": "store(p) := store(p) - q",
+						"label_name": "act2"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"p",
+					"q"
+				],
+				"WHERE": [
+					{
+						"predicate": "p \\in dom(store)",
+						"label_name": "grd1"
+					},
+					{
+						"predicate": "q \\in NAT1",
+						"label_name": "grd2"
+					},
+					{
+						"predicate": "store(p) \\geq q",
+						"label_name": "grd3"
+					}
+				],
+				"WITH": []
+			},
+			{
+				"event_name": "remove_product",
+				"THEN": [
+					{
+						"assignment": "store(p) := store(p) + cart(p)",
+						"label_name": "act1"
+					},
+					{
+						"assignment": "cart := cart \\setminus {p}",
+						"label_name": "act2"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"p"
+				],
+				"WHERE": [
+					{
+						"predicate": "p \\in dom(cart)",
+						"label_name": "grd1"
+					}
+				],
+				"WITH": []
+			},
+			{
+				"event_name": "reduce_quantity",
+				"THEN": [
+					{
+						"assignment": "cart(p) := cart(p) - 1",
+						"label_name": "act1"
+					},
+					{
+						"assignment": "store(p) := store(p) + 1",
+						"label_name": "act2"
+					},
+					{
+						"assignment": "cart := (cart(p) = 0) => cart \\setminus {p} | cart",
+						"label_name": "act3"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"p"
+				],
+				"WHERE": [
+					{
+						"predicate": "p \\in dom(cart)",
+						"label_name": "grd1"
+					},
+					{
+						"predicate": "cart(p) \\geq 1",
+						"label_name": "grd2"
+					}
+				],
+				"WITH": []
+			}
+		],
+		"VARIANTS": [],
+		"INVARIANTS": [
+			{
+				"predicate": "cart \\in PRODUCT \\pfun NAT1",
+				"label_name": "inv1"
+			},
+			{
+				"predicate": "store \\in PRODUCT \\pfun NAT",
+				"label_name": "inv2"
+			}
+		],
+		"SEES": [
+			"ShoppingCtx"
+		],
+		"VARIABLES": [
+			"cart",
+			"store"
+		],
+		"MACHINE": "ShoppingMch",
+		"REFINES": []
+	}
+}

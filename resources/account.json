@@ -1,0 +1,122 @@
+{
+	"context": {
+		"EXTENDS": [],
+		"CONSTANTS": [
+			"hash_function"
+		],
+		"AXIOMS": [
+			{
+				"predicate": "hash_function \\in PASSWORD \\rightarrow HASH",
+				"label_name": "axm1"
+			}
+		],
+		"SETS": [
+			"USER",
+			"PASSWORD",
+			"HASH"
+		],
+		"CONTEXT": "UserContext"
+	},
+	"machine": {
+		"EVENTS": [
+			{
+				"event_name": "CreateAccount",
+				"THEN": [
+					{
+						"assignment": "accounts(u) := hash_function(p)",
+						"label_name": "act1"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"u",
+					"p"
+				],
+				"WHERE": [
+					{
+						"predicate": "u \\in USER",
+						"label_name": "grd1"
+					},
+					{
+						"predicate": "p \\in PASSWORD",
+						"label_name": "grd2"
+					},
+					{
+						"predicate": "u \\notin dom(accounts)",
+						"label_name": "grd3"
+					}
+				],
+				"WITH": []
+			},
+			{
+				"event_name": "Login",
+				"THEN": [
+					{
+						"assignment": "logged_in := logged_in \\cup {u}",
+						"label_name": "act1"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"u",
+					"p"
+				],
+				"WHERE": [
+					{
+						"predicate": "u \\in dom(accounts)",
+						"label_name": "grd1"
+					},
+					{
+						"predicate": "p \\in PASSWORD",
+						"label_name": "grd2"
+					},
+					{
+						"predicate": "accounts(u) = hash_function(p)",
+						"label_name": "grd3"
+					}
+				],
+				"WITH": []
+			},
+			{
+				"event_name": "Logout",
+				"THEN": [
+					{
+						"assignment": "logged_in := logged_in \\setminus {u}",
+						"label_name": "act1"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"u"
+				],
+				"WHERE": [
+					{
+						"predicate": "u \\in logged_in",
+						"label_name": "grd1"
+					}
+				],
+				"WITH": []
+			}
+		],
+		"VARIANTS": [],
+		"INVARIANTS": [
+			{
+				"predicate": "accounts \\in USER \\pfun HASH",
+				"label_name": "inv1"
+			},
+			{
+				"predicate": "logged_in \\subseteq USER",
+				"label_name": "inv2"
+			}
+		],
+		"SEES": [
+			"UserContext"
+		],
+		"VARIABLES": [
+			"accounts",
+			"logged_in"
+		],
+		"MACHINE": "UserMachine",
+		"REFINES": []
+	}
+}

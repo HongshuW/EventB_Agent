@@ -4,6 +4,8 @@ import static org.eventb.core.IConfigurationElement.DEFAULT_CONFIGURATION;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Paths;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -37,6 +39,7 @@ import org.rodinp.core.IRodinProject;
 import org.rodinp.core.RodinCore;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMResponseParser;
+import eventb_agent_core.utils.FileUtils;
 import eventb_agent_ui.EventBAgentUIPlugin;
 import eventb_agent_ui.utils.CompilationErrorType;
 import eventb_agent_ui.utils.CreateMachineUtils;
@@ -88,7 +91,7 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 		final String sysDesc = page.getSystemDesc();
 
 		JSONObject response = getLLMResponse(prompt, sysDesc);
-//		java.nio.file.Path path = Paths.get(FileUtils.getAgentDirectoryPath(), "resources", "hallV2.json");
+//		java.nio.file.Path path = Paths.get(FileUtils.getAgentDirectoryPath(), "resources", "truck.json");
 //		JSONObject response = FileUtils.readJSON(path);
 
 		final String contextFileName = parser.getContextName(response) + "." + page.getContextFileType();

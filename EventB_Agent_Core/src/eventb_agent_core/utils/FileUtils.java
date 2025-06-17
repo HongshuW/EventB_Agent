@@ -6,10 +6,14 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class FileUtils {
 
@@ -43,6 +47,21 @@ public class FileUtils {
 			System.err.println("Invalid JSON format: " + e.getMessage());
 		}
 		return null;
+	}
+
+	public static Map<String, Object> readOrderedJSON(Path path) {
+		ObjectMapper mapper = new ObjectMapper();
+
+		// Read JSON file as generic Map (order preserved)
+		Map<String, Object> json = new LinkedHashMap<>();
+		;
+		try {
+			json = (Map<String, Object>) mapper.readValue(path.toFile(), Map.class);
+			return json;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return json;
 	}
 
 	private static File getAgentDirectory() {

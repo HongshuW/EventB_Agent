@@ -1,14 +1,16 @@
 package eventb_agent_core.llm;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eventb_agent_core.utils.Constants;
+import eventb_agent_core.utils.FileUtils;
 
 /**
  * This class is responsible for generating request.
@@ -18,41 +20,40 @@ public class RequestBuilder {
 	public RequestBuilder() {
 	}
 
-	public JSONObject getRequest(String prompt) throws IOException {
-		JSONObject request = new JSONObject();
+	public String getRequest(String prompt) throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+
+		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
 
 		request.put("model", Constants.GPT_MODEL);
 
-		JSONArray input = new JSONArray();
-		JSONObject requestMessage = new JSONObject();
+		LinkedHashMap<String, Object> requestMessage = new LinkedHashMap<>();
 		requestMessage.put("role", "user");
-		JSONArray contentArray = new JSONArray();
-		JSONObject content = new JSONObject();
+		LinkedHashMap<String, Object> content = new LinkedHashMap<>();
 		content.put("type", "input_text");
 		content.put("text", prompt);
-		contentArray.put(content);
-		requestMessage.put("content", contentArray);
-		input.put(requestMessage);
-		request.put("input", input);
+		requestMessage.put("content", Arrays.asList(content));
+		request.put("input", Arrays.asList(requestMessage));
 
-		JSONObject jsonSchema = getSchema();
-		JSONObject textFormat = new JSONObject();
+		Map<String, Object> jsonSchema = getSchema();
+		LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
 		textFormat.put("format", jsonSchema);
 		request.put("text", textFormat);
-		
-		request.put("temperature", 1);
-		request.put("top_p", 1);
 
-		return request;
+		request.put("temperature", Constants.TEMPERATURE);
+		request.put("top_p", Constants.TOP_P);
+		request.put("max_output_tokens", Constants.TOKEN_LIMIT);
+
+		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+		return jsonStr;
 	}
 
-	public JSONObject getSchema() throws IOException {
-		String jsonText = Files.readString(Paths.get(
-				"C:\\Users\\admin\\repos\\EventB_Agent\\EventB_Agent_Core\\src\\eventb_agent_core\\llm\\schemas\\eventb_schema.json"),
-				StandardCharsets.UTF_8);
-		JSONObject jsonSchema = new JSONObject(jsonText);
+	public Map<String, Object> getSchema() throws IOException {
+		Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "schemas",
+				"eventb_schema.json");
+		Map<String, Object> json = FileUtils.readOrderedJSON(path);
 
-		return jsonSchema;
+		return json;
 	}
 
 }

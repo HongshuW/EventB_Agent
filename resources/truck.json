@@ -1,17 +1,12 @@
 {
 	"context": {
 		"EXTENDS": [],
-		"CONSTANTS": [
-			"DISHES"
+		"CONSTANTS": [],
+		"AXIOMS": [],
+		"SETS": [
+			"DISH"
 		],
-		"AXIOMS": [
-			{
-				"predicate": "DISHES \\subseteq STRING",
-				"label_name": "axm1"
-			}
-		],
-		"SETS": [],
-		"CONTEXT": "CTX1"
+		"CONTEXT": "FoodTruckCtx"
 	},
 	"machine": {
 		"EVENTS": [
@@ -33,41 +28,29 @@
 				"WITH": []
 			},
 			{
-				"event_name": "add_dish",
+				"event_name": "addDish",
 				"THEN": [
 					{
-						"assignment": "menu := menu \\cup {dish}",
+						"assignment": "menu := menu \\cup {d}",
 						"label_name": "act1"
+					},
+					{
+						"assignment": "sales := sales \\cup {d \\mapsto 0}",
+						"label_name": "act2"
 					}
 				],
 				"REFINES": [],
 				"ANY": [
-					"dish"
+					"d"
 				],
 				"WHERE": [
 					{
-						"predicate": "dish \\notin menu",
+						"predicate": "d \\in DISH",
 						"label_name": "grd1"
-					}
-				],
-				"WITH": []
-			},
-			{
-				"event_name": "record_sale",
-				"THEN": [
+					},
 					{
-						"assignment": "sales(dish) := sales(dish) + 1",
-						"label_name": "act1"
-					}
-				],
-				"REFINES": [],
-				"ANY": [
-					"dish"
-				],
-				"WHERE": [
-					{
-						"predicate": "dish \\in menu",
-						"label_name": "grd1"
+						"predicate": "d \\notin menu",
+						"label_name": "grd2"
 					}
 				],
 				"WITH": []
@@ -76,7 +59,7 @@
 		"VARIANTS": [],
 		"INVARIANTS": [
 			{
-				"predicate": "menu \\subseteq DISHES",
+				"predicate": "menu \\subseteq DISH",
 				"label_name": "inv1"
 			},
 			{
@@ -85,13 +68,13 @@
 			}
 		],
 		"SEES": [
-			"CTX1"
+			"FoodTruckCtx"
 		],
 		"VARIABLES": [
 			"menu",
 			"sales"
 		],
-		"MACHINE": "M1",
+		"MACHINE": "FoodTruckMch",
 		"REFINES": []
 	}
 }

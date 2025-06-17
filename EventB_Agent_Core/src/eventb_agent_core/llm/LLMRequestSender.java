@@ -32,9 +32,7 @@ public class LLMRequestSender {
 
 		prompt = prompt.replace(Constants.SYS_DESC_PLACE_HOLDER, systemDesc);
 		RequestBuilder requestBuilder = new RequestBuilder();
-		JSONObject request = requestBuilder.getRequest(prompt);
-
-		String payload = request.toString();
+		String request = requestBuilder.getRequest(prompt);
 
 		URL url = new URL(endpoint);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -44,7 +42,7 @@ public class LLMRequestSender {
 		conn.setDoOutput(true);
 
 		try (OutputStream os = conn.getOutputStream()) {
-			os.write(payload.getBytes(StandardCharsets.UTF_8));
+			os.write(request.getBytes(StandardCharsets.UTF_8));
 			os.flush();
 		} catch (Exception e) {
 			e.printStackTrace();

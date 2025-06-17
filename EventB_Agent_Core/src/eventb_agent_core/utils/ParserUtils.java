@@ -115,6 +115,10 @@ public class ParserUtils {
 		regexMap.put("\\\\+triangleright", "▷");
 		regexMap.put("\\\\+mid", "∣");
 		regexMap.put("\\\\+wedge", "∧");
+		regexMap.put("\\\\+domsub", "⩥");
+		regexMap.put("\\\\+lor", "∨");
+		regexMap.put("\\\\\\{", "{");
+		regexMap.put("\\\\\\}", "}");
 
 		Map<String, String> leastPrioritizedMap = new HashMap<>();
 		leastPrioritizedMap.put("\\\\", "∖");

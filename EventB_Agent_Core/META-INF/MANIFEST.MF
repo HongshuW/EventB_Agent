@@ -10,7 +10,10 @@ Require-Bundle: org.eclipse.core.resources;bundle-version="3.20.0",
  org.eventb.core;bundle-version="3.7.0"
 Bundle-ClassPath: 
  .,
- lib/json-20220924.jar
+ lib/json-20220924.jar,
+ lib/jackson-databind-2.17.1.jar,
+ lib/jackson-core-2.17.1.jar,
+ lib/jackson-annotations-2.17.1.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: EventB.Agent.Core
 Bundle-ActivationPolicy: lazy

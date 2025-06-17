@@ -109,8 +109,7 @@
             "type": "array",
             "items": {
               "$ref": "#/$defs/labeled_assignment"
-            },
-            "minItems": 1
+            }
           }
         },
         "additionalProperties": false
