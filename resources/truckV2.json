@@ -4,43 +4,70 @@
 		"CONSTANTS": [
 			"DISHES"
 		],
-		"AXIOMS": [],
+		"AXIOMS": [
+			{
+				"predicate": "DISHES \\subseteq STRING",
+				"label_name": "axm1"
+			}
+		],
 		"SETS": [],
-		"CONTEXT": "FoodTruckContext"
+		"CONTEXT": "CTX1"
 	},
 	"machine": {
 		"EVENTS": [
 			{
-				"event_name": "AddDish",
+				"event_name": "INITIALISATION",
 				"THEN": [
 					{
-						"assignment": "Menu := Menu ∪ {new_dish}",
-						"label_name": "AddNewDish"
+						"assignment": "menu := {}",
+						"label_name": "act1"
+					},
+					{
+						"assignment": "sales := {}",
+						"label_name": "act2"
 					}
 				],
 				"REFINES": [],
-				"ANY": [
-					"new_dish"
-				],
+				"ANY": [],
 				"WHERE": [],
 				"WITH": []
 			},
 			{
-				"event_name": "SellDish",
+				"event_name": "add_dish",
 				"THEN": [
 					{
-						"assignment": "SalesLog := SalesLog ⊕ {sold_dish |-> SalesLog[sold_dish] + 1}",
-						"label_name": "UpdateSales"
+						"assignment": "menu := menu \\cup {dish}",
+						"label_name": "act1"
 					}
 				],
 				"REFINES": [],
 				"ANY": [
-					"sold_dish"
+					"dish"
 				],
 				"WHERE": [
 					{
-						"predicate": "sold_dish ∈ Menu",
-						"label_name": "DishOnMenu"
+						"predicate": "dish \\notin menu",
+						"label_name": "grd1"
+					}
+				],
+				"WITH": []
+			},
+			{
+				"event_name": "record_sale",
+				"THEN": [
+					{
+						"assignment": "sales(dish) := sales(dish) + 1",
+						"label_name": "act1"
+					}
+				],
+				"REFINES": [],
+				"ANY": [
+					"dish"
+				],
+				"WHERE": [
+					{
+						"predicate": "dish \\in menu",
+						"label_name": "grd1"
 					}
 				],
 				"WITH": []
@@ -49,20 +76,22 @@
 		"VARIANTS": [],
 		"INVARIANTS": [
 			{
-				"predicate": "Menu ⊆ DISHES",
-				"label_name": "MenuTypeInvariant"
+				"predicate": "menu \\subseteq DISHES",
+				"label_name": "inv1"
 			},
 			{
-				"predicate": "SalesLog ⊆ {d | d : Menu ↔ ℕ}",
-				"label_name": "SalesLogTypeInvariant"
+				"predicate": "sales \\in menu \\rightarrow \\nat",
+				"label_name": "inv2"
 			}
 		],
-		"SEES": [],
-		"VARIABLES": [
-			"Menu",
-			"SalesLog"
+		"SEES": [
+			"CTX1"
 		],
-		"MACHINE": "FoodTruckSystem",
+		"VARIABLES": [
+			"menu",
+			"sales"
+		],
+		"MACHINE": "M1",
 		"REFINES": []
 	}
 }

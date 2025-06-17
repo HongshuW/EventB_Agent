@@ -2,81 +2,84 @@
 	"context": {
 		"EXTENDS": [],
 		"CONSTANTS": [
-			"UsernameAccountPair",
-			"UsernameHashedPasswordPair",
-			"Passwords"
+			"USERNAME",
+			"PASSWORD",
+			"PASSWORD_HASH",
+			"hash"
 		],
 		"AXIOMS": [
 			{
-				"predicate": "∀ username, password · (username ∈ UsernameAccountPair) ⇒ (password ∈ Passwords)",
-				"label_name": "valid_username_password_pair"
+				"predicate": "USERNAME \\neq \\emptyset",
+				"label_name": "axiom_USERNAME_nonempty"
+			},
+			{
+				"predicate": "PASSWORD \\neq \\emptyset",
+				"label_name": "axiom_PASSWORD_nonempty"
+			},
+			{
+				"predicate": "PASSWORD_HASH \\neq \\emptyset",
+				"label_name": "axiom_PASSWORD_HASH_nonempty"
+			},
+			{
+				"predicate": "hash \\in PASSWORD \\pfun PASSWORD_HASH",
+				"label_name": "axiom_hash_type"
 			}
 		],
-		"SETS": [
-			"Usernames",
-			"HashedPasswords"
-		],
-		"CONTEXT": "user_account_context"
+		"SETS": [],
+		"CONTEXT": "CTX_user"
 	},
 	"machine": {
 		"EVENTS": [
 			{
-				"event_name": "create_account",
+				"event_name": "createAccount",
 				"THEN": [
 					{
-						"assignment": "accounts := accounts ∪ {account}",
-						"label_name": "account"
-					},
-					{
-						"assignment": "credentials := credentials ∪ {(username, hashed_password)}",
-						"label_name": "credentials"
+						"assignment": "accounts(username) := hash(password)",
+						"label_name": "assign_hash"
 					}
 				],
-				"REFINES": [
-					"account_management"
-				],
+				"REFINES": [],
 				"ANY": [
 					"username",
-					"password",
-					"hashed_password"
+					"password"
 				],
 				"WHERE": [
 					{
-						"predicate": "username ∉ dom(credentials)",
-						"label_name": "unique_username"
+						"predicate": "username \\notin dom(accounts)",
+						"label_name": "username_new"
+					},
+					{
+						"predicate": "username \\in USERNAME",
+						"label_name": "username_type"
+					},
+					{
+						"predicate": "password \\in PASSWORD",
+						"label_name": "password_type"
 					}
 				],
-				"WITH": [
-					{
-						"predicate": "password ∈ Passwords",
-						"label_name": "valid_password"
-					}
-				]
+				"WITH": []
 			},
 			{
 				"event_name": "login",
 				"THEN": [
 					{
-						"assignment": "logged_in_user := username",
-						"label_name": "set_user"
+						"assignment": "loggedIn := loggedIn \\cup {username}",
+						"label_name": "login_add"
 					}
 				],
-				"REFINES": [
-					"account_management"
-				],
+				"REFINES": [],
 				"ANY": [
 					"username",
-					"password",
-					"hashed_password"
+					"password"
 				],
 				"WHERE": [
 					{
-						"predicate": "username ∈ dom(credentials)",
-						"label_name": "existing_user"
+						"predicate": "username \\in dom(accounts)",
+						"label_name": "username_exists"
 					},
 					{
-						"predicate": "encrypt(password) = hashed_password",
-						"label_name": "correct_password"
+						"predicate": "hash(password) = accounts(username)",
+						"label_name": "password_match"
 					}
 				],
 				"WITH": []
@@ -85,44 +88,42 @@
 				"event_name": "logout",
 				"THEN": [
 					{
-						"assignment": "logged_in_user := ∅",
-						"label_name": "clear_user"
+						"assignment": "loggedIn := loggedIn \\setminus {username}",
+						"label_name": "logout_remove"
 					}
 				],
-				"REFINES": [
-					"account_management"
+				"REFINES": [],
+				"ANY": [
+					"username"
 				],
-				"ANY": [],
-				"WHERE": [],
+				"WHERE": [
+					{
+						"predicate": "username \\in loggedIn",
+						"label_name": "username_logged_in"
+					}
+				],
 				"WITH": []
 			}
 		],
 		"VARIANTS": [],
 		"INVARIANTS": [
 			{
-				"predicate": "accounts ⊆ UsernameAccountPair",
-				"label_name": "valid_accounts"
+				"predicate": "accounts \\in USERNAME \\pfun PASSWORD_HASH",
+				"label_name": "accounts_type"
 			},
 			{
-				"predicate": "credentials ⊆ UsernameHashedPasswordPair",
-				"label_name": "valid_credentials"
-			},
-			{
-				"predicate": "logged_in_user ∈ dom(credentials) ∨ logged_in_user = ∅",
-				"label_name": "user_logged_in"
+				"predicate": "loggedIn \\subseteq USERNAME",
+				"label_name": "loggedIn_type"
 			}
 		],
 		"SEES": [
-			"account_management"
+			"CTX_user"
 		],
 		"VARIABLES": [
 			"accounts",
-			"credentials",
-			"logged_in_user"
+			"loggedIn"
 		],
-		"MACHINE": "user_account_system",
-		"REFINES": [
-			"user_management"
-		]
+		"MACHINE": "UserAccountMachine",
+		"REFINES": []
 	}
 }

@@ -27,9 +27,10 @@ public class LLMRequestSender {
 		apiKey = prefs.get(AgentPreferenceInitializer.PREF_LLM_KEY, "");
 	}
 
-	public String sendRequest(String prompt) throws IOException {
-		String endpoint = "https://api.openai.com/v1/responses";
+	public String sendRequest(String prompt, String systemDesc) throws IOException {
+		String endpoint = Constants.GPT_ENDPOINT;
 
+		prompt = prompt.replace(Constants.SYS_DESC_PLACE_HOLDER, systemDesc);
 		RequestBuilder requestBuilder = new RequestBuilder();
 		JSONObject request = requestBuilder.getRequest(prompt);
 

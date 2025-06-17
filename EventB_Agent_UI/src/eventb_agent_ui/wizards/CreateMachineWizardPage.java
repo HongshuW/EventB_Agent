@@ -39,7 +39,8 @@ public class CreateMachineWizardPage extends WizardPage {
 	private Text projectText;
 	EventBProjectValidator projectValidator;
 
-	private Text promptText;
+	private String prompt;
+	private Text systemDescText;
 
 	// The selection when the wizard is launched.
 	private ISelection selection;
@@ -95,11 +96,11 @@ public class CreateMachineWizardPage extends WizardPage {
 		label = new Label(composite, SWT.NULL);
 		label.setText("&System Description:");
 
-		promptText = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+		systemDescText = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
 		gd.heightHint = 300;
-		promptText.setLayoutData(gd);
-		promptText.addModifyListener(listener);
+		systemDescText.setLayoutData(gd);
+		systemDescText.addModifyListener(listener);
 
 		initialize();
 		setControl(composite);
@@ -121,7 +122,7 @@ public class CreateMachineWizardPage extends WizardPage {
 			setFocusAndSelectAll(projectText);
 		} else {
 			// Project is valid, focus on component control
-			setFocusAndSelectAll(promptText);
+			setFocusAndSelectAll(systemDescText);
 		}
 	}
 
@@ -135,10 +136,14 @@ public class CreateMachineWizardPage extends WizardPage {
 	 */
 	private void initialize() {
 
-		Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "prompts",
+		Path promptPath = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "prompts",
 				"synthesize_machine.txt");
-		String prompt = FileUtils.readText(path);
-		promptText.setText(prompt);
+		prompt = FileUtils.readText(promptPath);
+
+		Path sysDescPath = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "prompts",
+				"system_desc_example.txt");
+		String sysDesc = FileUtils.readText(sysDescPath);
+		systemDescText.setText(sysDesc);
 
 		final IRodinProject project;
 		project = getProjectFromSelection();
@@ -148,7 +153,7 @@ public class CreateMachineWizardPage extends WizardPage {
 
 		if (project != null) {
 			projectText.setText(project.getElementName());
-			promptText.selectAll();
+			systemDescText.selectAll();
 		}
 	}
 
@@ -247,14 +252,12 @@ public class CreateMachineWizardPage extends WizardPage {
 		return projectText.getText();
 	}
 
-	/**
-	 * Get the prompt to LLM.
-	 * <p>
-	 * 
-	 * @return The prompt to LLM
-	 */
 	public String getPrompt() {
-		return promptText.getText();
+		return prompt;
+	}
+
+	public String getSystemDesc() {
+		return systemDescText.getText();
 	}
 
 	public String getMachineFileType() {

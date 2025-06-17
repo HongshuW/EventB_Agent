@@ -29,28 +29,20 @@ public class ParserUtils {
 		stringMap.put("circ", "∘");
 
 		Map<String, String> specialCharsMap = new HashMap<>();
-		specialCharsMap.put("\\pfun", "⇸");
 		specialCharsMap.put("\subseteq", "⊆");
-		specialCharsMap.put("\\subseteq", "⊆");
-		specialCharsMap.put("\\in", "∈");
-		specialCharsMap.put("\\mapsto", "↦");
 		specialCharsMap.put("\notin", "∉");
-		specialCharsMap.put("\\notin", "∉");
 		specialCharsMap.put("\rightarrow", "→");
-		specialCharsMap.put("\\rightarrow", "→");
 		specialCharsMap.put("\\/", "∪");
 		specialCharsMap.put("/\\", "∩");
 		specialCharsMap.put("\forall", "∀");
-		specialCharsMap.put("\\forall", "∀");
 		specialCharsMap.put("\neq", "≠");
-		specialCharsMap.put("\\neq", "≠");
 		specialCharsMap.put("\times", "×");
-		specialCharsMap.put("\\times", "×");
 		specialCharsMap.put("\u222a", "∪");
-		specialCharsMap.put("\\u222a", "∪");
-		specialCharsMap.put("\\land", "∧");
 		specialCharsMap.put("\bullet", "·");
-		specialCharsMap.put("\\bullet", "·");
+		specialCharsMap.put("\not=", "≠");
+		specialCharsMap.put("\nat", "ℕ");
+		specialCharsMap.put("\setminus", "∖");
+		specialCharsMap.put("\triangleright", "▷");
 		specialCharsMap.put("{}", "∅");
 		specialCharsMap.put("|", "∣");
 		specialCharsMap.put(":=", "≔");
@@ -82,6 +74,8 @@ public class ParserUtils {
 		Map<String, String> regexMap = new HashMap<>();
 		regexMap.put("\\|([^|]+)\\|", "card($1)"); // replace |...| with card(...)
 		regexMap.put("\\∣([^∣]+)\\∣", "card($1)"); // replace ∣...∣ with card(...)
+		regexMap.put("\\\\math(bb|bf|cal|rm|it|frak|tt)\\{([^}]*)\\}", "$2"); // replace \mathXX{...} with ...
+		regexMap.put("\\\\text(|bf|it|tt|sf|rm|sc|sl|normal|up)\\{([^}]*)\\}", "$2"); // replace \textXX{...} with ...
 		regexMap.put("\\s*//.*$", ""); // remove comments
 		regexMap.put("(?<![|<>+\\\\-])-(?![|<>+\\\\-])", "−"); // replace "-" with "−"
 		regexMap.put("(?<![<])=>", "⇒"); // replace "=>" with "⇒"
@@ -99,6 +93,28 @@ public class ParserUtils {
 		regexMap.put("\\+->(?![>])", "⇸"); // replace "+->" with "⇸"
 		regexMap.put(">->(?![>])", "↣"); // replace ">->" with "↣"
 		regexMap.put("-->(?![>])", "→"); // replace "-->" with "→"
+		regexMap.put("\\\\+pfun", "⇸");
+		regexMap.put("\\\\+subseteq", "⊆");
+		regexMap.put("\\\\+in", "∈");
+		regexMap.put("\\\\+mapsto", "↦");
+		regexMap.put("\\\\+notin", "∉");
+		regexMap.put("\\\\+rightarrow", "→");
+		regexMap.put("\\\\+forall", "∀");
+		regexMap.put("\\\\+neq", "≠");
+		regexMap.put("\\\\+times", "×");
+		regexMap.put("\\\\+u222a", "∪");
+		regexMap.put("\\\\+land", "∧");
+		regexMap.put("\\\\+bullet", "·");
+		regexMap.put("\\\\+not=", "≠");
+		regexMap.put("\\\\+cup", "∪");
+		regexMap.put("\\\\+nat", "ℕ");
+		regexMap.put("\\\\+emptyset", "∅");
+		regexMap.put("\\\\+setminus", "∖");
+		regexMap.put("\\\\+leq", "≤");
+		regexMap.put("\\\\+geq", "≥");
+		regexMap.put("\\\\+triangleright", "▷");
+		regexMap.put("\\\\+mid", "∣");
+		regexMap.put("\\\\+wedge", "∧");
 
 		Map<String, String> leastPrioritizedMap = new HashMap<>();
 		leastPrioritizedMap.put("\\\\", "∖");
@@ -124,7 +140,6 @@ public class ParserUtils {
 		}
 
 		return originalString;
-
 	}
 
 }

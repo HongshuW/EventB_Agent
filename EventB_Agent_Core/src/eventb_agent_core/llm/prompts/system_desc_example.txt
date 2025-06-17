@@ -1,0 +1,1 @@
+The system describes an integer counter that can be incremented or decremented, its value must always be non-negative.
