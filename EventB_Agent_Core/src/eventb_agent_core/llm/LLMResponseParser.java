@@ -11,11 +11,10 @@ import org.json.JSONObject;
 import eventb_agent_core.llm.schemas.SchemaKeys;
 import eventb_agent_core.utils.ParserUtils;
 
-public class LLMResponseParser {
+public abstract class LLMResponseParser {
 
-	public LLMResponseParser() {
-	}
-
+	public abstract JSONObject getResponseContent(String response);
+	
 	public JSONObject getContextJSON(JSONObject json) {
 		return json.getJSONObject(SchemaKeys.CONTEXT_OBJ_KEY);
 	}

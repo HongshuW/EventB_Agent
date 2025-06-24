@@ -20,7 +20,7 @@ public class GPTRequestBuilder extends RequestBuilder {
 	@Override
 	protected Map<String, Object> getSchema() throws IOException {
 		Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "schemas",
-				"eventb_schema.json");
+				"gpt_schema.json");
 		Map<String, Object> json = FileUtils.readOrderedJSON(path);
 
 		return json;

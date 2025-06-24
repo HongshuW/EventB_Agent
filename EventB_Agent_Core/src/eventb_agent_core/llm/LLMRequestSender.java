@@ -32,9 +32,9 @@ public abstract class LLMRequestSender {
 		prompt = prompt.replace(Constants.SYS_DESC_PLACE_HOLDER, systemDesc);
 		RequestBuilder requestBuilder = getRequestBuilder();
 		String request = requestBuilder.getRequest(prompt);
-		
+
 		System.out.println(request);
-		
+
 		HttpURLConnection conn = requestBuilder.getURLConnection(getAPIEndpoint(), getAPIKey());
 
 		try (OutputStream os = conn.getOutputStream()) {

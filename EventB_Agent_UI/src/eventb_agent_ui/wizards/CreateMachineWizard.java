@@ -75,7 +75,7 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
 		LLMModels modelType = LLMModels.getLLMModel(prefs.get(AgentPreferenceInitializer.PREF_LLM_MODEL, ""));
 		llmRequestSender = LLMInstanceFactory.getRequestSender(modelType);
-		llmResponseParser = new LLMResponseParser();
+		llmResponseParser = LLMInstanceFactory.getResponseParser(modelType);
 	}
 
 	/*
@@ -163,13 +163,7 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 		String response;
 		try {
 			response = llmRequestSender.sendRequest(prompt, systemDesc);
-			JSONObject obj = new JSONObject(response);
-			String answer = obj.getJSONArray("output").getJSONObject(0).getJSONArray("content").getJSONObject(0)
-					.getString("text");
-
-			JSONObject answerJson = new JSONObject(answer);
-
-			return answerJson;
+			return llmResponseParser.getResponseContent(response);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -3,6 +3,8 @@ package eventb_agent_core.llm.claude;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -11,18 +13,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eventb_agent_core.llm.RequestBuilder;
 import eventb_agent_core.utils.Constants;
+import eventb_agent_core.utils.FileUtils;
 
 public class ClaudeRequestBuilder extends RequestBuilder {
 
 	@Override
 	protected Map<String, Object> getSchema() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "schemas",
+				"claude_schema.json");
+		Map<String, Object> json = FileUtils.readOrderedJSON(path);
+
+		return json;
 	}
 
 	@Override
 	public String getRequest(String prompt) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
+
+		Map<String, Object> jsonSchema = getSchema();
+		String schemaString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonSchema);
+		prompt += "\nFollow the grammar in your response:\n" + schemaString;
 
 		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
 
@@ -46,7 +56,7 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 		conn.setRequestMethod("POST");
 		conn.setRequestProperty("x-api-key", apiKey);
 		conn.setRequestProperty("anthropic-version", Constants.ANTHROPIC_VERSION);
-		conn.setRequestProperty("Content-Type", "application/json");
+		conn.setRequestProperty("content-type", "application/json");
 		conn.setDoOutput(true);
 		return conn;
 	}

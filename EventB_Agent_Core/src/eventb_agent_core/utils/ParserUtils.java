@@ -5,6 +5,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class ParserUtils {
+	
+	public static String addEscape(String originalString) {
+		return originalString.replace("\\", "\\\\");
+	}
 
 	public static String lex(String originalString) {
 

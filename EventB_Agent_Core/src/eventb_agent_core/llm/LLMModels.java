@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 public enum LLMModels {
 	GPT4_1_MINI("GPT 4.1 mini"),
-	CLAUDE("Claude"),
-	GEMINI("Gemini");
+	CLAUDE3_OPUS("Claude 3 opus"),
+	GEMINI2_5_FLASH("Gemini 2.5 flash");
 
 	private final String stringValue;
 

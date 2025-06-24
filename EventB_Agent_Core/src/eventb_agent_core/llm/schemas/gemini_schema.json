@@ -1,0 +1,235 @@
+{
+	"type": "object",
+	"required": [
+		"context",
+		"machine"
+	],
+	"properties": {
+		"context": {
+			"type": "object",
+			"required": [
+				"CONTEXT",
+				"EXTENDS",
+				"SETS",
+				"CONSTANTS",
+				"AXIOMS"
+			],
+			"properties": {
+				"CONTEXT": {
+					"type": "string",
+					"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+				},
+				"EXTENDS": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+					}
+				},
+				"SETS": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+					}
+				},
+				"CONSTANTS": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+					}
+				},
+				"AXIOMS": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"required": [
+							"label_name",
+							"predicate"
+						],
+						"properties": {
+							"label_name": {
+								"type": "string",
+								"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+							},
+							"predicate": {
+								"type": "string"
+							}
+						}
+					}
+				}
+			}
+		},
+		"machine": {
+			"type": "object",
+			"required": [
+				"MACHINE",
+				"REFINES",
+				"SEES",
+				"VARIABLES",
+				"INVARIANTS",
+				"VARIANTS",
+				"EVENTS"
+			],
+			"properties": {
+				"MACHINE": {
+					"type": "string",
+					"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+				},
+				"REFINES": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+					}
+				},
+				"SEES": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+					}
+				},
+				"VARIABLES": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+					}
+				},
+				"INVARIANTS": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"required": [
+							"label_name",
+							"predicate"
+						],
+						"properties": {
+							"label_name": {
+								"type": "string",
+								"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+							},
+							"predicate": {
+								"type": "string"
+							}
+						}
+					}
+				},
+				"VARIANTS": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"required": [
+							"label_name",
+							"expression"
+						],
+						"properties": {
+							"label_name": {
+								"type": "string",
+								"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+							},
+							"expression": {
+								"type": "string"
+							}
+						}
+					}
+				},
+				"EVENTS": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"required": [
+							"event_name",
+							"REFINES",
+							"ANY",
+							"WHERE",
+							"WITH",
+							"THEN"
+						],
+						"properties": {
+							"event_name": {
+								"type": "string",
+								"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+							},
+							"REFINES": {
+								"type": "array",
+								"items": {
+									"type": "string",
+									"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+								}
+							},
+							"ANY": {
+								"type": "array",
+								"items": {
+									"type": "string",
+									"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+								}
+							},
+							"WHERE": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"required": [
+										"label_name",
+										"predicate"
+									],
+									"properties": {
+										"label_name": {
+											"type": "string",
+											"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+										},
+										"predicate": {
+											"type": "string"
+										}
+									}
+								}
+							},
+							"WITH": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"required": [
+										"label_name",
+										"predicate"
+									],
+									"properties": {
+										"label_name": {
+											"type": "string",
+											"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+										},
+										"predicate": {
+											"type": "string"
+										}
+									}
+								}
+							},
+							"THEN": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"required": [
+										"label_name",
+										"assignment"
+									],
+									"properties": {
+										"label_name": {
+											"type": "string",
+											"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+										},
+										"assignment": {
+											"type": "string",
+											"pattern": "^.*:=.*$"
+										}
+									}
+								}
+							}
+						}
+					},
+					"minItems": 1
+				}
+			}
+		}
+	}
+}
