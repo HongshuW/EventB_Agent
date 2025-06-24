@@ -18,6 +18,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -37,8 +39,13 @@ import org.rodinp.core.IRodinElement;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
 import org.rodinp.core.RodinCore;
+
+import eventb_agent_core.llm.LLMInstanceFactory;
 import eventb_agent_core.llm.LLMRequestSender;
+import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.LLMResponseParser;
+import eventb_agent_core.preference.AgentPreferenceInitializer;
+import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.FileUtils;
 import eventb_agent_ui.EventBAgentUIPlugin;
 import eventb_agent_ui.utils.CompilationErrorType;
@@ -55,7 +62,8 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 	// The selection when the wizard is launched.
 	private ISelection selection;
 
-	private LLMResponseParser parser;
+	private LLMRequestSender llmRequestSender;
+	private LLMResponseParser llmResponseParser;
 
 	/**
 	 * Constructor: This wizard needs a progress monitor.
@@ -63,7 +71,11 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 	public CreateMachineWizard() {
 		super();
 		setNeedsProgressMonitor(true);
-		parser = new LLMResponseParser();
+
+		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
+		LLMModels modelType = LLMModels.getLLMModel(prefs.get(AgentPreferenceInitializer.PREF_LLM_MODEL, ""));
+		llmRequestSender = LLMInstanceFactory.getRequestSender(modelType);
+		llmResponseParser = new LLMResponseParser();
 	}
 
 	/*
@@ -94,10 +106,10 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 //		java.nio.file.Path path = Paths.get(FileUtils.getAgentDirectoryPath(), "resources", "truck.json");
 //		JSONObject response = FileUtils.readJSON(path);
 
-		final String contextFileName = parser.getContextName(response) + "." + page.getContextFileType();
-		final String machineFileName = parser.getMachineName(response) + "." + page.getMachineFileType();
-		JSONObject contextJSON = parser.getContextJSON(response);
-		JSONObject machineJSON = parser.getMachineJSON(response);
+		final String contextFileName = llmResponseParser.getContextName(response) + "." + page.getContextFileType();
+		final String machineFileName = llmResponseParser.getMachineName(response) + "." + page.getMachineFileType();
+		JSONObject contextJSON = llmResponseParser.getContextJSON(response);
+		JSONObject machineJSON = llmResponseParser.getMachineJSON(response);
 
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			@Override
@@ -148,13 +160,12 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 	}
 
 	private JSONObject getLLMResponse(String prompt, String systemDesc) {
-		LLMRequestSender llmRequestSender = new LLMRequestSender();
-
 		String response;
 		try {
 			response = llmRequestSender.sendRequest(prompt, systemDesc);
 			JSONObject obj = new JSONObject(response);
-			String answer = obj.getJSONArray("output").getJSONObject(0).getJSONArray("content").getJSONObject(0).getString("text");
+			String answer = obj.getJSONArray("output").getJSONObject(0).getJSONArray("content").getJSONObject(0)
+					.getString("text");
 
 			JSONObject answerJson = new JSONObject(answer);
 
@@ -192,10 +203,10 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 				((IConfigurationElement) rodinRoot).setConfiguration(DEFAULT_CONFIGURATION, pMonitor);
 				if (rodinRoot instanceof IMachineRoot) {
 					/* machine */
-					CreateMachineUtils.initiateMachine(rodinRoot, pMonitor, parser, json);
+					CreateMachineUtils.initiateMachine(rodinRoot, pMonitor, llmResponseParser, json);
 				} else {
 					/* context */
-					CreateMachineUtils.initiateContext(rodinRoot, pMonitor, parser, json);
+					CreateMachineUtils.initiateContext(rodinRoot, pMonitor, llmResponseParser, json);
 				}
 				rodinFile.save(null, true);
 			}

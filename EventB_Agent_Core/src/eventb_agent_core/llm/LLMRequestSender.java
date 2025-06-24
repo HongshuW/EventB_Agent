@@ -1,45 +1,41 @@
 package eventb_agent_core.llm;
 
-import java.io.OutputStream;
-import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.json.JSONObject;
 
-import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.utils.Constants;
 
 /**
- * This class is responsible for sending requests to LLM and receiving the
- * responses.
+ * This interface contains necessary method declarations for calling LLMs.
  */
-public class LLMRequestSender {
+public abstract class LLMRequestSender {
 
-	private String apiKey;
+	protected LLMModels modelType;
 
-	public LLMRequestSender() {
-		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
-		apiKey = prefs.get(AgentPreferenceInitializer.PREF_LLM_KEY, "");
+	public LLMRequestSender(LLMModels modelType) {
+		this.modelType = modelType;
+	}
+
+	protected abstract String getAPIKey();
+
+	protected abstract String getAPIEndpoint();
+
+	private RequestBuilder getRequestBuilder() {
+		return LLMInstanceFactory.getRequestBuilder(modelType);
 	}
 
 	public String sendRequest(String prompt, String systemDesc) throws IOException {
-		String endpoint = Constants.GPT_ENDPOINT;
-
 		prompt = prompt.replace(Constants.SYS_DESC_PLACE_HOLDER, systemDesc);
-		RequestBuilder requestBuilder = new RequestBuilder();
+		RequestBuilder requestBuilder = getRequestBuilder();
 		String request = requestBuilder.getRequest(prompt);
-
-		URL url = new URL(endpoint);
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-		conn.setRequestMethod("POST");
-		conn.setRequestProperty("Authorization", "Bearer " + apiKey);
-		conn.setRequestProperty("Content-Type", "application/json");
-		conn.setDoOutput(true);
+		
+		System.out.println(request);
+		
+		HttpURLConnection conn = requestBuilder.getURLConnection(getAPIEndpoint(), getAPIKey());
 
 		try (OutputStream os = conn.getOutputStream()) {
 			os.write(request.getBytes(StandardCharsets.UTF_8));
