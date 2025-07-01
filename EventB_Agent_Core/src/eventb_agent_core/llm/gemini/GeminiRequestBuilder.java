@@ -42,6 +42,9 @@ public class GeminiRequestBuilder extends RequestBuilder {
 		LinkedHashMap<String, Object> generationConfig = new LinkedHashMap<>();
 		generationConfig.put("responseMimeType", "application/json");
 		generationConfig.put("responseSchema", jsonSchema);
+//		generationConfig.put("temperature", Constants.TEMPERATURE);
+//		generationConfig.put("topP", Constants.TOP_P);
+//		generationConfig.put("max_output_tokens", Constants.TOKEN_LIMIT * 2);
 		request.put("generationConfig", generationConfig);
 
 		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);

@@ -103,7 +103,7 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 		final String sysDesc = page.getSystemDesc();
 
 		JSONObject response = getLLMResponse(prompt, sysDesc);
-//		java.nio.file.Path path = Paths.get(FileUtils.getAgentDirectoryPath(), "resources", "truck.json");
+//		java.nio.file.Path path = Paths.get(FileUtils.getAgentDirectoryPath(), "resources", "gemini_cart.json");
 //		JSONObject response = FileUtils.readJSON(path);
 
 		final String contextFileName = llmResponseParser.getContextName(response) + "." + page.getContextFileType();

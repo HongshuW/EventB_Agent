@@ -11,7 +11,14 @@ public class GeminiResponseParser extends LLMResponseParser {
 		JSONObject obj = new JSONObject(response);
 		String answer = obj.getJSONArray("candidates").getJSONObject(0).getJSONObject("content").getJSONArray("parts")
 				.getJSONObject(0).getString("text");
-
+		
+		if (answer.contains("\\n")) {
+			answer = answer.replaceAll("\\\\n(?!otin)", "\\");
+		}
+		if (answer.contains("\\b")) {
+			answer = answer.replace("\\b", "\\");
+		}
+		
 		return new JSONObject(answer);
 	}
 

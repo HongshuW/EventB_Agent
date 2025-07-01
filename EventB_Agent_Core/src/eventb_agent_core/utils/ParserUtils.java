@@ -24,6 +24,7 @@ public class ParserUtils {
 		stringMap.put("NATURAL", "ℕ");
 		stringMap.put("N1", "ℕ1");
 		stringMap.put("NAT1", "ℕ1");
+		stringMap.put("NATURAL1", "ℕ1");
 		stringMap.put("true", "⊤");
 		stringMap.put("false", "⊥");
 		stringMap.put("or", "∨");
@@ -47,6 +48,8 @@ public class ParserUtils {
 		specialCharsMap.put("\nat", "ℕ");
 		specialCharsMap.put("\setminus", "∖");
 		specialCharsMap.put("\triangleright", "▷");
+		specialCharsMap.put("\tfun", "→");
+		specialCharsMap.put("\bunion", "∪");
 		specialCharsMap.put("{}", "∅");
 		specialCharsMap.put("|", "∣");
 		specialCharsMap.put(":=", "≔");
@@ -54,6 +57,7 @@ public class ParserUtils {
 		specialCharsMap.put("/=", "≠");
 		specialCharsMap.put(">=", "≥");
 		specialCharsMap.put("∣−>", "↦");
+		specialCharsMap.put("|−>", "↦");
 		specialCharsMap.put("-->>", "↠");
 		specialCharsMap.put("&", "∧");
 		specialCharsMap.put("<=>", "⇔");
@@ -76,7 +80,7 @@ public class ParserUtils {
 		specialCharsMap.put(":|", ":∣");
 
 		Map<String, String> regexMap = new HashMap<>();
-		regexMap.put("\\|([^|]+)\\|", "card($1)"); // replace |...| with card(...)
+		regexMap.put("\\|(?!->)([^|]+)\\|(?!->)", "card($1)"); // replace |...| with card(...)
 		regexMap.put("\\∣([^∣]+)\\∣", "card($1)"); // replace ∣...∣ with card(...)
 		regexMap.put("\\\\math(bb|bf|cal|rm|it|frak|tt)\\{([^}]*)\\}", "$2"); // replace \mathXX{...} with ...
 		regexMap.put("\\\\text(|bf|it|tt|sf|rm|sc|sl|normal|up)\\{([^}]*)\\}", "$2"); // replace \textXX{...} with ...
@@ -121,6 +125,16 @@ public class ParserUtils {
 		regexMap.put("\\\\+wedge", "∧");
 		regexMap.put("\\\\+domsub", "⩥");
 		regexMap.put("\\\\+lor", "∨");
+		regexMap.put("\\\\+union", "∪");
+		regexMap.put("\\\\+pinj", "↣");
+		regexMap.put("\\\\+tfun", "→");
+		regexMap.put("\\\\+ovl", "<+");
+		regexMap.put("\\\\+override", "<+");
+		regexMap.put("\\\\+upto", "‥");
+		regexMap.put("\\\\+qdot", "·");
+		regexMap.put("\\\\+implies", "⇒");
+		regexMap.put("\\\\+domres", "⩤");
+		regexMap.put("\\\\+bunion", "∪");
 		regexMap.put("\\\\\\{", "{");
 		regexMap.put("\\\\\\}", "}");
 
