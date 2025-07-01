@@ -73,7 +73,8 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 		setNeedsProgressMonitor(true);
 
 		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
-		LLMModels modelType = LLMModels.getLLMModel(prefs.get(AgentPreferenceInitializer.PREF_LLM_MODEL, ""));
+		LLMModels modelType = LLMModels
+				.getLLMModel(prefs.get(AgentPreferenceInitializer.PREF_LLM_MODEL, Constants.DEFAULT_MODEL));
 		llmRequestSender = LLMInstanceFactory.getRequestSender(modelType);
 		llmResponseParser = LLMInstanceFactory.getResponseParser(modelType);
 	}

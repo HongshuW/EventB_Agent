@@ -16,7 +16,7 @@ public class AgentPreferenceInitializer extends AbstractPreferenceInitializer {
 	@Override
 	public void initializeDefaultPreferences() {
 		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
-		prefs.put(PREF_LLM_MODEL, "");
+		prefs.put(PREF_LLM_MODEL, Constants.DEFAULT_MODEL);
 		prefs.put(PREF_GPT_KEY, "");
 		prefs.put(PREF_CLAUDE_KEY, "");
 		prefs.put(PREF_GEMINI_KEY, "");
