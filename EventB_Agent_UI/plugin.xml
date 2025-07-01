@@ -62,5 +62,35 @@
             <triggerPoint pattern="*"/>
          </triggerPoints>
       </navigatorContent>
-   </extension>>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            id="EventB_Agent_UI.agentProverCommand"
+            name="Call LLM">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="eventb_agent_ui.handlers.AgentProverHandler"
+            commandId="EventB_Agent_UI.agentProverCommand">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:org.eclipse.ui.main.menu">
+         <menu
+               id="EventB_Agent_UI.agentProverMenu"
+               label="Agent Prover">
+            <command
+                  commandId="EventB_Agent_UI.agentProverCommand"
+                  label="Agent Prover"
+                  style="push">
+            </command>
+         </menu>
+      </menuContribution>
+   </extension>
 </plugin>

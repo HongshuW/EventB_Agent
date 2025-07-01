@@ -7,8 +7,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 
-import eventb_agent_core.utils.Constants;
-
 /**
  * This interface contains necessary method declarations for calling LLMs.
  */
@@ -28,13 +26,7 @@ public abstract class LLMRequestSender {
 		return LLMInstanceFactory.getRequestBuilder(modelType);
 	}
 
-	public String sendRequest(String prompt, String systemDesc) throws IOException {
-		prompt = prompt.replace(Constants.SYS_DESC_PLACE_HOLDER, systemDesc);
-		RequestBuilder requestBuilder = getRequestBuilder();
-		String request = requestBuilder.getRequest(prompt);
-
-		System.out.println(request);
-
+	private String getRequest(RequestBuilder requestBuilder, String request) throws IOException {
 		HttpURLConnection conn = requestBuilder.getURLConnection(getAPIEndpoint(), getAPIKey());
 
 		try (OutputStream os = conn.getOutputStream()) {
@@ -62,6 +54,22 @@ public abstract class LLMRequestSender {
 
 			return response.toString();
 		}
+	}
+
+	public String sendRequest(String prompt, String systemDesc, LLMRequestTypes requestType) throws IOException {
+		prompt = prompt.replace(requestType.getPlaceHolder(), systemDesc);
+		RequestBuilder requestBuilder = getRequestBuilder();
+		
+		String request = "";
+		if (requestType.isStructuredRequest()) {
+			request = requestBuilder.getRequestWithSchema(prompt);
+		} else {
+			request = requestBuilder.getRequestPlain(prompt);
+		}
+
+		System.out.println(request);
+
+		return getRequest(requestBuilder, request);
 	}
 
 }

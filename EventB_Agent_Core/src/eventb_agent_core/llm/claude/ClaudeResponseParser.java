@@ -8,13 +8,11 @@ import eventb_agent_core.utils.ParserUtils;
 public class ClaudeResponseParser extends LLMResponseParser {
 
 	@Override
-	public JSONObject getResponseContent(String response) {
+	public String getResponseString(String response) {
 		JSONObject obj = new JSONObject(response);
 		String answer = obj.getJSONArray("content").getJSONObject(0).getString("text");
 
-		answer = ParserUtils.addEscape(answer);
-
-		return new JSONObject(answer);
+		return ParserUtils.addEscape(answer);
 	}
 
 }

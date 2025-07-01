@@ -42,6 +42,7 @@ import org.rodinp.core.RodinCore;
 
 import eventb_agent_core.llm.LLMInstanceFactory;
 import eventb_agent_core.llm.LLMRequestSender;
+import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.preference.AgentPreferenceInitializer;
@@ -163,7 +164,7 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 	private JSONObject getLLMResponse(String prompt, String systemDesc) {
 		String response;
 		try {
-			response = llmRequestSender.sendRequest(prompt, systemDesc);
+			response = llmRequestSender.sendRequest(prompt, systemDesc, LLMRequestTypes.SYNTHESIS);
 			return llmResponseParser.getResponseContent(response);
 		} catch (IOException e) {
 			e.printStackTrace();

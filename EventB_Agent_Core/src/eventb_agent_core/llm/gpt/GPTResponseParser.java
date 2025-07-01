@@ -7,12 +7,9 @@ import eventb_agent_core.llm.LLMResponseParser;
 public class GPTResponseParser extends LLMResponseParser {
 
 	@Override
-	public JSONObject getResponseContent(String response) {
+	public String getResponseString(String response) {
 		JSONObject obj = new JSONObject(response);
-		String answer = obj.getJSONArray("output").getJSONObject(0).getJSONArray("content").getJSONObject(0)
-				.getString("text");
-
-		return new JSONObject(answer);
+		return obj.getJSONArray("output").getJSONObject(0).getJSONArray("content").getJSONObject(0).getString("text");
 	}
 
 }

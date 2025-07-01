@@ -27,7 +27,7 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 	}
 
 	@Override
-	public String getRequest(String prompt) throws IOException {
+	public String getRequestWithSchema(String prompt) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		Map<String, Object> jsonSchema = getSchema();
@@ -47,6 +47,12 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 
 		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
 		return jsonStr;
+	}
+	
+	@Override
+	public String getRequestPlain(String prompt) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override

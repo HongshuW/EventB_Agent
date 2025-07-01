@@ -13,8 +13,13 @@ import eventb_agent_core.utils.ParserUtils;
 
 public abstract class LLMResponseParser {
 
-	public abstract JSONObject getResponseContent(String response);
-	
+	public abstract String getResponseString(String response);
+
+	public JSONObject getResponseContent(String response) {
+		String answer = getResponseString(response);
+		return new JSONObject(answer);
+	}
+
 	public JSONObject getContextJSON(JSONObject json) {
 		return json.getJSONObject(SchemaKeys.CONTEXT_OBJ_KEY);
 	}

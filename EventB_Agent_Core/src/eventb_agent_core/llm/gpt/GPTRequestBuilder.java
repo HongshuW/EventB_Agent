@@ -27,7 +27,7 @@ public class GPTRequestBuilder extends RequestBuilder {
 	}
 
 	@Override
-	public String getRequest(String prompt) throws IOException {
+	public String getRequestWithSchema(String prompt) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
@@ -46,6 +46,30 @@ public class GPTRequestBuilder extends RequestBuilder {
 		LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
 		textFormat.put("format", jsonSchema);
 		request.put("text", textFormat);
+
+		request.put("temperature", Constants.TEMPERATURE);
+		request.put("top_p", Constants.TOP_P);
+		request.put("max_output_tokens", Constants.TOKEN_LIMIT);
+
+		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+		return jsonStr;
+	}
+	
+	@Override
+	public String getRequestPlain(String prompt) throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+
+		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
+
+		request.put("model", Constants.GPT_MODEL);
+
+		LinkedHashMap<String, Object> requestMessage = new LinkedHashMap<>();
+		requestMessage.put("role", "user");
+		LinkedHashMap<String, Object> content = new LinkedHashMap<>();
+		content.put("type", "input_text");
+		content.put("text", prompt);
+		requestMessage.put("content", Arrays.asList(content));
+		request.put("input", Arrays.asList(requestMessage));
 
 		request.put("temperature", Constants.TEMPERATURE);
 		request.put("top_p", Constants.TOP_P);

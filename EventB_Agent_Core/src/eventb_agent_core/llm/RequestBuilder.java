@@ -11,7 +11,9 @@ public abstract class RequestBuilder {
 
 	protected abstract Map<String, Object> getSchema() throws IOException;
 
-	public abstract String getRequest(String prompt) throws IOException;
+	public abstract String getRequestWithSchema(String prompt) throws IOException;
+	
+	public abstract String getRequestPlain(String prompt) throws IOException;
 
 	public abstract HttpURLConnection getURLConnection(String apiEndpoint, String apiKey) throws IOException;
 

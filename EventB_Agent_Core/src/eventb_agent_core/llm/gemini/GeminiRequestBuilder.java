@@ -27,7 +27,7 @@ public class GeminiRequestBuilder extends RequestBuilder {
 	}
 
 	@Override
-	public String getRequest(String prompt) throws IOException {
+	public String getRequestWithSchema(String prompt) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
@@ -49,6 +49,12 @@ public class GeminiRequestBuilder extends RequestBuilder {
 
 		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
 		return jsonStr;
+	}
+	
+	@Override
+	public String getRequestPlain(String prompt) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
