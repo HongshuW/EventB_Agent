@@ -46,6 +46,18 @@ public abstract class LLMResponseParser {
 		return json.getString(SchemaKeys.EXPLANATION);
 	}
 
+	public JSONArray getContextJSONArray(JSONObject json) {
+		return json.getJSONArray(SchemaKeys.CONTEXT_OBJ_KEY);
+	}
+
+	public JSONArray getMachineJSONArray(JSONObject json) {
+		return json.getJSONArray(SchemaKeys.MACHINE_OBJ_KEY);
+	}
+
+	public JSONArray getProofJSONArray(JSONObject json) {
+		return json.getJSONArray(SchemaKeys.PROOF_OBJ_KEY);
+	}
+
 	/* helper methods */
 
 	private List<String> getArrayOfStrings(JSONObject json, String key) {

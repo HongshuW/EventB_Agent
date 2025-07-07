@@ -41,5 +41,6 @@ public class SchemaKeys {
 	/* keys for proof fixing */
 	public static final String EXPLANATION = "explanation";
 	public static final String MODIFICATION = "modification";
+	public static final String PROOF_OBJ_KEY = "proof";
 
 }
