@@ -1,3 +1,5 @@
-Given the proof tree in Event-B that is incomplete, suggest steps to complete the proof tree:
+Given the proof tree in Event-B that is incomplete, determine whether the proof is dischargeable under the current hypothesis without modifying the model. If so, provide steps to complete the proof tree. If not, suggest how to modify the model.
+
+{{model}}
 
 {{proof_tree}}

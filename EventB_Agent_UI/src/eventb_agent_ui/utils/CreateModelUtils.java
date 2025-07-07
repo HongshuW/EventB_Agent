@@ -27,7 +27,7 @@ import org.rodinp.core.RodinDBException;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.llm.schemas.SchemaKeys;
 
-public class CreateMachineUtils {
+public class CreateModelUtils {
 
 	/* context methods */
 

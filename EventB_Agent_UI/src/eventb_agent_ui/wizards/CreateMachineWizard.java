@@ -50,7 +50,7 @@ import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.FileUtils;
 import eventb_agent_ui.EventBAgentUIPlugin;
 import eventb_agent_ui.utils.CompilationErrorType;
-import eventb_agent_ui.utils.CreateMachineUtils;
+import eventb_agent_ui.utils.CreateModelUtils;
 import eventb_agent_ui.utils.ErrorTypeUtils;
 
 public class CreateMachineWizard extends Wizard implements INewWizard {
@@ -164,7 +164,8 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 	private JSONObject getLLMResponse(String prompt, String systemDesc) {
 		String response;
 		try {
-			response = llmRequestSender.sendRequest(prompt, systemDesc, LLMRequestTypes.SYNTHESIS);
+			response = llmRequestSender.sendRequest(prompt, new String[] { systemDesc },
+					new LLMRequestTypes[] { LLMRequestTypes.SYNTHESIS });
 			return llmResponseParser.getResponseContent(response);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -199,10 +200,10 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 				((IConfigurationElement) rodinRoot).setConfiguration(DEFAULT_CONFIGURATION, pMonitor);
 				if (rodinRoot instanceof IMachineRoot) {
 					/* machine */
-					CreateMachineUtils.initiateMachine(rodinRoot, pMonitor, llmResponseParser, json);
+					CreateModelUtils.initiateMachine(rodinRoot, pMonitor, llmResponseParser, json);
 				} else {
 					/* context */
-					CreateMachineUtils.initiateContext(rodinRoot, pMonitor, llmResponseParser, json);
+					CreateModelUtils.initiateContext(rodinRoot, pMonitor, llmResponseParser, json);
 				}
 				rodinFile.save(null, true);
 			}

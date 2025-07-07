@@ -13,9 +13,11 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.eventb.core.IContextRoot;
+import org.eventb.core.IMachineRoot;
 import org.eventb.core.seqprover.IProofTree;
 import org.eventb.core.seqprover.IProofTreeNode;
-import org.json.JSONObject;
+import org.rodinp.core.RodinDBException;
 
 import eventb_agent_core.llm.LLMInstanceFactory;
 import eventb_agent_core.llm.LLMModels;
@@ -25,6 +27,7 @@ import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.FileUtils;
+import eventb_agent_ui.utils.RetrieveModelUtils;
 
 public class AgentProverHandler extends AbstractHandler implements IHandler {
 
@@ -56,14 +59,30 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 				IProofTreeNode node = (IProofTreeNode) first;
 				IProofTree tree = node.getProofTree();
 
-				if (tree != null) {
-					StringBuilder stringBuilder = new StringBuilder();
-					traverse(tree.getRoot(), 0, stringBuilder);
+				IMachineRoot machineRoot = RetrieveModelUtils.getMachineRoot(tree);
+				IContextRoot contextRoot = null;
+				try {
+					contextRoot = RetrieveModelUtils.getContextRoot(tree);
+				} catch (RodinDBException e) {
+					e.printStackTrace();
+				}
 
+				String modelJSON = null;
+				try {
+					modelJSON = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
+				} catch (RodinDBException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				System.out.println(modelJSON);
+
+				if (tree != null) {
 					String response;
 					try {
-						response = llmRequestSender.sendRequest(prompt, stringBuilder.toString(),
-								LLMRequestTypes.FIX_PROOF);
+						String[] placeHolderContents = new String[] { modelJSON, tree.toString() };
+						LLMRequestTypes[] requestTypes = new LLMRequestTypes[] { LLMRequestTypes.RETRIEVE_MODEL,
+								LLMRequestTypes.FIX_PROOF };
+						response = llmRequestSender.sendRequest(prompt, placeHolderContents, requestTypes);
 						response = llmResponseParser.getResponseString(response);
 						System.out.println(response);
 					} catch (IOException e) {
@@ -78,17 +97,6 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 		}
 
 		return null;
-	}
-
-	private void traverse(IProofTreeNode node, int depth, StringBuilder stringBuilder) {
-		String indent = "  ".repeat(depth);
-		System.out.println(indent + "- " + node.getSequent());
-
-		stringBuilder.append(indent + "- " + node.getSequent());
-
-		for (IProofTreeNode child : node.getChildNodes()) {
-			traverse(child, depth + 1, stringBuilder);
-		}
 	}
 
 }

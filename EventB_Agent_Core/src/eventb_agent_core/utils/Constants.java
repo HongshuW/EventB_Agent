@@ -30,6 +30,7 @@ public class Constants {
 
 	public static final String DEFAULT_PLACE_HOLDER = "{{default}}";
 	public static final String SYS_DESC_PLACE_HOLDER = "{{system_desc}}";
+	public static final String MODEL_PLACE_HOLDER = "{{model}}";
 	public static final String PROOF_TREE_PLACE_HOLDER = "{{proof_tree}}";
 
 }
