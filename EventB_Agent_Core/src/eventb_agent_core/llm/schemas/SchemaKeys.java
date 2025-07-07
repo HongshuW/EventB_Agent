@@ -38,4 +38,8 @@ public class SchemaKeys {
 	public static final String WITH = "WITH";
 	public static final String THEN = "THEN";
 
+	/* keys for proof fixing */
+	public static final String EXPLANATION = "explanation";
+	public static final String MODIFICATION = "modification";
+
 }

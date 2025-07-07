@@ -1,5 +1,6 @@
 package eventb_agent_core.llm;
 
+import eventb_agent_core.llm.RequestBuilder.SchemaType;
 import eventb_agent_core.utils.Constants;
 
 public enum LLMRequestTypes {
@@ -26,11 +27,22 @@ public enum LLMRequestTypes {
 		case SYNTHESIS:
 			return true;
 		case RETRIEVE_MODEL:
-			return false;
 		case FIX_PROOF:
-			return false;
+			return true;
 		default:
 			return false;
+		}
+	}
+
+	public SchemaType getSchemaType() {
+		switch (this) {
+		case SYNTHESIS:
+			return SchemaType.EventB;
+		case RETRIEVE_MODEL:
+		case FIX_PROOF:
+			return SchemaType.Proof;
+		default:
+			return null;
 		}
 	}
 

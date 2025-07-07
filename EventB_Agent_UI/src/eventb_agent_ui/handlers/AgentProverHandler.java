@@ -17,6 +17,7 @@ import org.eventb.core.IContextRoot;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.seqprover.IProofTree;
 import org.eventb.core.seqprover.IProofTreeNode;
+import org.json.JSONObject;
 import org.rodinp.core.RodinDBException;
 
 import eventb_agent_core.llm.LLMInstanceFactory;
@@ -71,10 +72,8 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 				try {
 					modelJSON = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
 				} catch (RodinDBException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				System.out.println(modelJSON);
 
 				if (tree != null) {
 					String response;
@@ -84,7 +83,9 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 								LLMRequestTypes.FIX_PROOF };
 						response = llmRequestSender.sendRequest(prompt, placeHolderContents, requestTypes);
 						response = llmResponseParser.getResponseString(response);
-						System.out.println(response);
+						JSONObject answer = new JSONObject(response);
+						System.out.println(llmResponseParser.getExplanation(answer));
+						System.out.println(llmResponseParser.getModificationJSON(answer).toString(2));
 					} catch (IOException e) {
 						e.printStackTrace();
 					}

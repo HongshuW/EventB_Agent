@@ -17,8 +17,11 @@ Bundle-ClassPath:
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: EventB.Agent.Core
 Bundle-ActivationPolicy: lazy
-Export-Package: eventb_agent_core,
+Export-Package: com.fasterxml.jackson.core,
+ com.fasterxml.jackson.databind,
+ eventb_agent_core,
  eventb_agent_core.llm,
  eventb_agent_core.llm.schemas,
  eventb_agent_core.preference,
- eventb_agent_core.utils
+ eventb_agent_core.utils,
+ org.json

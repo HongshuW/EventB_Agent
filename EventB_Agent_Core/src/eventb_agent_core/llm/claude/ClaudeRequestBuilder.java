@@ -18,19 +18,22 @@ import eventb_agent_core.utils.FileUtils;
 public class ClaudeRequestBuilder extends RequestBuilder {
 
 	@Override
-	protected Map<String, Object> getSchema() throws IOException {
-		Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "schemas",
-				"claude_schema.json");
-		Map<String, Object> json = FileUtils.readOrderedJSON(path);
-
-		return json;
+	protected String getSchemaFileNameFromType(SchemaType schemaType) {
+		switch (schemaType) {
+		case EventB:
+			return "claude_eventb_schema.json";
+		case Proof:
+			return "claude_proof_schema.json";
+		default:
+			return "claude_eventb_schema.json";
+		}
 	}
 
 	@Override
-	public String getRequestWithSchema(String prompt) throws IOException {
+	public String getRequestWithSchema(String prompt, SchemaType schemaType) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 
-		Map<String, Object> jsonSchema = getSchema();
+		Map<String, Object> jsonSchema = getSchema(schemaType);
 		String schemaString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonSchema);
 		prompt += "\nFollow the grammar in your response:\n" + schemaString;
 
@@ -48,7 +51,7 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
 		return jsonStr;
 	}
-	
+
 	@Override
 	public String getRequestPlain(String prompt) throws IOException {
 		// TODO Auto-generated method stub

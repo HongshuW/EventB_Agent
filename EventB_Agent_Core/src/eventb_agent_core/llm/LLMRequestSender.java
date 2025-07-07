@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 
+import eventb_agent_core.llm.RequestBuilder.SchemaType;
+
 /**
  * This interface contains necessary method declarations for calling LLMs.
  */
@@ -61,18 +63,21 @@ public abstract class LLMRequestSender {
 		int length = Math.min(contentInPlaceHolders.length, requestTypes.length);
 		RequestBuilder requestBuilder = getRequestBuilder();
 		boolean isStructuredRequest = true;
+		SchemaType schemaType = null;
 		for (int i = 0; i < length; i++) {
 			String contentInPlaceHolder = contentInPlaceHolders[i];
 			LLMRequestTypes requestType = requestTypes[i];
 			prompt = prompt.replace(requestType.getPlaceHolder(), contentInPlaceHolder);
 			if (!requestType.isStructuredRequest()) {
 				isStructuredRequest = false;
+			} else {
+				schemaType = requestType.getSchemaType();
 			}
 		}
 
 		String request = "";
 		if (isStructuredRequest) {
-			request = requestBuilder.getRequestWithSchema(prompt);
+			request = requestBuilder.getRequestWithSchema(prompt, schemaType);
 		} else {
 			request = requestBuilder.getRequestPlain(prompt);
 		}

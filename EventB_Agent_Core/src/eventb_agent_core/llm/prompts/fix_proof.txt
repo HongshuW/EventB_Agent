@@ -1,5 +1,9 @@
 Given the proof tree in Event-B that is incomplete, determine whether the proof is dischargeable under the current hypothesis without modifying the model. If so, provide steps to complete the proof tree. If not, suggest how to modify the model.
 
+You may choose to add an axiom, strengthen an invariant, or add hypothesis in guard.
+
+Model:
 {{model}}
 
+Proof Tree:
 {{proof_tree}}

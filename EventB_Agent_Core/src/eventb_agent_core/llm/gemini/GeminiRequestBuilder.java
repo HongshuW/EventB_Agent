@@ -18,16 +18,19 @@ import eventb_agent_core.utils.FileUtils;
 public class GeminiRequestBuilder extends RequestBuilder {
 
 	@Override
-	protected Map<String, Object> getSchema() throws IOException {
-		Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "schemas",
-				"gemini_schema.json");
-		Map<String, Object> json = FileUtils.readOrderedJSON(path);
-
-		return json;
+	protected String getSchemaFileNameFromType(SchemaType schemaType) {
+		switch (schemaType) {
+		case EventB:
+			return "gemini_eventb_schema.json";
+		case Proof:
+			return "gemini_proof_schema.json";
+		default:
+			return "gemini_eventb_schema.json";
+		}
 	}
 
 	@Override
-	public String getRequestWithSchema(String prompt) throws IOException {
+	public String getRequestWithSchema(String prompt, SchemaType schemaType) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
@@ -37,8 +40,8 @@ public class GeminiRequestBuilder extends RequestBuilder {
 		requestMessage.put("text", prompt);
 		content.put("parts", Arrays.asList(requestMessage));
 		request.put("contents", Arrays.asList(content));
-		
-		Map<String, Object> jsonSchema = getSchema();
+
+		Map<String, Object> jsonSchema = getSchema(schemaType);
 		LinkedHashMap<String, Object> generationConfig = new LinkedHashMap<>();
 		generationConfig.put("responseMimeType", "application/json");
 		generationConfig.put("responseSchema", jsonSchema);
@@ -50,7 +53,7 @@ public class GeminiRequestBuilder extends RequestBuilder {
 		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
 		return jsonStr;
 	}
-	
+
 	@Override
 	public String getRequestPlain(String prompt) throws IOException {
 		// TODO Auto-generated method stub
