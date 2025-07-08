@@ -54,10 +54,6 @@ public abstract class LLMResponseParser {
 		return json.getJSONArray(SchemaKeys.MACHINE_OBJ_KEY);
 	}
 
-	public JSONArray getProofJSONArray(JSONObject json) {
-		return json.getJSONArray(SchemaKeys.PROOF_OBJ_KEY);
-	}
-
 	/* helper methods */
 
 	private List<String> getArrayOfStrings(JSONObject json, String key) {

@@ -8,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 
 import eventb_agent_core.llm.RequestBuilder.SchemaType;
+import eventb_agent_core.utils.PromptUtils;
 
 /**
  * This interface contains necessary method declarations for calling LLMs.
@@ -65,7 +66,7 @@ public abstract class LLMRequestSender {
 		boolean isStructuredRequest = true;
 		SchemaType schemaType = null;
 		for (int i = 0; i < length; i++) {
-			String contentInPlaceHolder = contentInPlaceHolders[i];
+			String contentInPlaceHolder = PromptUtils.removeSpecialChars(contentInPlaceHolders[i]);
 			LLMRequestTypes requestType = requestTypes[i];
 			prompt = prompt.replace(requestType.getPlaceHolder(), contentInPlaceHolder);
 			if (!requestType.isStructuredRequest()) {

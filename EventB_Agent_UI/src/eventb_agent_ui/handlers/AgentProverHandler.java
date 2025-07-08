@@ -3,7 +3,6 @@ package eventb_agent_ui.handlers;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -24,9 +23,17 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.ide.IDE;
 import org.eventb.core.IAxiom;
 import org.eventb.core.IContextRoot;
+import org.eventb.core.IEventBRoot;
 import org.eventb.core.IMachineRoot;
+import org.eventb.core.pm.IProofAttempt;
+import org.eventb.core.pm.IProofComponent;
 import org.eventb.core.seqprover.IProofTree;
 import org.eventb.core.seqprover.IProofTreeNode;
+import org.eventb.core.seqprover.ITactic;
+import org.eventb.core.seqprover.eventbExtensions.Tactics;
+import org.eventb.internal.core.pm.ProofManager;
+import org.eventb.internal.core.pm.UserSupport;
+import org.eventb.internal.core.pm.UserSupportManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.rodinp.core.IRodinElement;
@@ -83,6 +90,9 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 					e.printStackTrace();
 				}
 
+				IProofAttempt proofAttempt = getProofAttempt(tree, machineRoot);
+				String poName = proofAttempt.getName();
+
 				String modelJSON = null;
 				try {
 					modelJSON = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
@@ -105,11 +115,14 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 						JSONObject modificationJSON = llmResponseParser.getModificationJSON(answer);
 
 						if (modificationJSON.has("context")) {
-							modifyContext(contextRoot, modificationJSON);
+							String[] predicates = modifyContext(contextRoot, modificationJSON);
+							IProofAttempt newProofAttempt = getProofAttemptByPOName(poName, machineRoot);
+							IProofTreeNode newNode = getLastNode(newProofAttempt);
+							for (String predicate : predicates) {
+								addHypothesisToProofTree(newProofAttempt, newNode, predicate);
+							}
 						} else if (modificationJSON.has("machine")) {
 							JSONArray machineJSONArray = llmResponseParser.getMachineJSONArray(modificationJSON);
-						} else if (modificationJSON.has("proof")) {
-							JSONArray proofJSONArray = llmResponseParser.getProofJSONArray(modificationJSON);
 						}
 
 					} catch (IOException | CoreException e) {
@@ -126,9 +139,11 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 		return null;
 	}
 
-	private void modifyContext(IContextRoot contextRoot, JSONObject modificationJSON) throws CoreException {
+	private String[] modifyContext(IContextRoot contextRoot, JSONObject modificationJSON) throws CoreException {
 		IRodinFile rodinFile = contextRoot.getRodinFile();
 		JSONArray contextJSONArray = llmResponseParser.getContextJSONArray(modificationJSON);
+		String[] predicates = new String[contextJSONArray.length()];
+
 		for (int i = 0; i < contextJSONArray.length(); i++) {
 			JSONObject axiom = contextJSONArray.getJSONObject(i);
 			String label = axiom.getString(SchemaKeys.LABEL);
@@ -154,10 +169,24 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 				}
 
 				rodinFile.save(null, false);
+				predicates[i] = predicate;
 			} catch (RodinDBException e) {
 				e.printStackTrace();
 			}
 		}
+
+		return predicates;
+	}
+
+	private void addHypothesisToProofTree(IProofAttempt proofAttempt, IProofTreeNode node, String hypothesis)
+			throws RodinDBException {
+		ITactic insertLemmaTactic = Tactics.insertLemma(hypothesis);
+		insertLemmaTactic.apply(node, null);
+		proofAttempt.commit(true, false, null);
+//		IRodinFile rodinFile = proofAttempt.getComponent().getPORoot().getRodinFile();
+		UserSupport userSupport = new UserSupport();
+		userSupport.setCurrentPO(proofAttempt.getStatus(), null);
+//		selectPage(rodinFile);
 	}
 
 	private void selectModification(IRodinElement element, IRodinFile rodinFile) {
@@ -177,6 +206,56 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 			}
 
 		});
+	}
+
+	private void selectPage(IRodinFile rodinFile) {
+		Display.getDefault().asyncExec(() -> {
+			IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+
+			try {
+				// Open the file
+				IDE.openEditor(page, rodinFile.getResource(), true);
+			} catch (PartInitException e) {
+				e.printStackTrace();
+			}
+
+		});
+	}
+
+	private IProofAttempt getProofAttempt(IProofTree tree, IEventBRoot root) {
+		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(root);
+		for (IProofAttempt proofAttempt : proofComponent.getProofAttempts()) {
+			if (tree == proofAttempt.getProofTree()) {
+				return proofAttempt;
+			}
+		}
+		return null;
+	}
+
+	private IProofAttempt getProofAttemptByPOName(String poName, IEventBRoot root) {
+		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(root);
+		for (IProofAttempt proofAttempt : proofComponent.getProofAttempts()) {
+			if (poName.equals(proofAttempt.getName())) {
+				return proofAttempt;
+			}
+		}
+		return null;
+	}
+
+	private IProofTreeNode getLastNode(IProofAttempt attempt) {
+		IProofTree tree = attempt.getProofTree();
+		if (tree == null || attempt.isDisposed()) {
+			return null;
+		}
+
+		IProofTreeNode node = tree.getRoot();
+		while (true) {
+			IProofTreeNode[] kids = node.getChildNodes();
+			if (kids.length == 0) {
+				return node;
+			}
+			node = kids[kids.length - 1];
+		}
 	}
 
 }

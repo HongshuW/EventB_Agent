@@ -1,9 +1,9 @@
 Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Suggest how to complete the proof, then suggest how to modify the model accordingly.
-
+\n
 You may choose to add an axiom in context, strengthen an invariant in machine, or add hypothesis in guard/witness of an event in machine.
-
-Model:
+\n
+Model:\n
 {{model}}
-
-Proof Tree:
+\n
+Proof Tree:\n
 {{proof_tree}}
