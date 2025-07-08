@@ -17,6 +17,12 @@ public abstract class RequestBuilder {
 		EventB, Proof
 	};
 
+	protected LLMModels llmModel;
+
+	public RequestBuilder(LLMModels llmModel) {
+		this.llmModel = llmModel;
+	}
+
 	protected Map<String, Object> getSchema(SchemaType schemaType) throws IOException {
 		Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "schemas",
 				getSchemaFileNameFromType(schemaType));

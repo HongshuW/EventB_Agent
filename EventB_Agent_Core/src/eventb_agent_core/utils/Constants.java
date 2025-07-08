@@ -4,12 +4,13 @@ public class Constants {
 
 	public static final String PREF_NODE_ID = "eventb_agent";
 
-	public static final String DEFAULT_MODEL = "GPT 4.1 mini";
+	public static final String DEFAULT_MODEL = "GPT 4.1";
 
 	/* OpenAI parameters */
 
 	public static final String GPT_ENDPOINT = "https://api.openai.com/v1/responses";
-	public static final String GPT_MODEL = "gpt-4.1-mini";
+	public static final String GPT_MODEL = "gpt-4.1";
+	public static final String GPT_MINI_MODEL = "gpt-4.1-mini";
 
 	/* Claude parameters */
 

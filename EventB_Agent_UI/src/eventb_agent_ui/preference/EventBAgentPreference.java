@@ -37,7 +37,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 	private Text claudeKeyText;
 	private Text geminiKeyText;
 
-	private String defaultLLMModel = LLMModels.GPT4_1_MINI.toString();
+	private String defaultLLMModel = LLMModels.GPT4_1.toString();
 
 	public EventBAgentPreference() {
 	}

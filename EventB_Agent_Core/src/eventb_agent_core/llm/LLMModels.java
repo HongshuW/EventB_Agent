@@ -5,7 +5,10 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import eventb_agent_core.utils.Constants;
+
 public enum LLMModels {
+	GPT4_1("GPT 4.1"),
 	GPT4_1_MINI("GPT 4.1 mini"),
 	CLAUDE3_OPUS("Claude 3 opus"),
 	GEMINI2_5_FLASH("Gemini 2.5 flash");
@@ -25,6 +28,21 @@ public enum LLMModels {
 			throw new IllegalArgumentException("Unknown LLM model type: " + stringValue);
 		}
 		return model;
+	}
+
+	public String getModelTypeAPI() {
+		switch (this) {
+		case GPT4_1:
+			return Constants.GPT_MODEL;
+		case GPT4_1_MINI:
+			return Constants.GPT_MINI_MODEL;
+		case CLAUDE3_OPUS:
+			return Constants.CLAUDE_MODEL;
+		case GEMINI2_5_FLASH:
+			return Constants.GEMINI_MODEL;
+		default:
+			return "";
+		}
 	}
 
 	@Override

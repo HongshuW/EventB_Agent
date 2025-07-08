@@ -3,19 +3,21 @@ package eventb_agent_core.llm.claude;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.RequestBuilder;
 import eventb_agent_core.utils.Constants;
-import eventb_agent_core.utils.FileUtils;
 
 public class ClaudeRequestBuilder extends RequestBuilder {
+
+	public ClaudeRequestBuilder(LLMModels llmModel) {
+		super(llmModel);
+	}
 
 	@Override
 	protected String getSchemaFileNameFromType(SchemaType schemaType) {
@@ -39,7 +41,7 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 
 		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
 
-		request.put("model", Constants.CLAUDE_MODEL);
+		request.put("model", llmModel.getModelTypeAPI());
 
 		LinkedHashMap<String, Object> requestMessage = new LinkedHashMap<>();
 		requestMessage.put("role", "user");

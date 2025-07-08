@@ -9,10 +9,15 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.RequestBuilder;
 import eventb_agent_core.utils.Constants;
 
 public class GPTRequestBuilder extends RequestBuilder {
+
+	public GPTRequestBuilder(LLMModels llmModel) {
+		super(llmModel);
+	}
 
 	@Override
 	protected String getSchemaFileNameFromType(SchemaType schemaType) {
@@ -32,7 +37,7 @@ public class GPTRequestBuilder extends RequestBuilder {
 
 		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
 
-		request.put("model", Constants.GPT_MODEL);
+		request.put("model", llmModel.getModelTypeAPI());
 
 		LinkedHashMap<String, Object> requestMessage = new LinkedHashMap<>();
 		requestMessage.put("role", "user");
@@ -61,7 +66,7 @@ public class GPTRequestBuilder extends RequestBuilder {
 
 		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
 
-		request.put("model", Constants.GPT_MODEL);
+		request.put("model", llmModel.getModelTypeAPI());
 
 		LinkedHashMap<String, Object> requestMessage = new LinkedHashMap<>();
 		requestMessage.put("role", "user");

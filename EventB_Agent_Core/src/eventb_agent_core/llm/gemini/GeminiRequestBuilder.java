@@ -3,19 +3,20 @@ package eventb_agent_core.llm.gemini;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.RequestBuilder;
-import eventb_agent_core.utils.Constants;
-import eventb_agent_core.utils.FileUtils;
 
 public class GeminiRequestBuilder extends RequestBuilder {
+
+	public GeminiRequestBuilder(LLMModels llmModel) {
+		super(llmModel);
+	}
 
 	@Override
 	protected String getSchemaFileNameFromType(SchemaType schemaType) {
@@ -62,7 +63,7 @@ public class GeminiRequestBuilder extends RequestBuilder {
 
 	@Override
 	public HttpURLConnection getURLConnection(String apiEndpoint, String apiKey) throws IOException {
-		URL url = new URL(apiEndpoint + Constants.GEMINI_MODEL + ":generateContent?key=" + apiKey);
+		URL url = new URL(apiEndpoint + llmModel.getModelTypeAPI() + ":generateContent?key=" + apiKey);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		conn.setRequestMethod("POST");
 		conn.setRequestProperty("Content-Type", "application/json");
