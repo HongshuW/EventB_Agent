@@ -32,8 +32,6 @@ import org.eventb.core.seqprover.IProofTreeNode;
 import org.eventb.core.seqprover.ITactic;
 import org.eventb.core.seqprover.eventbExtensions.Tactics;
 import org.eventb.internal.core.pm.ProofManager;
-import org.eventb.internal.core.pm.UserSupport;
-import org.eventb.internal.core.pm.UserSupportManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.rodinp.core.IRodinElement;
@@ -116,10 +114,8 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 
 						if (modificationJSON.has("context")) {
 							String[] predicates = modifyContext(contextRoot, modificationJSON);
-							IProofAttempt newProofAttempt = getProofAttemptByPOName(poName, machineRoot);
-							IProofTreeNode newNode = getLastNode(newProofAttempt);
 							for (String predicate : predicates) {
-								addHypothesisToProofTree(newProofAttempt, newNode, predicate);
+								addHypothesisToProofTree(proofAttempt, predicate, poName, machineRoot);
 							}
 						} else if (modificationJSON.has("machine")) {
 							JSONArray machineJSONArray = llmResponseParser.getMachineJSONArray(modificationJSON);
@@ -178,15 +174,17 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 		return predicates;
 	}
 
-	private void addHypothesisToProofTree(IProofAttempt proofAttempt, IProofTreeNode node, String hypothesis)
-			throws RodinDBException {
+	private void addHypothesisToProofTree(IProofAttempt proofAttempt, String hypothesis, String poName,
+			IEventBRoot eventbRoot) throws RodinDBException {
+
 		ITactic insertLemmaTactic = Tactics.insertLemma(hypothesis);
+		if (proofAttempt.isDisposed()) {
+			proofAttempt = getProofAttemptByPOName(poName, eventbRoot);
+		}
+		IProofTreeNode node = getLastNode(proofAttempt);
+
 		insertLemmaTactic.apply(node, null);
-		proofAttempt.commit(true, false, null);
-//		IRodinFile rodinFile = proofAttempt.getComponent().getPORoot().getRodinFile();
-		UserSupport userSupport = new UserSupport();
-		userSupport.setCurrentPO(proofAttempt.getStatus(), null);
-//		selectPage(rodinFile);
+		proofAttempt.commit(true, true, null);
 	}
 
 	private void selectModification(IRodinElement element, IRodinFile rodinFile) {
@@ -225,6 +223,9 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 	private IProofAttempt getProofAttempt(IProofTree tree, IEventBRoot root) {
 		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(root);
 		for (IProofAttempt proofAttempt : proofComponent.getProofAttempts()) {
+			if (proofAttempt.isDisposed()) {
+				continue;
+			}
 			if (tree == proofAttempt.getProofTree()) {
 				return proofAttempt;
 			}
@@ -235,6 +236,9 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 	private IProofAttempt getProofAttemptByPOName(String poName, IEventBRoot root) {
 		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(root);
 		for (IProofAttempt proofAttempt : proofComponent.getProofAttempts()) {
+			if (proofAttempt.isDisposed()) {
+				continue;
+			}
 			if (poName.equals(proofAttempt.getName())) {
 				return proofAttempt;
 			}
