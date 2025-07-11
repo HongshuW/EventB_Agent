@@ -21,6 +21,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.ide.IDE;
+import org.eventb.core.EventBPlugin;
 import org.eventb.core.IAxiom;
 import org.eventb.core.IContextRoot;
 import org.eventb.core.IEventBRoot;
@@ -185,6 +186,9 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 
 		insertLemmaTactic.apply(node, null);
 		proofAttempt.commit(true, true, null);
+		
+		ITactic basicTactics = EventBPlugin.getAutoPostTacticManager().getSelectedPostTactics(eventbRoot);
+		basicTactics.apply(node, null);
 	}
 
 	private void selectModification(IRodinElement element, IRodinFile rodinFile) {
