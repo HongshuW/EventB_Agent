@@ -53,12 +53,12 @@ import eventb_agent_ui.utils.CompilationErrorType;
 import eventb_agent_ui.utils.CreateModelUtils;
 import eventb_agent_ui.utils.ErrorTypeUtils;
 
-public class CreateMachineWizard extends Wizard implements INewWizard {
+public class NewModelWizard extends Wizard implements INewWizard {
 
 	public static final String WIZARD_ID = EventBAgentUIPlugin.AGENT_PLUGIN_ID + ".wizards.CreateMachine";
 
 	// The wizard page.
-	private CreateMachineWizardPage page;
+	private NewModelWizardPage page;
 
 	// The selection when the wizard is launched.
 	private ISelection selection;
@@ -69,7 +69,7 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 	/**
 	 * Constructor: This wizard needs a progress monitor.
 	 */
-	public CreateMachineWizard() {
+	public NewModelWizard() {
 		super();
 		setNeedsProgressMonitor(true);
 
@@ -87,7 +87,7 @@ public class CreateMachineWizard extends Wizard implements INewWizard {
 	 */
 	@Override
 	public void addPages() {
-		page = new CreateMachineWizardPage(selection);
+		page = new NewModelWizardPage(selection);
 		addPage(page);
 	}
 

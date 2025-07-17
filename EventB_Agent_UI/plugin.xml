@@ -42,7 +42,7 @@
       </category>
       <wizard
             category="EventB_Agent_UI.category"
-            class="eventb_agent_ui.wizards.CreateMachineWizard"
+            class="eventb_agent_ui.wizards.NewModelWizard"
             icon="icons/bot.png"
             id="EventB_Agent_UI.wizards.CreateMachine"
             name="Event-B Agent: Context and Machine Synthesis">
@@ -52,7 +52,7 @@
          point="org.eclipse.ui.navigator.navigatorContent">
       <navigatorContent
             id="EventB_Agent_UI.navigatorContent"
-            name="Context and Machine Synthesis">
+            name="Event-B Model Synthesis">
          <commonWizard
                type="import"
                wizardId="EventB_Agent_UI.wizards.CreateMachine">
@@ -67,7 +67,11 @@
          point="org.eclipse.ui.commands">
       <command
             id="EventB_Agent_UI.agentProverCommand"
-            name="Call LLM">
+            name="Agent Prover">
+      </command>
+      <command
+            id="EventB_Agent_UI.newModelCommand"
+            name="Event-B Model Synthesis">
       </command>
    </extension>
    <extension
@@ -76,6 +80,10 @@
             class="eventb_agent_ui.handlers.AgentProverHandler"
             commandId="EventB_Agent_UI.agentProverCommand">
       </handler>
+      <handler
+            class="eventb_agent_ui.handlers.NewModelHandler"
+            commandId="EventB_Agent_UI.newModelCommand">
+      </handler>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -83,8 +91,13 @@
             allPopups="false"
             locationURI="menu:org.eclipse.ui.main.menu">
          <menu
-               id="EventB_Agent_UI.agentProverMenu"
-               label="Agent Prover">
+               id="EventB_Agent_UI.agentMenu"
+               label="Event-B Agent">
+            <command
+                  commandId="EventB_Agent_UI.newModelCommand"
+                  label="Event-B Model Synthesis"
+                  style="push">
+            </command>
             <command
                   commandId="EventB_Agent_UI.agentProverCommand"
                   label="Agent Prover"

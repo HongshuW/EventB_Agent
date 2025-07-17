@@ -33,7 +33,7 @@ import org.rodinp.core.IRodinProject;
 
 import eventb_agent_core.utils.FileUtils;
 
-public class CreateMachineWizardPage extends WizardPage {
+public class NewModelWizardPage extends WizardPage {
 
 	// Some text areas.
 	private Text projectText;
@@ -51,7 +51,7 @@ public class CreateMachineWizardPage extends WizardPage {
 	 * 
 	 * @param selection The selection when the wizard is launched
 	 */
-	public CreateMachineWizardPage(ISelection selection) {
+	public NewModelWizardPage(ISelection selection) {
 		super("wizardPage");
 		setTitle("Event-B Agent: Create Event-B Context and Machine");
 		setDescription(
