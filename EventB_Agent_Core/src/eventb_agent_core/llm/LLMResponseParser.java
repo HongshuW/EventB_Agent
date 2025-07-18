@@ -38,8 +38,8 @@ public abstract class LLMResponseParser {
 		return machine.getString(SchemaKeys.MACHINE);
 	}
 
-	public JSONObject getModificationJSON(JSONObject json) {
-		return json.getJSONObject(SchemaKeys.MODIFICATION);
+	public JSONArray getModificationJSONArray(JSONObject json) {
+		return json.getJSONArray(SchemaKeys.MODIFICATION);
 	}
 
 	public String getExplanation(JSONObject json) {

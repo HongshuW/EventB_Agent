@@ -10,11 +10,14 @@ import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
@@ -46,9 +49,11 @@ import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.llm.schemas.SchemaKeys;
 import eventb_agent_core.preference.AgentPreferenceInitializer;
+import eventb_agent_core.strategies.FixStrategy;
 import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.FileUtils;
 import eventb_agent_ui.logging.AgentLogger;
+import eventb_agent_ui.popups.ProofStrategySelectionDialog;
 import eventb_agent_ui.utils.RetrieveModelUtils;
 
 public class AgentProverHandler extends AbstractHandler implements IHandler {
@@ -65,19 +70,28 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 				.getLLMModel(prefs.get(AgentPreferenceInitializer.PREF_LLM_MODEL, Constants.DEFAULT_MODEL));
 		llmRequestSender = LLMInstanceFactory.getRequestSender(modelType);
 		llmResponseParser = LLMInstanceFactory.getResponseParser(modelType);
-
-		Path promptPath = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "prompts",
-				"fix_proof.txt");
-		prompt = FileUtils.readText(promptPath);
 	}
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
+		Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 
 		if (selection instanceof IStructuredSelection) {
 			Object first = ((IStructuredSelection) selection).getFirstElement();
 			if (first instanceof IProofTreeNode) {
+
+				// select fix strategy
+				ProofStrategySelectionDialog dialog = new ProofStrategySelectionDialog(shell);
+				FixStrategy fixStrategy = FixStrategy.ADD_AXIOM;
+				if (dialog.open() == Window.OK) {
+					fixStrategy = dialog.getSelectedStrategy();
+				}
+
+				// update prompt
+				readPrompt(fixStrategy);
+
+				// retrieve information from workspace
 				IProofTreeNode node = (IProofTreeNode) first;
 				IProofTree tree = node.getProofTree();
 
@@ -110,16 +124,20 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 
 						JSONObject answer = new JSONObject(response);
 						String explanation = llmResponseParser.getExplanation(answer);
-						AgentLogger.log("Modification:\n" + explanation);
-						JSONObject modificationJSON = llmResponseParser.getModificationJSON(answer);
 
-						if (modificationJSON.has("context")) {
-							String[] predicates = modifyContext(contextRoot, modificationJSON);
-							for (String predicate : predicates) {
-								addHypothesisToProofTree(proofAttempt, predicate, poName, machineRoot);
-							}
-						} else if (modificationJSON.has("machine")) {
-							JSONArray machineJSONArray = llmResponseParser.getMachineJSONArray(modificationJSON);
+						// display explanation
+						String message = "Fix Strategy:\n" + fixStrategy.toString() + "\n\nModification:\n"
+								+ explanation;
+						AgentLogger.log(message);
+						MessageDialog messageDialog = new MessageDialog(shell, "Agent Prover", null, message, 0, 0,
+								"confirm");
+						messageDialog.open();
+
+						JSONArray modificationJSONArray = llmResponseParser.getModificationJSONArray(answer);
+
+						String[] predicates = modifyContext(contextRoot, modificationJSONArray);
+						for (String predicate : predicates) {
+							addHypothesisToProofTree(proofAttempt, predicate, poName, machineRoot);
 						}
 
 					} catch (IOException | CoreException e) {
@@ -129,20 +147,28 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 					System.out.println("Proof tree is null.");
 				}
 			} else {
-				System.out.println("Selection is not a proof tree node: " + first.getClass().getName());
+				MessageDialog dialog = new MessageDialog(shell, "Agent Prover", null,
+						"The Agent Prover is designed to fix a proof tree.\n"
+								+ "Please select a node in the proof tree to proceed.",
+						0, 0, "OK");
+				dialog.open();
 			}
 		}
 
 		return null;
 	}
 
-	private String[] modifyContext(IContextRoot contextRoot, JSONObject modificationJSON) throws CoreException {
-		IRodinFile rodinFile = contextRoot.getRodinFile();
-		JSONArray contextJSONArray = llmResponseParser.getContextJSONArray(modificationJSON);
-		String[] predicates = new String[contextJSONArray.length()];
+	private void readPrompt(FixStrategy fixStrategy) {
+		Path promptPath = fixStrategy.getPromptPath();
+		prompt = FileUtils.readText(promptPath);
+	}
 
-		for (int i = 0; i < contextJSONArray.length(); i++) {
-			JSONObject axiom = contextJSONArray.getJSONObject(i);
+	private String[] modifyContext(IContextRoot contextRoot, JSONArray modificationJSONArray) throws CoreException {
+		IRodinFile rodinFile = contextRoot.getRodinFile();
+		String[] predicates = new String[modificationJSONArray.length()];
+
+		for (int i = 0; i < modificationJSONArray.length(); i++) {
+			JSONObject axiom = modificationJSONArray.getJSONObject(i);
 			String label = axiom.getString(SchemaKeys.LABEL);
 			String predicate = axiom.getString(SchemaKeys.PRED);
 			try {
@@ -186,7 +212,7 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 
 		insertLemmaTactic.apply(node, null);
 		proofAttempt.commit(true, true, null);
-		
+
 		ITactic basicTactics = EventBPlugin.getAutoPostTacticManager().getSelectedPostTactics(eventbRoot);
 		basicTactics.apply(node, null);
 	}

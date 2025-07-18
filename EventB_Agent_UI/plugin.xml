@@ -42,7 +42,7 @@
       </category>
       <wizard
             category="EventB_Agent_UI.category"
-            class="eventb_agent_ui.wizards.NewModelWizard"
+            class="eventb_agent_ui.popups.NewModelWizard"
             icon="icons/bot.png"
             id="EventB_Agent_UI.wizards.CreateMachine"
             name="Event-B Agent: Context and Machine Synthesis">

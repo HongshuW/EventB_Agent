@@ -25,7 +25,7 @@ public class GPTRequestBuilder extends RequestBuilder {
 		case EventB:
 			return "gpt_eventb_schema.json";
 		case Proof:
-			return "gpt_proof_schema.json";
+			return "gpt_ah_schema.json";
 		default:
 			return "gpt_eventb_schema.json";
 		}

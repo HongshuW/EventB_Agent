@@ -23,5 +23,6 @@ Export-Package: com.fasterxml.jackson.core,
  eventb_agent_core.llm,
  eventb_agent_core.llm.schemas,
  eventb_agent_core.preference,
+ eventb_agent_core.strategies,
  eventb_agent_core.utils,
  org.json

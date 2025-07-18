@@ -8,7 +8,7 @@ import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import eventb_agent_ui.wizards.NewModelWizard;
+import eventb_agent_ui.popups.NewModelWizard;
 
 public class NewModelHandler extends AbstractHandler implements IHandler {
 

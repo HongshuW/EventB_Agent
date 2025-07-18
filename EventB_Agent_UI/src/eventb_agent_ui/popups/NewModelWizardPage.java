@@ -1,4 +1,4 @@
-package eventb_agent_ui.wizards;
+package eventb_agent_ui.popups;
 
 import static org.rodinp.core.RodinCore.asRodinElement;
 
