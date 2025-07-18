@@ -8,7 +8,7 @@ import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 
 import eventb_agent_core.llm.RequestBuilder.SchemaType;
-import eventb_agent_core.utils.PromptUtils;
+import eventb_agent_core.utils.llm.PromptUtils;
 
 /**
  * This interface contains necessary method declarations for calling LLMs.

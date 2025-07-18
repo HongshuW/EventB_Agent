@@ -7,7 +7,9 @@ Bundle-Activator: eventb_agent_core.EventBAgentCorePlugin
 Require-Bundle: org.eclipse.core.resources;bundle-version="3.20.0",
  org.eclipse.core.runtime,
  org.rodinp.core;bundle-version="1.10.0",
- org.eventb.core;bundle-version="3.7.0"
+ org.eventb.core;bundle-version="3.7.0",
+ org.eventb.core.seqprover;bundle-version="3.7.0",
+ org.eventb.core.ast;bundle-version="3.8.0"
 Bundle-ClassPath: 
  .,
  lib/json-20220924.jar,
@@ -25,4 +27,5 @@ Export-Package: com.fasterxml.jackson.core,
  eventb_agent_core.preference,
  eventb_agent_core.strategies,
  eventb_agent_core.utils,
+ eventb_agent_core.utils.proof,
  org.json

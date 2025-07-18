@@ -3,7 +3,7 @@ package eventb_agent_core.llm.claude;
 import org.json.JSONObject;
 
 import eventb_agent_core.llm.LLMResponseParser;
-import eventb_agent_core.utils.ParserUtils;
+import eventb_agent_core.utils.llm.ParserUtils;
 
 public class ClaudeResponseParser extends LLMResponseParser {
 

@@ -1,4 +1,4 @@
-package eventb_agent_core.utils;
+package eventb_agent_core.utils.llm;
 
 import java.util.HashMap;
 import java.util.Map;

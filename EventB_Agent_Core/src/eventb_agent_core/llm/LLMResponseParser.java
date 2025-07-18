@@ -9,7 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import eventb_agent_core.llm.schemas.SchemaKeys;
-import eventb_agent_core.utils.ParserUtils;
+import eventb_agent_core.utils.llm.ParserUtils;
 
 public abstract class LLMResponseParser {
 

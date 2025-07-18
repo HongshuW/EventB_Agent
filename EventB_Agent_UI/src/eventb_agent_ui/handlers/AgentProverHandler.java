@@ -2,7 +2,6 @@ package eventb_agent_ui.handlers;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -24,18 +23,12 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.ide.IDE;
-import org.eventb.core.EventBPlugin;
 import org.eventb.core.IAxiom;
 import org.eventb.core.IContextRoot;
-import org.eventb.core.IEventBRoot;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.pm.IProofAttempt;
-import org.eventb.core.pm.IProofComponent;
 import org.eventb.core.seqprover.IProofTree;
 import org.eventb.core.seqprover.IProofTreeNode;
-import org.eventb.core.seqprover.ITactic;
-import org.eventb.core.seqprover.eventbExtensions.Tactics;
-import org.eventb.internal.core.pm.ProofManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.rodinp.core.IRodinElement;
@@ -52,6 +45,7 @@ import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.strategies.FixStrategy;
 import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.FileUtils;
+import eventb_agent_core.utils.proof.ProofTreeUtils;
 import eventb_agent_ui.logging.AgentLogger;
 import eventb_agent_ui.popups.ProofStrategySelectionDialog;
 import eventb_agent_ui.utils.RetrieveModelUtils;
@@ -103,7 +97,7 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 					e.printStackTrace();
 				}
 
-				IProofAttempt proofAttempt = getProofAttempt(tree, machineRoot);
+				IProofAttempt proofAttempt = ProofTreeUtils.getProofAttempt(tree, machineRoot);
 				String poName = proofAttempt.getName();
 
 				String modelJSON = null;
@@ -137,7 +131,9 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 
 						String[] predicates = modifyContext(contextRoot, modificationJSONArray);
 						for (String predicate : predicates) {
-							addHypothesisToProofTree(proofAttempt, predicate, poName, machineRoot);
+							// TODO: retrieve "counter" from llm response
+							ProofTreeUtils.addHypothesis(proofAttempt, node, poName, machineRoot, predicate, "counter");
+							ProofTreeUtils.applyPostTactic(proofAttempt, node, poName, machineRoot);
 						}
 
 					} catch (IOException | CoreException e) {
@@ -201,22 +197,6 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 		return predicates;
 	}
 
-	private void addHypothesisToProofTree(IProofAttempt proofAttempt, String hypothesis, String poName,
-			IEventBRoot eventbRoot) throws RodinDBException {
-
-		if (proofAttempt.isDisposed()) {
-			proofAttempt = getProofAttemptByPOName(poName, eventbRoot);
-		}
-		IProofTreeNode node = getLastNode(proofAttempt);
-
-		ITactic insertLemmaTactic = Tactics.insertLemma(hypothesis);
-		insertLemmaTactic.apply(node, null);
-		
-		ITactic basicTactics = EventBPlugin.getAutoPostTacticManager().getSelectedPostTactics(eventbRoot);
-		basicTactics.apply(node, null);
-		proofAttempt.commit(true, true, null);
-	}
-
 	private void selectModification(IRodinElement element, IRodinFile rodinFile) {
 		Display.getDefault().asyncExec(() -> {
 			IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -234,62 +214,6 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 			}
 
 		});
-	}
-
-	private void selectPage(IRodinFile rodinFile) {
-		Display.getDefault().asyncExec(() -> {
-			IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-
-			try {
-				// Open the file
-				IDE.openEditor(page, rodinFile.getResource(), true);
-			} catch (PartInitException e) {
-				e.printStackTrace();
-			}
-
-		});
-	}
-
-	private IProofAttempt getProofAttempt(IProofTree tree, IEventBRoot root) {
-		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(root);
-		for (IProofAttempt proofAttempt : proofComponent.getProofAttempts()) {
-			if (proofAttempt.isDisposed()) {
-				continue;
-			}
-			if (tree == proofAttempt.getProofTree()) {
-				return proofAttempt;
-			}
-		}
-		return null;
-	}
-
-	private IProofAttempt getProofAttemptByPOName(String poName, IEventBRoot root) {
-		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(root);
-		for (IProofAttempt proofAttempt : proofComponent.getProofAttempts()) {
-			if (proofAttempt.isDisposed()) {
-				continue;
-			}
-			if (poName.equals(proofAttempt.getName())) {
-				return proofAttempt;
-			}
-		}
-		return null;
-	}
-
-	private IProofTreeNode getLastNode(IProofAttempt attempt) {
-		IProofTree tree = attempt.getProofTree();
-		if (tree == null || attempt.isDisposed()) {
-			return null;
-		}
-
-		IProofTreeNode node = tree.getRoot();
-		while (true) {
-			IProofTreeNode[] kids = node.getChildNodes();
-			if (kids.length == 0) {
-				return node;
-			}
-			node = kids[kids.length - 1];
-		}
 	}
 
 }
