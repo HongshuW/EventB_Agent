@@ -204,17 +204,17 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 	private void addHypothesisToProofTree(IProofAttempt proofAttempt, String hypothesis, String poName,
 			IEventBRoot eventbRoot) throws RodinDBException {
 
-		ITactic insertLemmaTactic = Tactics.insertLemma(hypothesis);
 		if (proofAttempt.isDisposed()) {
 			proofAttempt = getProofAttemptByPOName(poName, eventbRoot);
 		}
 		IProofTreeNode node = getLastNode(proofAttempt);
 
+		ITactic insertLemmaTactic = Tactics.insertLemma(hypothesis);
 		insertLemmaTactic.apply(node, null);
-		proofAttempt.commit(true, true, null);
-
+		
 		ITactic basicTactics = EventBPlugin.getAutoPostTacticManager().getSelectedPostTactics(eventbRoot);
 		basicTactics.apply(node, null);
+		proofAttempt.commit(true, true, null);
 	}
 
 	private void selectModification(IRodinElement element, IRodinFile rodinFile) {
