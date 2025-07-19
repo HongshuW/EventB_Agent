@@ -1,4 +1,4 @@
-package eventb_agent_core.utils.proof;
+package eventb_agent_core.proof;
 
 import java.util.ArrayList;
 import java.util.List;

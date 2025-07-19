@@ -2,6 +2,8 @@ package eventb_agent_ui.handlers;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -42,6 +44,7 @@ import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.llm.schemas.SchemaKeys;
 import eventb_agent_core.preference.AgentPreferenceInitializer;
+import eventb_agent_core.proof.Hypothesis;
 import eventb_agent_core.strategies.FixStrategy;
 import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.FileUtils;
@@ -78,8 +81,11 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 				// select fix strategy
 				ProofStrategySelectionDialog dialog = new ProofStrategySelectionDialog(shell);
 				FixStrategy fixStrategy = FixStrategy.ADD_AXIOM;
-				if (dialog.open() == Window.OK) {
+				int dialogCode = dialog.open();
+				if (dialogCode == Window.OK) {
 					fixStrategy = dialog.getSelectedStrategy();
+				} else if (dialogCode == Window.CANCEL) {
+					return null;
 				}
 
 				// update prompt
@@ -127,12 +133,15 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 								"confirm");
 						messageDialog.open();
 
+						// TODO: modify model based on fix strategy
 						JSONArray modificationJSONArray = llmResponseParser.getModificationJSONArray(answer);
-
-						String[] predicates = modifyContext(contextRoot, modificationJSONArray);
-						for (String predicate : predicates) {
-							// TODO: retrieve "counter" from llm response
-							ProofTreeUtils.addHypothesis(proofAttempt, node, poName, machineRoot, predicate, "counter");
+						List<Hypothesis> hypotheses = llmResponseParser.getHypotheses(modificationJSONArray);
+						addHypothesesToContext(contextRoot, hypotheses);
+						for (Hypothesis hypothesis : hypotheses) {
+							String predicate = hypothesis.getPredicate();
+							String[] instantiations = hypothesis.getInstantiations();
+							ProofTreeUtils.addHypothesis(proofAttempt, node, poName, machineRoot, predicate,
+									instantiations);
 							ProofTreeUtils.applyPostTactic(proofAttempt, node, poName, machineRoot);
 						}
 
@@ -159,14 +168,13 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 		prompt = FileUtils.readText(promptPath);
 	}
 
-	private String[] modifyContext(IContextRoot contextRoot, JSONArray modificationJSONArray) throws CoreException {
+	private void addHypothesesToContext(IContextRoot contextRoot, List<Hypothesis> hypotheses) throws CoreException {
 		IRodinFile rodinFile = contextRoot.getRodinFile();
-		String[] predicates = new String[modificationJSONArray.length()];
 
-		for (int i = 0; i < modificationJSONArray.length(); i++) {
-			JSONObject axiom = modificationJSONArray.getJSONObject(i);
-			String label = axiom.getString(SchemaKeys.LABEL);
-			String predicate = axiom.getString(SchemaKeys.PRED);
+		for (int i = 0; i < hypotheses.size(); i++) {
+			Hypothesis hyp = hypotheses.get(i);
+			String label = hyp.getLabel();
+			String predicate = hyp.getPredicate();
 			try {
 				IAxiom[] axioms = contextRoot.getChildrenOfType(IAxiom.ELEMENT_TYPE);
 				boolean axiomExists = false;
@@ -188,13 +196,10 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 				}
 
 				rodinFile.save(null, false);
-				predicates[i] = predicate;
 			} catch (RodinDBException e) {
 				e.printStackTrace();
 			}
 		}
-
-		return predicates;
 	}
 
 	private void selectModification(IRodinElement element, IRodinFile rodinFile) {

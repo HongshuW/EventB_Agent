@@ -36,7 +36,23 @@
 			"modification": {
 				"type": "array",
 				"items": {
-					"$ref": "#/$defs/labeled_predicate"
+					"type": "object",
+					"required": [
+						"hypothesis",
+						"instantiations"
+					],
+					"properties": {
+						"hypothesis": {
+							"$ref": "#/$defs/labeled_predicate"
+						},
+						"instantiations": {
+							"type": "array",
+							"items": {
+								"$ref": "#/$defs/identifier"
+							}
+						}
+					},
+					"additionalProperties": false
 				}
 			}
 		},

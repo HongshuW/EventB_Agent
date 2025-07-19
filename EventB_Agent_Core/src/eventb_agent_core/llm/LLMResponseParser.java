@@ -9,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import eventb_agent_core.llm.schemas.SchemaKeys;
+import eventb_agent_core.proof.Hypothesis;
 import eventb_agent_core.utils.llm.ParserUtils;
 
 public abstract class LLMResponseParser {
@@ -153,6 +154,28 @@ public abstract class LLMResponseParser {
 	public List<Map<String, Object>> getEvents(JSONObject machineJSON) {
 		List<Map<String, Object>> events = getArrayOfEvents(machineJSON, SchemaKeys.EVENTS);
 		return events;
+	}
+
+	/* proof fixing methods */
+
+	public List<Hypothesis> getHypotheses(JSONArray modificationJSONArray) {
+		List<Hypothesis> hypotheses = new ArrayList<>();
+		for (int i = 0; i < modificationJSONArray.length(); i++) {
+			JSONObject entry = modificationJSONArray.getJSONObject(i);
+			JSONObject hypothesisJSON = entry.getJSONObject(SchemaKeys.HYP);
+			JSONArray instantiationsJSONArray = entry.getJSONArray(SchemaKeys.INSTANTIATIONS);
+
+			String label = hypothesisJSON.getString(SchemaKeys.LABEL);
+			String predicate = hypothesisJSON.getString(SchemaKeys.PRED);
+			String[] instantiations = new String[instantiationsJSONArray.length()];
+			for (int j = 0; j < instantiationsJSONArray.length(); j++) {
+				instantiations[j] = instantiationsJSONArray.getString(j);
+			}
+
+			Hypothesis hypothesis = new Hypothesis(label, predicate, instantiations);
+			hypotheses.add(hypothesis);
+		}
+		return hypotheses;
 	}
 
 }

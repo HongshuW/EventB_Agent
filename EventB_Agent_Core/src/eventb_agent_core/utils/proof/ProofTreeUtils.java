@@ -12,6 +12,8 @@ import org.eventb.core.seqprover.eventbExtensions.Tactics;
 import org.eventb.internal.core.pm.ProofManager;
 import org.rodinp.core.RodinDBException;
 
+import eventb_agent_core.proof.ProofAttemptWrapper;
+
 public class ProofTreeUtils {
 
 	public static ProofAttemptWrapper getLatestProofAttemptWrapper(IProofAttempt proofAttempt, IProofTreeNode node,
