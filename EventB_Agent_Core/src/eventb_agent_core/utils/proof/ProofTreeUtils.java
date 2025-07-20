@@ -10,6 +10,7 @@ import org.eventb.core.seqprover.IProofTreeNode;
 import org.eventb.core.seqprover.ITactic;
 import org.eventb.core.seqprover.eventbExtensions.Tactics;
 import org.eventb.internal.core.pm.ProofManager;
+import org.rodinp.core.IRodinFile;
 import org.rodinp.core.RodinDBException;
 
 import eventb_agent_core.proof.ProofAttemptWrapper;
@@ -53,7 +54,7 @@ public class ProofTreeUtils {
 		forAllTactic.apply(node, null);
 	}
 
-	public static void applyPostTactic(IProofAttempt proofAttempt, IProofTreeNode node, String poName,
+	public static void applyPostTacticAndSave(IProofAttempt proofAttempt, IProofTreeNode node, String poName,
 			IEventBRoot eventbRoot) throws RodinDBException {
 		ProofAttemptWrapper wrapper = getLatestProofAttemptWrapper(proofAttempt, node, poName, eventbRoot);
 		proofAttempt = wrapper.getProofAttempt();
@@ -62,7 +63,11 @@ public class ProofTreeUtils {
 		ITactic basicTactics = EventBPlugin.getAutoPostTacticManager().getSelectedPostTactics(eventbRoot);
 		basicTactics.apply(node, null);
 
+		IRodinFile bpo = proofAttempt.getComponent().getPORoot().getRodinFile();
+		IRodinFile bps = proofAttempt.getComponent().getPSRoot().getRodinFile();
 		proofAttempt.commit(true, false, null);
+	    bpo.save(null, true);
+	    bps.save(null, true);
 	}
 
 	public static IProofTreeNode getLastNodeFromTree(IProofAttempt attempt) {

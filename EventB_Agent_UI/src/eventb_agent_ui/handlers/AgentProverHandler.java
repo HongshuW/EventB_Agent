@@ -142,7 +142,7 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 							String[] instantiations = hypothesis.getInstantiations();
 							ProofTreeUtils.addHypothesis(proofAttempt, node, poName, machineRoot, predicate,
 									instantiations);
-							ProofTreeUtils.applyPostTactic(proofAttempt, node, poName, machineRoot);
+							ProofTreeUtils.applyPostTacticAndSave(proofAttempt, node, poName, machineRoot);
 						}
 
 					} catch (IOException | CoreException e) {
