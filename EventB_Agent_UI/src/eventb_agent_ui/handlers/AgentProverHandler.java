@@ -48,6 +48,7 @@ import eventb_agent_core.proof.Hypothesis;
 import eventb_agent_core.strategies.FixStrategy;
 import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.FileUtils;
+import eventb_agent_core.utils.llm.ParserUtils;
 import eventb_agent_core.utils.proof.ProofTreeUtils;
 import eventb_agent_ui.logging.AgentLogger;
 import eventb_agent_ui.popups.ProofStrategySelectionDialog;
@@ -138,7 +139,7 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 						List<Hypothesis> hypotheses = llmResponseParser.getHypotheses(modificationJSONArray);
 						addHypothesesToContext(contextRoot, hypotheses);
 						for (Hypothesis hypothesis : hypotheses) {
-							String predicate = hypothesis.getPredicate();
+							String predicate = ParserUtils.lex(hypothesis.getPredicate());
 							String[] instantiations = hypothesis.getInstantiations();
 							ProofTreeUtils.addHypothesis(proofAttempt, node, poName, machineRoot, predicate,
 									instantiations);
@@ -174,7 +175,7 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 		for (int i = 0; i < hypotheses.size(); i++) {
 			Hypothesis hyp = hypotheses.get(i);
 			String label = hyp.getLabel();
-			String predicate = hyp.getPredicate();
+			String predicate = ParserUtils.lex(hyp.getPredicate());
 			try {
 				IAxiom[] axioms = contextRoot.getChildrenOfType(IAxiom.ELEMENT_TYPE);
 				boolean axiomExists = false;
