@@ -4,8 +4,6 @@ import static org.eventb.core.IConfigurationElement.DEFAULT_CONFIGURATION;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Paths;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -32,6 +30,7 @@ import org.eventb.core.IVariable;
 import org.eventb.internal.ui.UIUtils;
 import org.eventb.internal.ui.utils.Messages;
 import org.eventb.ui.EventBUIPlugin;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.rodinp.core.IInternalElement;
 import org.rodinp.core.IRodinDB;
@@ -46,8 +45,8 @@ import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.preference.AgentPreferenceInitializer;
+import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.utils.Constants;
-import eventb_agent_core.utils.FileUtils;
 import eventb_agent_ui.EventBAgentUIPlugin;
 import eventb_agent_ui.utils.CompilationErrorType;
 import eventb_agent_ui.utils.CreateModelUtils;
@@ -100,40 +99,25 @@ public class NewModelWizard extends Wizard implements INewWizard {
 	 */
 	@Override
 	public boolean performFinish() {
-		final String projectName = page.getProjectName();
-		final String prompt = page.getPrompt();
 		final String sysDesc = page.getSystemDesc();
 
-		JSONObject response = getLLMResponse(prompt, sysDesc);
-//		java.nio.file.Path path = Paths.get(FileUtils.getAgentDirectoryPath(), "resources", "gemini_cart.json");
-//		JSONObject response = FileUtils.readJSON(path);
+		JSONObject response = getLLMResponse(sysDesc, LLMRequestTypes.REFINE_STRATEGY);
 
-		final String contextFileName = llmResponseParser.getContextName(response) + "." + page.getContextFileType();
-		final String machineFileName = llmResponseParser.getMachineName(response) + "." + page.getMachineFileType();
-		JSONObject contextJSON = llmResponseParser.getContextJSON(response);
-		JSONObject machineJSON = llmResponseParser.getMachineJSON(response);
+		JSONArray refinementSteps = llmResponseParser.getRefinementStepsJSONArray(response);
 
-		IRunnableWithProgress op = new IRunnableWithProgress() {
-			@Override
-			public void run(IProgressMonitor monitor) throws InvocationTargetException {
-				try {
-					doFinish(projectName, contextFileName, monitor, contextJSON);
-					doFinish(projectName, machineFileName, monitor, machineJSON);
-				} catch (CoreException e) {
-					throw new InvocationTargetException(e);
-				} finally {
-					monitor.done();
-				}
+		for (int i = 0; i < refinementSteps.length(); i++) {
+			JSONObject refStepJSON = refinementSteps.getJSONObject(i);
+			RefinementStep refinementStep = llmResponseParser.getRefinementStep(refStepJSON);
+			IRunnableWithProgress op = synthesizeModel(refinementStep);
+			try {
+				getContainer().run(true, false, op);
+			} catch (InterruptedException e) {
+				return false;
+			} catch (InvocationTargetException e) {
+				Throwable realException = e.getTargetException();
+				UIUtils.showError(Messages.title_error, realException.getMessage());
+				return false;
 			}
-		};
-		try {
-			getContainer().run(true, false, op);
-		} catch (InterruptedException e) {
-			return false;
-		} catch (InvocationTargetException e) {
-			Throwable realException = e.getTargetException();
-			UIUtils.showError(Messages.title_error, realException.getMessage());
-			return false;
 		}
 
 		// TODO: add this later for compilation error
@@ -161,11 +145,38 @@ public class NewModelWizard extends Wizard implements INewWizard {
 		return true;
 	}
 
-	private JSONObject getLLMResponse(String prompt, String systemDesc) {
+	private IRunnableWithProgress synthesizeModel(RefinementStep refinementStep) {
+		final String projectName = page.getProjectName();
+
+		String systemDesc = refinementStep.getModelDesc();
+		JSONObject response = getLLMResponse(systemDesc, LLMRequestTypes.SYNTHESIS);
+
+		final String contextFileName = llmResponseParser.getContextName(response) + "." + page.getContextFileType();
+		final String machineFileName = llmResponseParser.getMachineName(response) + "." + page.getMachineFileType();
+		JSONObject contextJSON = llmResponseParser.getContextJSON(response);
+		JSONObject machineJSON = llmResponseParser.getMachineJSON(response);
+
+		IRunnableWithProgress op = new IRunnableWithProgress() {
+			@Override
+			public void run(IProgressMonitor monitor) throws InvocationTargetException {
+				try {
+					doFinish(projectName, contextFileName, monitor, contextJSON);
+					doFinish(projectName, machineFileName, monitor, machineJSON);
+				} catch (CoreException e) {
+					throw new InvocationTargetException(e);
+				} finally {
+					monitor.done();
+				}
+			}
+		};
+
+		return op;
+	}
+
+	private JSONObject getLLMResponse(String systemDesc, LLMRequestTypes requestType) {
 		String response;
 		try {
-			response = llmRequestSender.sendRequest(prompt, new String[] { systemDesc },
-					new LLMRequestTypes[] { LLMRequestTypes.SYNTHESIS });
+			response = llmRequestSender.sendRequest(new String[] { systemDesc }, new LLMRequestTypes[] { requestType });
 			return llmResponseParser.getResponseContent(response);
 		} catch (IOException e) {
 			e.printStackTrace();

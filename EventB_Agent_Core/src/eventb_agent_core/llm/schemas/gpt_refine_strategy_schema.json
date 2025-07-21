@@ -1,0 +1,40 @@
+{
+	"type": "json_schema",
+	"name": "refinement_schema",
+	"strict": true,
+	"schema": {
+		"type": "object",
+		"required": [
+			"refinement_strategy"
+		],
+		"properties": {
+			"refinement_strategy": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"required": [
+						"refinement_no",
+						"requirement_ids",
+						"model_description"
+					],
+					"properties": {
+						"refinement_no": {
+							"type": "integer"
+						},
+						"requirement_ids": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						},
+						"model_description": {
+							"type": "string"
+						}
+					},
+					"additionalProperties": false
+				}
+			}
+		},
+		"additionalProperties": false
+	}
+}

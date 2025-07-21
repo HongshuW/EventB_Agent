@@ -10,6 +10,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eventb_agent_core.llm.LLMModels;
+import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.RequestBuilder;
 
 public class GeminiRequestBuilder extends RequestBuilder {
@@ -19,11 +20,13 @@ public class GeminiRequestBuilder extends RequestBuilder {
 	}
 
 	@Override
-	protected String getSchemaFileNameFromType(SchemaType schemaType) {
-		switch (schemaType) {
-		case EventB:
+	protected String getSchemaFileNameFromType(LLMRequestTypes requestType) {
+		switch (requestType) {
+		// TODO: case REFINE_STRATEGY
+		case SYNTHESIS:
 			return "gemini_eventb_schema.json";
-		case Proof:
+		case RETRIEVE_MODEL:
+		case FIX_PROOF:
 			return "gemini_proof_schema.json";
 		default:
 			return "gemini_eventb_schema.json";
@@ -31,7 +34,7 @@ public class GeminiRequestBuilder extends RequestBuilder {
 	}
 
 	@Override
-	public String getRequestWithSchema(String prompt, SchemaType schemaType) throws IOException {
+	public String getRequestWithSchema(String prompt, LLMRequestTypes requestType) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
@@ -42,7 +45,7 @@ public class GeminiRequestBuilder extends RequestBuilder {
 		content.put("parts", Arrays.asList(requestMessage));
 		request.put("contents", Arrays.asList(content));
 
-		Map<String, Object> jsonSchema = getSchema(schemaType);
+		Map<String, Object> jsonSchema = getSchema(requestType);
 		LinkedHashMap<String, Object> generationConfig = new LinkedHashMap<>();
 		generationConfig.put("responseMimeType", "application/json");
 		generationConfig.put("responseSchema", jsonSchema);

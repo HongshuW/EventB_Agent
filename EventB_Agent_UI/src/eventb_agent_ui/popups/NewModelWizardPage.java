@@ -2,11 +2,9 @@ package eventb_agent_ui.popups;
 
 import static org.rodinp.core.RodinCore.asRodinElement;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -19,19 +17,20 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eventb.core.IEventBProject;
+import org.eventb.internal.ui.Pair;
 import org.eventb.internal.ui.RodinProjectSelectionDialog;
 import org.eventb.internal.ui.UIUtils;
 import org.eventb.internal.ui.wizards.EventBProjectValidator;
 import org.eventb.ui.EventBUIPlugin;
 import org.rodinp.core.IRodinElement;
-import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
 
-import eventb_agent_core.utils.FileUtils;
+import eventb_agent_core.refinement.RequirementType;
 
 public class NewModelWizardPage extends WizardPage {
 
@@ -39,8 +38,8 @@ public class NewModelWizardPage extends WizardPage {
 	private Text projectText;
 	EventBProjectValidator projectValidator;
 
-	private String prompt;
-	private Text systemDescText;
+	private String systemDesc;
+	private List<Pair<Combo, Text>> requirements;
 
 	// The selection when the wizard is launched.
 	private ISelection selection;
@@ -92,18 +91,54 @@ public class NewModelWizardPage extends WizardPage {
 			}
 		});
 
-		/* Prompt */
-		label = new Label(composite, SWT.NULL);
-		label.setText("&System Description:");
+		/* Requirements */
+		Label requirementsLabel = new Label(composite, SWT.NULL);
+		requirementsLabel.setText("Requirements of the System:");
+		GridData reqsGD = new GridData(GridData.FILL_HORIZONTAL);
+		reqsGD.horizontalSpan = 3;
+		requirementsLabel.setLayoutData(reqsGD);
 
-		systemDescText = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
-		gd.heightHint = 300;
-		systemDescText.setLayoutData(gd);
-		systemDescText.addModifyListener(listener);
+		requirements = new ArrayList<>();
+		addNewRequirement(composite, listener);
 
 		initialize();
 		setControl(composite);
+	}
+
+	private void addNewRequirement(Composite composite, TextModifyListener listener) {
+
+		Combo reqTypeCombo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
+		GridData reqTypeGD = new GridData(SWT.LEFT, SWT.FILL, false, false);
+		reqTypeGD.horizontalSpan = 1;
+		reqTypeCombo.setLayoutData(reqTypeGD);
+
+		for (RequirementType reqType : RequirementType.values()) {
+			reqTypeCombo.add(reqType.toString());
+		}
+
+		reqTypeCombo.select(0);
+
+		Text requirement = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.WRAP);
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+		gd.horizontalSpan = 2;
+		requirement.setLayoutData(gd);
+		requirement.addModifyListener(listener);
+
+		requirements.add(new Pair<>(reqTypeCombo, requirement));
+
+		Button addButton = new Button(composite, SWT.PUSH);
+		addButton.setText("+");
+		addButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				addNewRequirement(composite, listener);
+				((Button) e.widget).dispose();
+				// refresh the composite
+				composite.layout(true, true);
+				composite.getShell().pack();
+			}
+		});
+
 	}
 
 	/**
@@ -122,7 +157,7 @@ public class NewModelWizardPage extends WizardPage {
 			setFocusAndSelectAll(projectText);
 		} else {
 			// Project is valid, focus on component control
-			setFocusAndSelectAll(systemDescText);
+			setFocusAndSelectAll(requirements.get(0).getSecond());
 		}
 	}
 
@@ -131,19 +166,7 @@ public class NewModelWizardPage extends WizardPage {
 		text.setFocus();
 	}
 
-	/**
-	 * Tests if the current workbench selection is a suitable project to use.
-	 */
 	private void initialize() {
-
-		Path promptPath = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "prompts",
-				"synthesize_machine.txt");
-		prompt = FileUtils.readText(promptPath);
-
-		Path sysDescPath = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "prompts",
-				"system_desc_example.txt");
-		String sysDesc = FileUtils.readText(sysDescPath);
-		systemDescText.setText(sysDesc);
 
 		final IRodinProject project;
 		project = getProjectFromSelection();
@@ -153,7 +176,28 @@ public class NewModelWizardPage extends WizardPage {
 
 		if (project != null) {
 			projectText.setText(project.getElementName());
-			systemDescText.selectAll();
+		}
+	}
+
+	private void buildSystemDescription() {
+		systemDesc = "";
+		int funReqID = 1;
+		int eqpReqID = 1;
+		for (Pair<Combo, Text> pair : requirements) {
+			String reqText = pair.getSecond().getText();
+			if (reqText == null || reqText.equals("")) {
+				continue;
+			}
+			RequirementType reqType = RequirementType.values()[pair.getFirst().getSelectionIndex()];
+			String id = "";
+			if (reqType == RequirementType.FUN) {
+				id = String.valueOf(funReqID);
+				funReqID += 1;
+			} else {
+				id = String.valueOf(eqpReqID);
+				eqpReqID += 1;
+			}
+			systemDesc += reqType + "-" + id + ": " + reqText + "\n";
 		}
 	}
 
@@ -207,8 +251,8 @@ public class NewModelWizardPage extends WizardPage {
 			}
 
 			final IEventBProject evbProject = projectValidator.getEventBProject();
-			final String prompt = getPrompt();
-			if (prompt.length() == 0) {
+			final String sysDesc = getSystemDesc();
+			if (sysDesc.length() == 0) {
 				updateStatus("System description must be specified");
 				return;
 			}
@@ -252,12 +296,9 @@ public class NewModelWizardPage extends WizardPage {
 		return projectText.getText();
 	}
 
-	public String getPrompt() {
-		return prompt;
-	}
-
 	public String getSystemDesc() {
-		return systemDescText.getText();
+		buildSystemDescription();
+		return systemDesc;
 	}
 
 	public String getMachineFileType() {

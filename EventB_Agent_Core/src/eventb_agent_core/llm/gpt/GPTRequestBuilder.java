@@ -10,6 +10,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eventb_agent_core.llm.LLMModels;
+import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.RequestBuilder;
 import eventb_agent_core.utils.Constants;
 
@@ -20,11 +21,14 @@ public class GPTRequestBuilder extends RequestBuilder {
 	}
 
 	@Override
-	protected String getSchemaFileNameFromType(SchemaType schemaType) {
-		switch (schemaType) {
-		case EventB:
+	protected String getSchemaFileNameFromType(LLMRequestTypes requestType) {
+		switch (requestType) {
+		case REFINE_STRATEGY:
+			return "gpt_refine_strategy_schema.json";
+		case SYNTHESIS:
 			return "gpt_eventb_schema.json";
-		case Proof:
+		case RETRIEVE_MODEL:
+		case FIX_PROOF:
 			return "gpt_ah_schema.json";
 		default:
 			return "gpt_eventb_schema.json";
@@ -32,7 +36,7 @@ public class GPTRequestBuilder extends RequestBuilder {
 	}
 
 	@Override
-	public String getRequestWithSchema(String prompt, SchemaType schemaType) throws IOException {
+	public String getRequestWithSchema(String prompt, LLMRequestTypes requestType) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
@@ -47,7 +51,7 @@ public class GPTRequestBuilder extends RequestBuilder {
 		requestMessage.put("content", Arrays.asList(content));
 		request.put("input", Arrays.asList(requestMessage));
 
-		Map<String, Object> jsonSchema = getSchema(schemaType);
+		Map<String, Object> jsonSchema = getSchema(requestType);
 		LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
 		textFormat.put("format", jsonSchema);
 		request.put("text", textFormat);

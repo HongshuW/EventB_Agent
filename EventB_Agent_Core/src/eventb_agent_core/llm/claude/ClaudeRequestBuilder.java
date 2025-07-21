@@ -10,6 +10,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eventb_agent_core.llm.LLMModels;
+import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.RequestBuilder;
 import eventb_agent_core.utils.Constants;
 
@@ -20,11 +21,13 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 	}
 
 	@Override
-	protected String getSchemaFileNameFromType(SchemaType schemaType) {
-		switch (schemaType) {
-		case EventB:
+	protected String getSchemaFileNameFromType(LLMRequestTypes requestType) {
+		switch (requestType) {
+		// TODO: case REFINE_STRATEGY
+		case SYNTHESIS:
 			return "claude_eventb_schema.json";
-		case Proof:
+		case RETRIEVE_MODEL:
+		case FIX_PROOF:
 			return "claude_proof_schema.json";
 		default:
 			return "claude_eventb_schema.json";
@@ -32,10 +35,10 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 	}
 
 	@Override
-	public String getRequestWithSchema(String prompt, SchemaType schemaType) throws IOException {
+	public String getRequestWithSchema(String prompt, LLMRequestTypes requestType) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 
-		Map<String, Object> jsonSchema = getSchema(schemaType);
+		Map<String, Object> jsonSchema = getSchema(requestType);
 		String schemaString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonSchema);
 		prompt += "\nFollow the grammar in your response:\n" + schemaString;
 

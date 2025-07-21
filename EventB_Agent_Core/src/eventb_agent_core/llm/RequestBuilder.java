@@ -13,27 +13,23 @@ import eventb_agent_core.utils.FileUtils;
  */
 public abstract class RequestBuilder {
 
-	public enum SchemaType {
-		EventB, Proof
-	};
-
 	protected LLMModels llmModel;
 
 	public RequestBuilder(LLMModels llmModel) {
 		this.llmModel = llmModel;
 	}
 
-	protected Map<String, Object> getSchema(SchemaType schemaType) throws IOException {
+	protected Map<String, Object> getSchema(LLMRequestTypes requestType) throws IOException {
 		Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "schemas",
-				getSchemaFileNameFromType(schemaType));
+				getSchemaFileNameFromType(requestType));
 		Map<String, Object> json = FileUtils.readOrderedJSON(path);
 
 		return json;
 	}
 
-	protected abstract String getSchemaFileNameFromType(SchemaType schemaType);
+	protected abstract String getSchemaFileNameFromType(LLMRequestTypes requestType);
 
-	public abstract String getRequestWithSchema(String prompt, SchemaType schemaType) throws IOException;
+	public abstract String getRequestWithSchema(String prompt, LLMRequestTypes requestType) throws IOException;
 
 	public abstract String getRequestPlain(String prompt) throws IOException;
 

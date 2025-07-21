@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 import eventb_agent_core.llm.schemas.SchemaKeys;
 import eventb_agent_core.proof.Hypothesis;
+import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.utils.llm.ParserUtils;
 
 public abstract class LLMResponseParser {
@@ -20,6 +21,8 @@ public abstract class LLMResponseParser {
 		String answer = getResponseString(response);
 		return new JSONObject(answer);
 	}
+
+	/* Model Synthesis */
 
 	public JSONObject getContextJSON(JSONObject json) {
 		return json.getJSONObject(SchemaKeys.CONTEXT_OBJ_KEY);
@@ -39,6 +42,8 @@ public abstract class LLMResponseParser {
 		return machine.getString(SchemaKeys.MACHINE);
 	}
 
+	/* Proof Fixing */
+
 	public JSONArray getModificationJSONArray(JSONObject json) {
 		return json.getJSONArray(SchemaKeys.MODIFICATION);
 	}
@@ -47,12 +52,10 @@ public abstract class LLMResponseParser {
 		return json.getString(SchemaKeys.EXPLANATION);
 	}
 
-	public JSONArray getContextJSONArray(JSONObject json) {
-		return json.getJSONArray(SchemaKeys.CONTEXT_OBJ_KEY);
-	}
+	/* Refinement Strategy */
 
-	public JSONArray getMachineJSONArray(JSONObject json) {
-		return json.getJSONArray(SchemaKeys.MACHINE_OBJ_KEY);
+	public JSONArray getRefinementStepsJSONArray(JSONObject json) {
+		return json.getJSONArray(SchemaKeys.REF_STRATEGY);
 	}
 
 	/* helper methods */
@@ -176,6 +179,21 @@ public abstract class LLMResponseParser {
 			hypotheses.add(hypothesis);
 		}
 		return hypotheses;
+	}
+
+	/* refinement strategy methods */
+
+	public RefinementStep getRefinementStep(JSONObject refStepJSON) {
+		int refNo = refStepJSON.getInt(SchemaKeys.REF_NO);
+		JSONArray reqIDs = refStepJSON.getJSONArray(SchemaKeys.REQUIREMENT_IDS);
+		String modelDesc = refStepJSON.getString(SchemaKeys.MODEL_DESC);
+
+		List<String> reqIDList = new ArrayList<>();
+		for (int i = 0; i < reqIDs.length(); i++) {
+			reqIDList.add(reqIDs.getString(i));
+		}
+
+		return new RefinementStep(refNo, reqIDList, modelDesc);
 	}
 
 }

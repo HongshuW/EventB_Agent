@@ -6,8 +6,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
-
-import eventb_agent_core.llm.RequestBuilder.SchemaType;
 import eventb_agent_core.utils.llm.PromptUtils;
 
 /**
@@ -59,26 +57,24 @@ public abstract class LLMRequestSender {
 		}
 	}
 
-	public String sendRequest(String prompt, String[] contentInPlaceHolders, LLMRequestTypes[] requestTypes)
-			throws IOException {
+	public String sendRequest(String[] contentInPlaceHolders, LLMRequestTypes[] requestTypes) throws IOException {
 		int length = Math.min(contentInPlaceHolders.length, requestTypes.length);
 		RequestBuilder requestBuilder = getRequestBuilder();
 		boolean isStructuredRequest = true;
-		SchemaType schemaType = null;
+		String prompt = requestTypes[0].getPrompt();
+
 		for (int i = 0; i < length; i++) {
 			String contentInPlaceHolder = PromptUtils.removeSpecialChars(contentInPlaceHolders[i]);
 			LLMRequestTypes requestType = requestTypes[i];
 			prompt = prompt.replace(requestType.getPlaceHolder(), contentInPlaceHolder);
 			if (!requestType.isStructuredRequest()) {
 				isStructuredRequest = false;
-			} else {
-				schemaType = requestType.getSchemaType();
 			}
 		}
 
 		String request = "";
 		if (isStructuredRequest) {
-			request = requestBuilder.getRequestWithSchema(prompt, schemaType);
+			request = requestBuilder.getRequestWithSchema(prompt, requestTypes[0]);
 		} else {
 			request = requestBuilder.getRequestPlain(prompt);
 		}

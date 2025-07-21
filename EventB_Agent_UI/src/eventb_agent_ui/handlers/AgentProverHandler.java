@@ -1,7 +1,6 @@
 package eventb_agent_ui.handlers;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -42,12 +41,10 @@ import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
-import eventb_agent_core.llm.schemas.SchemaKeys;
 import eventb_agent_core.preference.AgentPreferenceInitializer;
+import eventb_agent_core.proof.FixStrategy;
 import eventb_agent_core.proof.Hypothesis;
-import eventb_agent_core.strategies.FixStrategy;
 import eventb_agent_core.utils.Constants;
-import eventb_agent_core.utils.FileUtils;
 import eventb_agent_core.utils.llm.ParserUtils;
 import eventb_agent_core.utils.proof.ProofTreeUtils;
 import eventb_agent_ui.logging.AgentLogger;
@@ -58,7 +55,6 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 
 	private LLMRequestSender llmRequestSender;
 	private LLMResponseParser llmResponseParser;
-	private String prompt;
 
 	public AgentProverHandler() {
 		super();
@@ -89,9 +85,6 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 					return null;
 				}
 
-				// update prompt
-				readPrompt(fixStrategy);
-
 				// retrieve information from workspace
 				IProofTreeNode node = (IProofTreeNode) first;
 				IProofTree tree = node.getProofTree();
@@ -118,9 +111,11 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 					String response;
 					try {
 						String[] placeHolderContents = new String[] { modelJSON, tree.toString() };
+
+						// TODO: get LLMRequestType from fix strategy
 						LLMRequestTypes[] requestTypes = new LLMRequestTypes[] { LLMRequestTypes.RETRIEVE_MODEL,
 								LLMRequestTypes.FIX_PROOF };
-						response = llmRequestSender.sendRequest(prompt, placeHolderContents, requestTypes);
+						response = llmRequestSender.sendRequest(placeHolderContents, requestTypes);
 						response = llmResponseParser.getResponseString(response);
 
 						JSONObject answer = new JSONObject(response);
@@ -162,11 +157,6 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 		}
 
 		return null;
-	}
-
-	private void readPrompt(FixStrategy fixStrategy) {
-		Path promptPath = fixStrategy.getPromptPath();
-		prompt = FileUtils.readText(promptPath);
 	}
 
 	private void addHypothesesToContext(IContextRoot contextRoot, List<Hypothesis> hypotheses) throws CoreException {
