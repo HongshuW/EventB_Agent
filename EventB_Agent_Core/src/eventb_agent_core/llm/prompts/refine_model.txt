@@ -1,0 +1,10 @@
+Refine the provided Event-B model according to the refined system description. Return a new model which refines the provided model.
+\n
+Previous System Description:\n
+{{prev_system_desc}}
+\n
+Model:\n
+{{model}}
+\n
+Refined System Description:\n
+{{system_desc}}

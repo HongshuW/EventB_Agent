@@ -25,8 +25,8 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 		switch (requestType) {
 		// TODO: case REFINE_STRATEGY
 		case SYNTHESIS:
+		case REFINE_MODEL:
 			return "claude_eventb_schema.json";
-		case RETRIEVE_MODEL:
 		case FIX_PROOF:
 			return "claude_proof_schema.json";
 		default:

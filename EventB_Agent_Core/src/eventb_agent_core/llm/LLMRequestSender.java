@@ -57,16 +57,16 @@ public abstract class LLMRequestSender {
 		}
 	}
 
-	public String sendRequest(String[] contentInPlaceHolders, LLMRequestTypes[] requestTypes) throws IOException {
-		int length = Math.min(contentInPlaceHolders.length, requestTypes.length);
+	public String sendRequest(String[] contentInPlaceHolders, LLMRequestTypes requestType) throws IOException {
+		String[] placeHolders = requestType.getPlaceHolders();
+		int length = Math.min(contentInPlaceHolders.length, placeHolders.length);
 		RequestBuilder requestBuilder = getRequestBuilder();
 		boolean isStructuredRequest = true;
-		String prompt = requestTypes[0].getPrompt();
+		String prompt = requestType.getPrompt();
 
 		for (int i = 0; i < length; i++) {
 			String contentInPlaceHolder = PromptUtils.removeSpecialChars(contentInPlaceHolders[i]);
-			LLMRequestTypes requestType = requestTypes[i];
-			prompt = prompt.replace(requestType.getPlaceHolder(), contentInPlaceHolder);
+			prompt = prompt.replace(placeHolders[i], contentInPlaceHolder);
 			if (!requestType.isStructuredRequest()) {
 				isStructuredRequest = false;
 			}
@@ -74,7 +74,7 @@ public abstract class LLMRequestSender {
 
 		String request = "";
 		if (isStructuredRequest) {
-			request = requestBuilder.getRequestWithSchema(prompt, requestTypes[0]);
+			request = requestBuilder.getRequestWithSchema(prompt, requestType);
 		} else {
 			request = requestBuilder.getRequestPlain(prompt);
 		}

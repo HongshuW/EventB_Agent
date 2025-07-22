@@ -10,7 +10,8 @@ public enum LLMRequestTypes {
 
 	REFINE_STRATEGY, // Given requirements, produce a refine strategy
 	SYNTHESIS, // Given system description, synthesize a model
-	RETRIEVE_MODEL, // Retrieve a model to be used as part of the prompt
+	REFINE_MODEL, // Given previous system description, previous model, and new system
+					// description, refine the model
 	FIX_PROOF; // Retrieve proof tree to be used as part of the prompt
 
 	public String getPrompt() {
@@ -25,7 +26,8 @@ public enum LLMRequestTypes {
 			return "refine_strategy.txt";
 		case SYNTHESIS:
 			return "synthesize_machine.txt";
-		case RETRIEVE_MODEL:
+		case REFINE_MODEL:
+			return "refine_model.txt";
 		case FIX_PROOF:
 			return "add_hypothesis.txt";
 		default:
@@ -33,18 +35,19 @@ public enum LLMRequestTypes {
 		}
 	}
 
-	public String getPlaceHolder() {
+	public String[] getPlaceHolders() {
 		switch (this) {
 		case REFINE_STRATEGY:
-			return Constants.SYS_DESC_PLACE_HOLDER;
+			return new String[] { Constants.SYS_DESC_PLACE_HOLDER };
 		case SYNTHESIS:
-			return Constants.SYS_DESC_PLACE_HOLDER;
-		case RETRIEVE_MODEL:
-			return Constants.MODEL_PLACE_HOLDER;
+			return new String[] { Constants.SYS_DESC_PLACE_HOLDER };
+		case REFINE_MODEL:
+			return new String[] { Constants.PREV_SYS_DESC_PLACE_HOLDER, Constants.MODEL_PLACE_HOLDER,
+					Constants.SYS_DESC_PLACE_HOLDER };
 		case FIX_PROOF:
-			return Constants.PROOF_TREE_PLACE_HOLDER;
+			return new String[] { Constants.MODEL_PLACE_HOLDER, Constants.PROOF_TREE_PLACE_HOLDER };
 		default:
-			return Constants.DEFAULT_PLACE_HOLDER;
+			return new String[] { Constants.DEFAULT_PLACE_HOLDER };
 		}
 	}
 
@@ -54,7 +57,8 @@ public enum LLMRequestTypes {
 			return true;
 		case SYNTHESIS:
 			return true;
-		case RETRIEVE_MODEL:
+		case REFINE_MODEL:
+			return true;
 		case FIX_PROOF:
 			return true;
 		default:

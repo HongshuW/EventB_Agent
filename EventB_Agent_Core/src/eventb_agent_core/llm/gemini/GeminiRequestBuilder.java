@@ -24,8 +24,8 @@ public class GeminiRequestBuilder extends RequestBuilder {
 		switch (requestType) {
 		// TODO: case REFINE_STRATEGY
 		case SYNTHESIS:
+		case REFINE_MODEL:
 			return "gemini_eventb_schema.json";
-		case RETRIEVE_MODEL:
 		case FIX_PROOF:
 			return "gemini_proof_schema.json";
 		default:

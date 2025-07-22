@@ -2,6 +2,7 @@ package eventb_agent_ui.popups;
 
 import static org.rodinp.core.RodinCore.asRodinElement;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -19,7 +20,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eventb.core.IEventBProject;
 import org.eventb.internal.ui.Pair;
@@ -30,7 +33,9 @@ import org.eventb.ui.EventBUIPlugin;
 import org.rodinp.core.IRodinElement;
 import org.rodinp.core.IRodinProject;
 
+import eventb_agent_core.refinement.Requirement;
 import eventb_agent_core.refinement.RequirementType;
+import eventb_agent_core.refinement.SystemRequirements;
 
 public class NewModelWizardPage extends WizardPage {
 
@@ -40,6 +45,7 @@ public class NewModelWizardPage extends WizardPage {
 
 	private String systemDesc;
 	private List<Pair<Combo, Text>> requirements;
+	private Button addRequirementButton;
 
 	// The selection when the wizard is launched.
 	private ISelection selection;
@@ -95,28 +101,46 @@ public class NewModelWizardPage extends WizardPage {
 		Label requirementsLabel = new Label(composite, SWT.NULL);
 		requirementsLabel.setText("Requirements of the System:");
 		GridData reqsGD = new GridData(GridData.FILL_HORIZONTAL);
-		reqsGD.horizontalSpan = 3;
+		reqsGD.horizontalSpan = 2;
 		requirementsLabel.setLayoutData(reqsGD);
 
+		Button browseReqButton = new Button(composite, SWT.PUSH);
+		browseReqButton.setText("Browse...");
+		browseReqButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				handleBrowseRequirements(composite, listener);
+			}
+		});
+
 		requirements = new ArrayList<>();
-		addNewRequirement(composite, listener);
+		addReqButton(composite, listener);
 
 		initialize();
 		setControl(composite);
 	}
 
-	private void addNewRequirement(Composite composite, TextModifyListener listener) {
+	private void addNewRequirement(Composite composite, TextModifyListener listener, boolean addButton) {
+		addNewRequirement(composite, listener, addButton, null, null);
+	}
 
+	private void addNewRequirement(Composite composite, TextModifyListener listener, boolean addButton,
+			RequirementType selectedType, String reqText) {
 		Combo reqTypeCombo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData reqTypeGD = new GridData(SWT.LEFT, SWT.FILL, false, false);
 		reqTypeGD.horizontalSpan = 1;
 		reqTypeCombo.setLayoutData(reqTypeGD);
 
-		for (RequirementType reqType : RequirementType.values()) {
+		int selectedIndex = 0;
+		for (int i = 0; i < RequirementType.values().length; i++) {
+			RequirementType reqType = RequirementType.values()[i];
 			reqTypeCombo.add(reqType.toString());
+			if (selectedType == reqType) {
+				selectedIndex = i;
+			}
 		}
 
-		reqTypeCombo.select(0);
+		reqTypeCombo.select(selectedIndex);
 
 		Text requirement = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.WRAP);
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
@@ -124,21 +148,31 @@ public class NewModelWizardPage extends WizardPage {
 		requirement.setLayoutData(gd);
 		requirement.addModifyListener(listener);
 
+		if (reqText != null) {
+			requirement.setText(reqText);
+		}
+
 		requirements.add(new Pair<>(reqTypeCombo, requirement));
 
+		if (addButton) {
+			addReqButton(composite, listener);
+		}
+	}
+
+	private void addReqButton(Composite composite, TextModifyListener listener) {
 		Button addButton = new Button(composite, SWT.PUSH);
 		addButton.setText("+");
 		addButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				addNewRequirement(composite, listener);
+				addNewRequirement(composite, listener, true);
 				((Button) e.widget).dispose();
 				// refresh the composite
 				composite.layout(true, true);
 				composite.getShell().pack();
 			}
 		});
-
+		this.addRequirementButton = addButton;
 	}
 
 	/**
@@ -155,7 +189,7 @@ public class NewModelWizardPage extends WizardPage {
 		if (projectValidator.hasError()) {
 			// Focus on project field
 			setFocusAndSelectAll(projectText);
-		} else {
+		} else if (requirements != null && requirements.size() > 0) {
 			// Project is valid, focus on component control
 			setFocusAndSelectAll(requirements.get(0).getSecond());
 		}
@@ -180,25 +214,18 @@ public class NewModelWizardPage extends WizardPage {
 	}
 
 	private void buildSystemDescription() {
-		systemDesc = "";
-		int funReqID = 1;
-		int eqpReqID = 1;
+		SystemRequirements sysReq = new SystemRequirements();
 		for (Pair<Combo, Text> pair : requirements) {
 			String reqText = pair.getSecond().getText();
 			if (reqText == null || reqText.equals("")) {
 				continue;
 			}
 			RequirementType reqType = RequirementType.values()[pair.getFirst().getSelectionIndex()];
-			String id = "";
-			if (reqType == RequirementType.FUN) {
-				id = String.valueOf(funReqID);
-				funReqID += 1;
-			} else {
-				id = String.valueOf(eqpReqID);
-				eqpReqID += 1;
-			}
-			systemDesc += reqType + "-" + id + ": " + reqText + "\n";
+			Requirement req = new Requirement(reqType, reqText);
+			sysReq.addRequirement(req);
 		}
+
+		systemDesc = sysReq.toString();
 	}
 
 	private IRodinProject getProjectFromSelection() {
@@ -234,6 +261,31 @@ public class NewModelWizardPage extends WizardPage {
 			if (result.length == 1) {
 				projectText.setText(((IRodinProject) result[0]).getElementName());
 			}
+		}
+	}
+
+	private void handleBrowseRequirements(Composite composite, TextModifyListener listener) {
+		Shell shell = getShell();
+
+		FileDialog dlg = new FileDialog(shell, SWT.OPEN);
+		dlg.setText("Select Requirement File");
+		dlg.setFilterExtensions(new String[] { "*.json" });
+		dlg.setFilterNames(new String[] { "JSON files (*.json)" });
+
+		String selected = dlg.open();
+		if (selected != null) {
+			Path path = Path.of(selected);
+			SystemRequirements requirements = new SystemRequirements(path);
+			List<Requirement> reqList = requirements.getRequirements();
+			addRequirementButton.dispose();
+			for (int i = 0; i < reqList.size(); i++) {
+				Requirement req = reqList.get(i);
+				addNewRequirement(composite, listener, i == reqList.size() - 1, req.getRequirementType(),
+						req.getRequirementText());
+			}
+			composite.layout(true, true);
+			composite.getShell().pack();
+			this.systemDesc = requirements.toString();
 		}
 	}
 
