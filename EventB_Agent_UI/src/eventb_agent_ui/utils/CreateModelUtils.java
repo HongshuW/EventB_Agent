@@ -42,8 +42,7 @@ public class CreateModelUtils {
 		List<String> constants = parser.getConstants(json);
 		List<String[]> axioms = parser.getAxioms(json);
 
-		// TODO: add this later
-//		addExtendsChildren(rodinRoot, pMonitor, extendedContexts);
+		addExtendsChildren(rodinRoot, pMonitor, extendedContexts);
 		addSetsChildren(rodinRoot, pMonitor, sets);
 		addConstantsChildren(rodinRoot, pMonitor, constants);
 		addAxiomsChildren(rodinRoot, pMonitor, axioms);
@@ -84,9 +83,8 @@ public class CreateModelUtils {
 
 	/* machine methods */
 
-	public static void initiateMachine(IInternalElement rodinRoot, IProgressMonitor pMonitor,
-			LLMResponseParser parser, JSONObject json)
-			throws RodinDBException {
+	public static void initiateMachine(IInternalElement rodinRoot, IProgressMonitor pMonitor, LLMResponseParser parser,
+			JSONObject json) throws RodinDBException {
 
 		System.out.println(json);
 
@@ -98,19 +96,13 @@ public class CreateModelUtils {
 		List<String[]> variants = parser.getVariants(json);
 		List<Map<String, Object>> events = parser.getEvents(json);
 
-		// TODO: add this later
-//		addRefineMachineChildren(rodinRoot, pMonitor, refines);
+		addRefineMachineChildren(rodinRoot, pMonitor, refines);
 		addSeeContextChildren(rodinRoot, pMonitor, sees);
 		addVariablesChildren(rodinRoot, pMonitor, variables);
 		addInvariantsChildren(rodinRoot, pMonitor, invariants);
 		addVariantsChildren(rodinRoot, pMonitor, variants);
 		addEventsChildren(rodinRoot, pMonitor, events);
 
-//		// init event
-//		final IEvent init = rodinRoot.createChild(IEvent.ELEMENT_TYPE, null, pMonitor);
-//		init.setLabel(IEvent.INITIALISATION, pMonitor);
-//		init.setConvergence(IConvergenceElement.Convergence.ORDINARY, pMonitor);
-//		init.setExtended(false, pMonitor);
 	}
 
 	private static void addRefineMachineChildren(IInternalElement internalElement, IProgressMonitor pMonitor,
@@ -121,8 +113,8 @@ public class CreateModelUtils {
 		}
 	}
 
-	private static void addSeeContextChildren(IInternalElement internalElement, IProgressMonitor pMonitor, List<String> sees)
-			throws RodinDBException {
+	private static void addSeeContextChildren(IInternalElement internalElement, IProgressMonitor pMonitor,
+			List<String> sees) throws RodinDBException {
 		for (String seeIdentifer : sees) {
 			ISeesContext seenContext = internalElement.createChild(ISeesContext.ELEMENT_TYPE, null, pMonitor);
 			seenContext.setSeenContextName(seeIdentifer, pMonitor);
@@ -197,8 +189,8 @@ public class CreateModelUtils {
 		}
 	}
 
-	private static void addGuardsChildren(IInternalElement internalElement, IProgressMonitor pMonitor, List<String[]> guards)
-			throws RodinDBException {
+	private static void addGuardsChildren(IInternalElement internalElement, IProgressMonitor pMonitor,
+			List<String[]> guards) throws RodinDBException {
 		for (String[] guard : guards) {
 			IGuard labeledGuard = internalElement.createChild(IGuard.ELEMENT_TYPE, null, pMonitor);
 			labeledGuard.setLabel(guard[0], pMonitor);
@@ -215,8 +207,8 @@ public class CreateModelUtils {
 		}
 	}
 
-	private static void addActionsChildren(IInternalElement internalElement, IProgressMonitor pMonitor, List<String[]> actions)
-			throws RodinDBException {
+	private static void addActionsChildren(IInternalElement internalElement, IProgressMonitor pMonitor,
+			List<String[]> actions) throws RodinDBException {
 		for (String[] action : actions) {
 			IAction labeledAction = internalElement.createChild(IAction.ELEMENT_TYPE, null, pMonitor);
 			labeledAction.setLabel(action[0], pMonitor);

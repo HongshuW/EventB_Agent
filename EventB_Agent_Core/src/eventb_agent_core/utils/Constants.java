@@ -27,7 +27,7 @@ public class Constants {
 
 	public static final double TEMPERATURE = 0;
 	public static final double TOP_P = 1;
-	public static final int TOKEN_LIMIT = 2048;
+	public static final int TOKEN_LIMIT = 4096;
 
 	public static final String DEFAULT_PLACE_HOLDER = "{{default}}";
 	public static final String SYS_DESC_PLACE_HOLDER = "{{system_desc}}";

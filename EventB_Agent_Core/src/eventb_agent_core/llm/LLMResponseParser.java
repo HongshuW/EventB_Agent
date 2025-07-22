@@ -61,8 +61,13 @@ public abstract class LLMResponseParser {
 	/* helper methods */
 
 	private List<String> getArrayOfStrings(JSONObject json, String key) {
-		JSONArray array = json.getJSONArray(key);
 		List<String> results = new ArrayList<>();
+
+		if (!json.has(key)) {
+			return results;
+		}
+
+		JSONArray array = json.getJSONArray(key);
 		for (int i = 0; i < array.length(); i++) {
 			results.add(array.getString(i));
 		}
