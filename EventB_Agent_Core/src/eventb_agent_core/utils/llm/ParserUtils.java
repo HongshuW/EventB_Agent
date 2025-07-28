@@ -1,11 +1,13 @@
 package eventb_agent_core.utils.llm;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 public class ParserUtils {
-	
+
 	public static String addEscape(String originalString) {
 		return originalString.replace("\\", "\\\\");
 	}
@@ -52,12 +54,9 @@ public class ParserUtils {
 		specialCharsMap.put("\bunion", "∪");
 		specialCharsMap.put("{}", "∅");
 		specialCharsMap.put("|", "∣");
-		specialCharsMap.put(":=", "≔");
 		specialCharsMap.put("!=", "≠");
 		specialCharsMap.put("/=", "≠");
 		specialCharsMap.put(">=", "≥");
-		specialCharsMap.put("∣−>", "↦");
-		specialCharsMap.put("|−>", "↦");
 		specialCharsMap.put("-->>", "↠");
 		specialCharsMap.put("&", "∧");
 		specialCharsMap.put("<=>", "⇔");
@@ -67,17 +66,12 @@ public class ParserUtils {
 		specialCharsMap.put("POW1(", "ℙ1(");
 		specialCharsMap.put("P(", "ℙ(");
 		specialCharsMap.put("P1(", "ℙ1(");
-		specialCharsMap.put("/:", "∉");
-		specialCharsMap.put("/<:", "⊈");
-		specialCharsMap.put("/<<:", "⊄");
 		specialCharsMap.put("..", "‥");
 		specialCharsMap.put("><", "⊗");
 		specialCharsMap.put(">+>", "⤔");
 		specialCharsMap.put("+->>", "⤀");
 		specialCharsMap.put(">->>", "⤖");
 		specialCharsMap.put("%", "λ");
-		specialCharsMap.put("::", ":∈");
-		specialCharsMap.put(":|", ":∣");
 
 		Map<String, String> regexMap = new HashMap<>();
 		regexMap.put("\\|(?!->)([^|]+)\\|(?!->)", "card($1)"); // replace |...| with card(...)
@@ -88,9 +82,6 @@ public class ParserUtils {
 		regexMap.put("(?<![|<>+\\\\-])-(?![|<>+\\\\-])", "−"); // replace "-" with "−"
 		regexMap.put("(?<![<])=>", "⇒"); // replace "=>" with "⇒"
 		regexMap.put("!(?![=])", "∀"); // replace "!" with "∀"
-		regexMap.put("(?<![\\\\/=<>:\\|]):(?![\\\\/=<>:\\|])", "∈"); // replace ":" with "∈"
-		regexMap.put("(?<![</])<:(?![\\\\/=<>:\\|])", "⊆"); // replace "<:" with "⊆"
-		regexMap.put("(?<![/])<<:(?![\\\\/=<>:\\|])", "⊂"); // replace "<<:" with "⊂"
 		regexMap.put("\\*{1,2}", "×"); // replace "*|**" with "×"
 		regexMap.put("<=(?![>])", "≤"); // replace "<=" with "≤"
 		regexMap.put("(?<![<])<->(?![>])", "↔"); // replace "<->" with "↔"
@@ -101,6 +92,7 @@ public class ParserUtils {
 		regexMap.put("\\+->(?![>])", "⇸"); // replace "+->" with "⇸"
 		regexMap.put(">->(?![>])", "↣"); // replace ">->" with "↣"
 		regexMap.put("-->(?![>])", "→"); // replace "-->" with "→"
+		regexMap.put("\\|->(?![>])", "↦"); // replace "|->" with "↦"
 		regexMap.put("\\\\+pfun", "⇸");
 		regexMap.put("\\\\+subseteq", "⊆");
 		regexMap.put("\\\\+in", "∈");
@@ -141,6 +133,8 @@ public class ParserUtils {
 		Map<String, String> leastPrioritizedMap = new HashMap<>();
 		leastPrioritizedMap.put("\\\\", "∖");
 
+		originalString = ParserUtils.processColon(originalString);
+
 		for (Entry<String, String> entry : prioritizedMap.entrySet()) {
 			originalString = originalString.replace(entry.getKey(), entry.getValue());
 		}
@@ -162,6 +156,103 @@ public class ParserUtils {
 		}
 
 		return originalString;
+	}
+
+	private static String processColon(String originalString) {
+		boolean hasQuestionMark = false;
+		char[] chars = originalString.toCharArray();
+		List<Character> newChars = new ArrayList<>();
+
+		for (int i = 0; i < chars.length; i++) {
+			char c = chars[i];
+			if (c == '?') {
+				hasQuestionMark = true;
+				newChars.add(c);
+			} else if (c == ':') {
+				if (hasQuestionMark && isSingleColon(chars, i)) {
+					hasQuestionMark = false;
+					newChars.add(c);
+				} else {
+					if (isSingleColon(chars, i)) {
+						newChars.add('∈');
+						continue;
+					}
+					if (i < chars.length - 1) {
+						if (chars[i + 1] == '=') {
+							newChars.add('≔');
+							i++;
+							continue;
+						} else if (chars[i + 1] == '|') {
+							newChars.add(':');
+							newChars.add('∣');
+							i++;
+							continue;
+						} else if (chars[i + 1] == ':') {
+							newChars.add(':');
+							newChars.add('∈');
+							i++;
+							continue;
+						}
+					}
+					if (i > 2 && chars[i - 1] == '<' && chars[i - 2] == '<' && chars[i - 3] == '/') {
+						newChars.remove(newChars.size() - 1);
+						newChars.remove(newChars.size() - 1);
+						newChars.remove(newChars.size() - 1);
+						newChars.add('⊄');
+						continue;
+					}
+					if (i > 1) {
+						if (chars[i - 1] == '<' && chars[i - 2] == '/') {
+							newChars.remove(newChars.size() - 1);
+							newChars.remove(newChars.size() - 1);
+							newChars.add('⊈');
+							continue;
+						} else if (chars[i - 1] == '<' && chars[i - 2] == '<') {
+							newChars.remove(newChars.size() - 1);
+							newChars.remove(newChars.size() - 1);
+							newChars.add('⊂');
+							continue;
+						}
+					}
+					if (i > 0) {
+						if (chars[i - 1] == '/') {
+							newChars.remove(newChars.size() - 1);
+							newChars.add('∉');
+							continue;
+						} else if (chars[i - 1] == '<') {
+							newChars.remove(newChars.size() - 1);
+							newChars.add('⊆');
+							continue;
+						}
+					}
+					newChars.add(c);
+				}
+			} else {
+				newChars.add(c);
+			}
+		}
+
+		char[] newCharsArray = new char[newChars.size()];
+		for (int i = 0; i < newChars.size(); i++) {
+			newCharsArray[i] = newChars.get(i);
+		}
+		return new String(newCharsArray);
+	}
+
+	private static boolean isSingleColon(char[] characters, int index) {
+		if (index < 0 || index >= characters.length || characters[index] != ':') {
+			return false;
+		}
+		if (index == 0) {
+			return !(characters[index + 1] == ':' || characters[index + 1] == '∈' || characters[index + 1] == '='
+					|| characters[index + 1] == '|' || characters[index + 1] == '∣');
+		}
+		if (index == characters.length - 1) {
+			return !(characters[index - 1] == '/' || characters[index - 1] == '<' || characters[index - 1] == ':');
+		}
+		return !(characters[index + 1] == ':' || characters[index + 1] == '∈' || characters[index + 1] == '='
+				|| characters[index + 1] == '|' || characters[index + 1] == '∣' || characters[index - 1] == '/'
+				|| characters[index - 1] == '<' || characters[index - 1] == ':');
 	}
 
 }
