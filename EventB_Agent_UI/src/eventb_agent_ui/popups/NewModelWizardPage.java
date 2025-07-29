@@ -37,6 +37,9 @@ import eventb_agent_core.refinement.Requirement;
 import eventb_agent_core.refinement.RequirementType;
 import eventb_agent_core.refinement.SystemRequirements;
 
+/**
+ * This page is the UI layout for {@code NewModelWizard}.
+ */
 public class NewModelWizardPage extends WizardPage {
 
 	// Some text areas.

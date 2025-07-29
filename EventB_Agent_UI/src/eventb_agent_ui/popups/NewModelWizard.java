@@ -2,14 +2,11 @@ package eventb_agent_ui.popups;
 
 import static org.eventb.core.IConfigurationElement.DEFAULT_CONFIGURATION;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -25,9 +22,7 @@ import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eventb.core.IConfigurationElement;
-import org.eventb.core.IContextRoot;
 import org.eventb.core.IMachineRoot;
-import org.eventb.core.IVariable;
 import org.eventb.internal.ui.UIUtils;
 import org.eventb.internal.ui.utils.Messages;
 import org.eventb.ui.EventBUIPlugin;
@@ -35,24 +30,26 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.rodinp.core.IInternalElement;
 import org.rodinp.core.IRodinDB;
-import org.rodinp.core.IRodinElement;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
 import org.rodinp.core.RodinCore;
 import eventb_agent_core.llm.LLMInstanceFactory;
 import eventb_agent_core.llm.LLMRequestSender;
-import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.LLMResponseParser;
+import eventb_agent_core.llmiteractor.CompilationErrorFixer;
+import eventb_agent_core.llmiteractor.ModelCreator;
+import eventb_agent_core.llmiteractor.RefinementStrategyPlanner;
 import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.utils.Constants;
 import eventb_agent_ui.EventBAgentUIPlugin;
-import eventb_agent_ui.utils.CompilationErrorType;
 import eventb_agent_ui.utils.CreateModelUtils;
-import eventb_agent_ui.utils.ErrorTypeUtils;
-import eventb_agent_ui.utils.RetrieveModelUtils;
 
+/**
+ * This class is the user interface for calling the agent to create a new
+ * Event-B model.
+ */
 public class NewModelWizard extends Wizard implements INewWizard {
 
 	public static final String WIZARD_ID = EventBAgentUIPlugin.AGENT_PLUGIN_ID + ".wizards.CreateMachine";
@@ -103,24 +100,32 @@ public class NewModelWizard extends Wizard implements INewWizard {
 		final String sysDesc = page.getSystemDesc();
 
 		// get refine steps
-		JSONObject response = getLLMResponse(new String[] { sysDesc }, LLMRequestTypes.REFINE_STRATEGY);
-		JSONArray refinementSteps = llmResponseParser.getRefinementStepsJSONArray(response);
+		RefinementStrategyPlanner refinementStrategyPlanner = new RefinementStrategyPlanner(llmRequestSender,
+				llmResponseParser);
+		JSONArray refinementSteps = refinementStrategyPlanner.getRefinementSteps(sysDesc);
 
+		// create models
 		String previousSysDesc = "";
 		String[] fileNames = new String[2];
 		for (int i = 0; i < refinementSteps.length(); i++) {
 			JSONObject refStepJSON = refinementSteps.getJSONObject(i);
 			RefinementStep refinementStep = llmResponseParser.getRefinementStep(refStepJSON);
 
+			ModelCreator modelCreator = new ModelCreator(llmRequestSender, llmResponseParser);
+			final String projectName = page.getProjectName();
 			try {
 				String newSysDesc = refinementStep.getModelDesc();
 				if (i == 0) {
 					// synthesize abstract model
-					fileNames = synthesizeModel(refinementStep);
+					JSONObject response = modelCreator.synthesizeModel(refinementStep);
+					fileNames = saveModel(projectName, response);
 					previousSysDesc = newSysDesc;
+					break;
 				} else {
 					// refine the previous model
-					fileNames = refineModel(fileNames, previousSysDesc, refinementStep);
+					JSONObject response = modelCreator.refineModel(projectName, fileNames, previousSysDesc,
+							refinementStep);
+					fileNames = saveModel(projectName, response);
 					previousSysDesc += "\n" + newSysDesc;
 				}
 
@@ -135,80 +140,7 @@ public class NewModelWizard extends Wizard implements INewWizard {
 			}
 		}
 
-		// TODO: add this later for compilation error
-//		IRunnableWithProgress op1 = new IRunnableWithProgress() {
-//			@Override
-//			public void run(IProgressMonitor monitor) throws InvocationTargetException {
-//				try {
-//					solveCompilationErrors(projectName, machineFileName, monitor);
-//				} catch (CoreException e) {
-//					throw new InvocationTargetException(e);
-//				} finally {
-//					monitor.done();
-//				}
-//			}
-//		};
-//		try {
-//			getContainer().run(true, false, op1);
-//		} catch (InterruptedException e) {
-//			return false;
-//		} catch (InvocationTargetException e) {
-//			Throwable realException = e.getTargetException();
-//			UIUtils.showError(Messages.title_error, realException.getMessage());
-//			return false;
-//		}
 		return true;
-	}
-
-	/**
-	 * Synthesize the Event-B model based on the refinement step. Return the names
-	 * of files containing the saved model.
-	 * 
-	 * @param refinementStep
-	 * @return the names of files containing the saved model.
-	 * @throws InvocationTargetException
-	 * @throws InterruptedException
-	 */
-	private String[] synthesizeModel(RefinementStep refinementStep)
-			throws InvocationTargetException, InterruptedException {
-		final String projectName = page.getProjectName();
-
-		String systemDesc = refinementStep.getModelDesc();
-		JSONObject response = getLLMResponse(new String[] { systemDesc }, LLMRequestTypes.SYNTHESIS);
-
-		return saveModel(projectName, response);
-	}
-
-	/**
-	 * Refine the given Event-B model. Return the names of files containing the
-	 * saved model.
-	 * 
-	 * @param fileNames
-	 * @param previousSysDesc
-	 * @param refinementStep
-	 * @return the names of files containing the saved model.
-	 * @throws CoreException
-	 * @throws InvocationTargetException
-	 * @throws InterruptedException
-	 */
-	private String[] refineModel(String[] fileNames, String previousSysDesc, RefinementStep refinementStep)
-			throws CoreException, InvocationTargetException, InterruptedException {
-		final String projectName = page.getProjectName();
-
-		// retrieve model in JSON form
-		IRodinProject rodinProject = getRodinProject(projectName);
-		IRodinFile ctxFile = rodinProject.getRodinFile(fileNames[0]);
-		IRodinFile mchFile = rodinProject.getRodinFile(fileNames[1]);
-		IContextRoot contextRoot = (IContextRoot) ctxFile.getRoot();
-		IMachineRoot machineRoot = (IMachineRoot) mchFile.getRoot();
-		String modelJSON = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
-
-		String refineSysDesc = refinementStep.getModelDesc();
-
-		JSONObject response = getLLMResponse(new String[] { previousSysDesc, modelJSON, refineSysDesc },
-				LLMRequestTypes.REFINE_MODEL);
-
-		return saveModel(projectName, response);
 	}
 
 	private String[] saveModel(String projectName, JSONObject response)
@@ -218,7 +150,8 @@ public class NewModelWizard extends Wizard implements INewWizard {
 		JSONObject contextJSON = llmResponseParser.getContextJSON(response);
 		JSONObject machineJSON = llmResponseParser.getMachineJSON(response);
 
-		IRunnableWithProgress op = new IRunnableWithProgress() {
+		// save model
+		IRunnableWithProgress saveModelOperation = new IRunnableWithProgress() {
 			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
@@ -231,22 +164,30 @@ public class NewModelWizard extends Wizard implements INewWizard {
 				}
 			}
 		};
+		getContainer().run(true, false, saveModelOperation);
 
-		getContainer().run(true, false, op);
+		// fix compilation errors
+		IRunnableWithProgress fixCompilationErrorOperation = new IRunnableWithProgress() {
+			@Override
+			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				try {
+					CompilationErrorFixer compilationErrorFixer = new CompilationErrorFixer(llmRequestSender,
+							llmResponseParser);
+					JSONObject newModel = compilationErrorFixer.solveCompilationErrors(projectName, machineFileName,
+							contextFileName, monitor);
+					if (newModel != null) {
+						saveModel(projectName, newModel);
+					}
+				} catch (CoreException e) {
+					throw new InvocationTargetException(e);
+				} finally {
+					monitor.done();
+				}
+			}
+		};
+		getContainer().run(true, false, fixCompilationErrorOperation);
 
 		return new String[] { contextFileName, machineFileName };
-	}
-
-	private JSONObject getLLMResponse(String[] placeHolderContents, LLMRequestTypes requestType) {
-		String response;
-		try {
-			response = llmRequestSender.sendRequest(placeHolderContents, requestType);
-			return llmResponseParser.getResponseContent(response);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return null;
 	}
 
 	/**
@@ -280,7 +221,7 @@ public class NewModelWizard extends Wizard implements INewWizard {
 					/* context */
 					CreateModelUtils.initiateContext(rodinRoot, pMonitor, llmResponseParser, json);
 				}
-				rodinFile.save(null, true);
+				rodinFile.save(pMonitor, true);
 			}
 
 		}, monitor);
@@ -297,52 +238,6 @@ public class NewModelWizard extends Wizard implements INewWizard {
 		monitor.worked(1);
 	}
 
-	private void solveCompilationErrors(String projectName, final String fileName, IProgressMonitor monitor)
-			throws CoreException {
-
-		monitor.beginTask("Fixing compilation errors in " + fileName, 2);
-		IRodinProject rodinProject = getRodinProject(projectName);
-
-		RodinCore.run(new IWorkspaceRunnable() {
-
-			@Override
-			public void run(IProgressMonitor pMonitor) throws CoreException {
-				final IRodinFile rodinFile = rodinProject.getRodinFile(fileName);
-				final IInternalElement rodinRoot = rodinFile.getRoot();
-				((IConfigurationElement) rodinRoot).setConfiguration(DEFAULT_CONFIGURATION, pMonitor);
-
-				IResource resource = rodinRoot.getResource();
-				IMarker[] markers = resource.findMarkers("org.rodinp.core.problem", true, IResource.DEPTH_INFINITE); // org.rodinp.core.problem
-				for (IMarker marker : markers) {
-					int severity = marker.getAttribute(IMarker.SEVERITY, -1);
-					if (severity == IMarker.SEVERITY_ERROR) {
-						String message = (String) marker.getAttribute(IMarker.MESSAGE);
-						int charStart = marker.getAttribute(IMarker.CHAR_START, -1);
-						int charEnd = marker.getAttribute(IMarker.CHAR_END, -1);
-						int lineNo = marker.getAttribute(IMarker.LINE_NUMBER, -1);
-
-						System.out.println("Error: " + message);
-						System.out.println("Char Start: " + charStart);
-						System.out.println("Char End: " + charEnd);
-						System.out.println("Line Number: " + lineNo);
-
-						String handle = (String) marker.getAttribute("element", null);
-						System.out.println(handle);
-						if (handle != null) {
-							IRodinElement element = RodinCore.valueOf(handle);
-							fixCompilationError(element, message, resource);
-						}
-					}
-				}
-
-				rodinFile.save(null, true);
-			}
-
-		}, monitor);
-
-		monitor.worked(1);
-	}
-
 	private IRodinProject getRodinProject(String projectName) throws CoreException {
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IResource resource = root.findMember(new Path(projectName));
@@ -355,19 +250,6 @@ public class NewModelWizard extends Wizard implements INewWizard {
 		final IRodinProject rodinProject = db.getRodinProject(projectName);
 
 		return rodinProject;
-	}
-
-	private void fixCompilationError(IRodinElement element, String errorMessage, IResource resource)
-			throws CoreException {
-		CompilationErrorType errorType = ErrorTypeUtils.getErrorType(errorMessage);
-		if (errorType == CompilationErrorType.TYPE_MISSING) {
-			if (element instanceof IVariable) {
-				IVariable var = (IVariable) element;
-				String identifierName = var.getIdentifierString();
-				System.out.println(identifierName);
-			}
-		}
-		ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
 	}
 
 	/**

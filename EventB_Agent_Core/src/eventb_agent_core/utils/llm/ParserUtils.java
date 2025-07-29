@@ -130,9 +130,6 @@ public class ParserUtils {
 		regexMap.put("\\\\\\{", "{");
 		regexMap.put("\\\\\\}", "}");
 
-		Map<String, String> leastPrioritizedMap = new HashMap<>();
-		leastPrioritizedMap.put("\\\\", "∖");
-
 		originalString = ParserUtils.processColon(originalString);
 
 		for (Entry<String, String> entry : prioritizedMap.entrySet()) {
@@ -151,9 +148,8 @@ public class ParserUtils {
 			originalString = originalString.replaceAll("\\b" + entry.getKey() + "\\b", entry.getValue());
 		}
 
-		for (Entry<String, String> entry : leastPrioritizedMap.entrySet()) {
-			originalString = originalString.replace(entry.getKey(), entry.getValue());
-		}
+		originalString.replace("\\\\", "∖");
+		originalString.replace("\\", "∖");
 
 		return originalString;
 	}

@@ -10,6 +10,7 @@ public enum LLMRequestTypes {
 
 	REFINE_STRATEGY, // Given requirements, produce a refine strategy
 	SYNTHESIS, // Given system description, synthesize a model
+	FIX_COMPILATION_ERRS, // Fix compilation errors in a model
 	REFINE_MODEL, // Given previous system description, previous model, and new system
 					// description, refine the model
 	FIX_PROOF; // Retrieve proof tree to be used as part of the prompt
@@ -26,6 +27,8 @@ public enum LLMRequestTypes {
 			return "refine_strategy.txt";
 		case SYNTHESIS:
 			return "synthesize_machine.txt";
+		case FIX_COMPILATION_ERRS:
+			return "fix_compilation_errors.txt";
 		case REFINE_MODEL:
 			return "refine_model.txt";
 		case FIX_PROOF:
@@ -41,6 +44,8 @@ public enum LLMRequestTypes {
 			return new String[] { Constants.SYS_DESC_PLACE_HOLDER };
 		case SYNTHESIS:
 			return new String[] { Constants.SYS_DESC_PLACE_HOLDER };
+		case FIX_COMPILATION_ERRS:
+			return new String[] { Constants.MODEL_PLACE_HOLDER, Constants.ERRORS_PLACE_HOLDER };
 		case REFINE_MODEL:
 			return new String[] { Constants.PREV_SYS_DESC_PLACE_HOLDER, Constants.MODEL_PLACE_HOLDER,
 					Constants.SYS_DESC_PLACE_HOLDER };
@@ -56,6 +61,8 @@ public enum LLMRequestTypes {
 		case REFINE_STRATEGY:
 			return true;
 		case SYNTHESIS:
+			return true;
+		case FIX_COMPILATION_ERRS:
 			return true;
 		case REFINE_MODEL:
 			return true;

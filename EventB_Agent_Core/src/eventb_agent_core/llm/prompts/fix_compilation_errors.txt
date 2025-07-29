@@ -1,0 +1,7 @@
+Fix the Event-B model with the listed errors. Return the fixed Event-B model.
+\n
+Model:\n
+{{model}}
+\n
+Errors:\n
+{{errors}}

@@ -1,4 +1,4 @@
-package eventb_agent_ui.utils;
+package eventb_agent_core.utils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

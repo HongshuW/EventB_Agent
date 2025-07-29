@@ -45,11 +45,11 @@ import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.proof.FixStrategy;
 import eventb_agent_core.proof.Hypothesis;
 import eventb_agent_core.utils.Constants;
+import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.llm.ParserUtils;
 import eventb_agent_core.utils.proof.ProofTreeUtils;
 import eventb_agent_ui.logging.AgentLogger;
 import eventb_agent_ui.popups.ProofStrategySelectionDialog;
-import eventb_agent_ui.utils.RetrieveModelUtils;
 
 public class AgentProverHandler extends AbstractHandler implements IHandler {
 
