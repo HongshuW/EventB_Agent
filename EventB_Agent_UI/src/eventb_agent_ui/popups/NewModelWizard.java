@@ -37,9 +37,9 @@ import eventb_agent_core.llm.LLMInstanceFactory;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.LLMResponseParser;
-import eventb_agent_core.llmiteractor.CompilationErrorFixer;
-import eventb_agent_core.llmiteractor.ModelCreator;
-import eventb_agent_core.llmiteractor.RefinementStrategyPlanner;
+import eventb_agent_core.llminteractor.CompilationErrorFixer;
+import eventb_agent_core.llminteractor.ModelCreator;
+import eventb_agent_core.llminteractor.RefinementStrategyPlanner;
 import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.utils.Constants;
@@ -120,7 +120,6 @@ public class NewModelWizard extends Wizard implements INewWizard {
 					JSONObject response = modelCreator.synthesizeModel(refinementStep);
 					fileNames = saveModel(projectName, response);
 					previousSysDesc = newSysDesc;
-					break;
 				} else {
 					// refine the previous model
 					JSONObject response = modelCreator.refineModel(projectName, fileNames, previousSysDesc,
@@ -128,7 +127,6 @@ public class NewModelWizard extends Wizard implements INewWizard {
 					fileNames = saveModel(projectName, response);
 					previousSysDesc += "\n" + newSysDesc;
 				}
-
 			} catch (InterruptedException e) {
 				return false;
 			} catch (InvocationTargetException e) {
@@ -139,7 +137,6 @@ public class NewModelWizard extends Wizard implements INewWizard {
 				return false;
 			}
 		}
-
 		return true;
 	}
 
@@ -164,7 +161,7 @@ public class NewModelWizard extends Wizard implements INewWizard {
 				}
 			}
 		};
-		getContainer().run(true, false, saveModelOperation);
+		getContainer().run(false, false, saveModelOperation);
 
 		// fix compilation errors
 		IRunnableWithProgress fixCompilationErrorOperation = new IRunnableWithProgress() {
@@ -177,6 +174,10 @@ public class NewModelWizard extends Wizard implements INewWizard {
 							contextFileName, monitor);
 					if (newModel != null) {
 						saveModel(projectName, newModel);
+					} else {
+						IRodinProject rodinProject = getRodinProject(projectName);
+						final IRodinFile rodinFile = rodinProject.getRodinFile(machineFileName);
+						rodinFile.save(monitor, true);
 					}
 				} catch (CoreException e) {
 					throw new InvocationTargetException(e);
@@ -185,7 +186,7 @@ public class NewModelWizard extends Wizard implements INewWizard {
 				}
 			}
 		};
-		getContainer().run(true, false, fixCompilationErrorOperation);
+		getContainer().run(false, false, fixCompilationErrorOperation);
 
 		return new String[] { contextFileName, machineFileName };
 	}
@@ -211,7 +212,7 @@ public class NewModelWizard extends Wizard implements INewWizard {
 			@Override
 			public void run(IProgressMonitor pMonitor) throws CoreException {
 				final IRodinFile rodinFile = rodinProject.getRodinFile(fileName);
-				rodinFile.create(false, pMonitor);
+				rodinFile.create(true, pMonitor);
 				final IInternalElement rodinRoot = rodinFile.getRoot();
 				((IConfigurationElement) rodinRoot).setConfiguration(DEFAULT_CONFIGURATION, pMonitor);
 				if (rodinRoot instanceof IMachineRoot) {

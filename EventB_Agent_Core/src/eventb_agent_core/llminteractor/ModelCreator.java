@@ -1,4 +1,4 @@
-package eventb_agent_core.llmiteractor;
+package eventb_agent_core.llminteractor;
 
 import java.lang.reflect.InvocationTargetException;
 

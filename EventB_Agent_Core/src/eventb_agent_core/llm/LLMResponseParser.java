@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import eventb_agent_core.llm.schemas.SchemaKeys;
@@ -17,7 +18,7 @@ public abstract class LLMResponseParser {
 
 	public abstract String getResponseString(String response);
 
-	public JSONObject getResponseContent(String response) {
+	public JSONObject getResponseContent(String response) throws JSONException {
 		String answer = getResponseString(response);
 		return new JSONObject(answer);
 	}

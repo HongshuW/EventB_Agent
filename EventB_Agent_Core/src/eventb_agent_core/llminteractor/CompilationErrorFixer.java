@@ -1,4 +1,4 @@
-package eventb_agent_core.llmiteractor;
+package eventb_agent_core.llminteractor;
 
 import static org.eventb.core.IConfigurationElement.DEFAULT_CONFIGURATION;
 
@@ -13,15 +13,13 @@ import org.eventb.core.IConfigurationElement;
 import org.eventb.core.IContextRoot;
 import org.eventb.core.IEvent;
 import org.eventb.core.IMachineRoot;
-import org.eventb.core.IParameter;
 import org.json.JSONObject;
 import org.rodinp.core.IInternalElement;
-import org.rodinp.core.IRodinElement;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
-import org.rodinp.core.RodinCore;
 import org.rodinp.core.RodinDBException;
 
+import eventb_agent_core.errorinfo.CompilationErrorInfoExtractor;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
@@ -59,7 +57,7 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 		for (int i = 0; i < markers.length; i++) {
 			IMarker marker = markers[i];
 			int severity = marker.getAttribute(IMarker.SEVERITY, -1);
-			if (severity == IMarker.SEVERITY_ERROR) { // TODO: add SEVERITY_WARNING
+			if (severity == IMarker.SEVERITY_ERROR || severity == IMarker.SEVERITY_WARNING) {
 				String message = (String) marker.getAttribute(IMarker.MESSAGE);
 				int charStart = marker.getAttribute(IMarker.CHAR_START, -1);
 				int charEnd = marker.getAttribute(IMarker.CHAR_END, -1);
@@ -73,16 +71,48 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 				String handle = (String) marker.getAttribute("element", null);
 				System.out.println(handle);
 				if (handle != null) {
+					CompilationErrorInfoExtractor infoExtractor = new CompilationErrorInfoExtractor(handle);
+					List<IInternalElement> erroneousElements = infoExtractor
+							.getErroneousElementsFromMachine(machineRoot);
+					if (erroneousElements == null) {
+						messages.add(message);
+						continue;
+					} else if (erroneousElements.size() == 1) {
+						// one element with error
+						IInternalElement element = erroneousElements.get(0);
+						String type = element.getElementType().getName();
+//						IRodinElement element = RodinCore.valueOf(handle);
 
-					IEvent[] events = machineRoot.getEvents();
-					IEvent event = events[0]; // event#1 as per the marker
-					IParameter[] parameters = event.getParameters();
+						String jsonStr = RetrieveModelUtils.getComponentJSON(element);
 
-					IRodinElement element = RodinCore.valueOf(handle);
+						StringBuilder messageBuilder = new StringBuilder();
+						messageBuilder.append(type + ": ");
+						messageBuilder.append(jsonStr + " has the issue:\n");
+						messageBuilder.append(message);
 
+						messages.add(messageBuilder.toString());
+					} else if (erroneousElements.size() == 2) {
+						// one element from event has error
+						IEvent event = (IEvent) erroneousElements.get(0);
+						String eventName = event.getLabel();
+
+						IInternalElement element = erroneousElements.get(1);
+						String type = element.getElementType().getName();
+
+						String jsonStr = RetrieveModelUtils.getComponentJSON(element);
+
+						StringBuilder messageBuilder = new StringBuilder();
+						messageBuilder.append(type + ": ");
+						messageBuilder.append(jsonStr + " from event `");
+						messageBuilder.append(eventName + "` has the issue:\n");
+						messageBuilder.append(message);
+
+						messages.add(messageBuilder.toString());
+					}
+
+				} else {
+					messages.add(message);
 				}
-
-				messages.add(message);
 			}
 		}
 		if (!messages.isEmpty()) {

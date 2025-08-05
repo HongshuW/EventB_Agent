@@ -1,7 +1,8 @@
-package eventb_agent_core.llmiteractor;
+package eventb_agent_core.llminteractor;
 
 import java.io.IOException;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import eventb_agent_core.llm.LLMRequestSender;
@@ -25,6 +26,9 @@ public abstract class AbstractLLMInteractor {
 			return llmResponseParser.getResponseContent(response);
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (JSONException e) {
+			System.out.println("llm returns invalid json, try again...");
+			return getLLMResponse(placeHolderContents, requestType);
 		}
 
 		return null;

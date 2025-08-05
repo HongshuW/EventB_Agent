@@ -156,9 +156,8 @@ public class CreateModelUtils {
 			for (String key : eventInfo.keySet()) {
 				if (key.equals(SchemaKeys.EVENT_NAME))
 					event.setLabel((String) eventInfo.get(key), pMonitor);
-				// TODO: add this later
-//				if (key.equals(SchemaKeys.REFINES))
-//					addRefinesEventsChildren(event, pMonitor, (List<String>) eventInfo.get(key));
+				if (key.equals(SchemaKeys.REFINES))
+					addRefinesEventsChildren(event, pMonitor, (List<String>) eventInfo.get(key));
 				if (key.equals(SchemaKeys.ANY))
 					addParametersChildren(event, pMonitor, (List<String>) eventInfo.get(key));
 				if (key.equals(SchemaKeys.WHERE))

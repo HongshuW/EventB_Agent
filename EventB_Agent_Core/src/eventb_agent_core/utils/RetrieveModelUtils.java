@@ -6,20 +6,26 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eventb.core.IAction;
 import org.eventb.core.IAssignmentElement;
 import org.eventb.core.IContextRoot;
 import org.eventb.core.IEvent;
 import org.eventb.core.IExpressionElement;
+import org.eventb.core.IGuard;
+import org.eventb.core.IInvariant;
 import org.eventb.core.ILabeledElement;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPORoot;
 import org.eventb.core.IPredicateElement;
 import org.eventb.core.ISeesContext;
+import org.eventb.core.IVariant;
+import org.eventb.core.IWitness;
 import org.eventb.core.pm.IProofAttempt;
 import org.eventb.core.pm.IProofComponent;
 import org.eventb.core.seqprover.IProofTree;
 import org.rodinp.core.IAttributeValue;
 import org.rodinp.core.IInternalElement;
+import org.rodinp.core.IInternalElementType;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
 import org.rodinp.core.RodinDBException;
@@ -83,6 +89,29 @@ public class RetrieveModelUtils {
 		}
 	}
 
+	public static String getComponentJSON(IInternalElement element) throws RodinDBException {
+		ObjectMapper mapper = new ObjectMapper();
+
+		LinkedHashMap<String, Object> json = new LinkedHashMap<>();
+		IInternalElementType<? extends IInternalElement> type = element.getElementType();
+
+		if (type.equals(IInvariant.ELEMENT_TYPE) || type.equals(IGuard.ELEMENT_TYPE)
+				|| type.equals(IWitness.ELEMENT_TYPE)) {
+			json = getLabeledPredicate(element);
+		} else if (type.equals(IVariant.ELEMENT_TYPE)) {
+			json = getLabeledExpression(element);
+		} else if (type.equals(IAction.ELEMENT_TYPE)) {
+			json = getLabeledAssignment(element);
+		}
+
+		try {
+			return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+
 	private static LinkedHashMap<String, Object> getContextJSON(IContextRoot contextRoot) throws RodinDBException {
 		LinkedHashMap<String, Object> contextJSON = new LinkedHashMap<>();
 
@@ -126,58 +155,76 @@ public class RetrieveModelUtils {
 		}
 	}
 
+	private static LinkedHashMap<String, Object> getLabeledPredicate(IInternalElement element) throws RodinDBException {
+		String label = ((ILabeledElement) element).getLabel();
+		String predicate = ((IPredicateElement) element).getPredicateString();
+		LinkedHashMap<String, Object> elementJSON = new LinkedHashMap<>();
+		elementJSON.put(SchemaKeys.LABEL, label);
+		elementJSON.put(SchemaKeys.PRED, predicate);
+		return elementJSON;
+	}
+
 	private static void addLabeledPredicates(IInternalElement[] elements, LinkedHashMap<String, Object> json,
 			String schemaKey) throws RodinDBException {
 		List<LinkedHashMap> labeledElements = new ArrayList<>();
 		for (IInternalElement element : elements) {
-			String label = ((ILabeledElement) element).getLabel();
-			String predicate = ((IPredicateElement) element).getPredicateString();
-			LinkedHashMap<String, Object> elementJSON = new LinkedHashMap<>();
-			elementJSON.put(SchemaKeys.LABEL, label);
-			elementJSON.put(SchemaKeys.PRED, predicate);
-			labeledElements.add(elementJSON);
+			labeledElements.add(getLabeledPredicate(element));
 		}
 		json.put(schemaKey, labeledElements);
+	}
+
+	private static LinkedHashMap<String, Object> getLabeledExpression(IInternalElement element)
+			throws RodinDBException {
+		String label = ((ILabeledElement) element).getLabel();
+		String expression = ((IExpressionElement) element).getExpressionString();
+		LinkedHashMap<String, Object> elementJSON = new LinkedHashMap<>();
+		elementJSON.put(SchemaKeys.LABEL, label);
+		elementJSON.put(SchemaKeys.EXPR, expression);
+		return elementJSON;
 	}
 
 	private static void addLabeledExpressions(IInternalElement[] elements, LinkedHashMap<String, Object> json,
 			String schemaKey) throws RodinDBException {
 		List<LinkedHashMap> labeledElements = new ArrayList<>();
 		for (IInternalElement element : elements) {
-			String label = ((ILabeledElement) element).getLabel();
-			String expression = ((IExpressionElement) element).getExpressionString();
-			LinkedHashMap<String, Object> elementJSON = new LinkedHashMap<>();
-			elementJSON.put(SchemaKeys.LABEL, label);
-			elementJSON.put(SchemaKeys.EXPR, expression);
-			labeledElements.add(elementJSON);
+			labeledElements.add(getLabeledExpression(element));
 		}
 		json.put(schemaKey, labeledElements);
+	}
+
+	private static LinkedHashMap<String, Object> getLabeledAssignment(IInternalElement element)
+			throws RodinDBException {
+		String label = ((ILabeledElement) element).getLabel();
+		String assignment = ((IAssignmentElement) element).getAssignmentString();
+		LinkedHashMap<String, Object> elementJSON = new LinkedHashMap<>();
+		elementJSON.put(SchemaKeys.LABEL, label);
+		elementJSON.put(SchemaKeys.ASSIGN, assignment);
+		return elementJSON;
 	}
 
 	private static void addLabeledAssignments(IInternalElement[] elements, LinkedHashMap<String, Object> json,
 			String schemaKey) throws RodinDBException {
 		List<LinkedHashMap> labeledElements = new ArrayList<>();
 		for (IInternalElement element : elements) {
-			String label = ((ILabeledElement) element).getLabel();
-			String assignment = ((IAssignmentElement) element).getAssignmentString();
-			LinkedHashMap<String, Object> elementJSON = new LinkedHashMap<>();
-			elementJSON.put(SchemaKeys.LABEL, label);
-			elementJSON.put(SchemaKeys.ASSIGN, assignment);
-			labeledElements.add(elementJSON);
+			labeledElements.add(getLabeledAssignment(element));
 		}
 		json.put(schemaKey, labeledElements);
+	}
+
+	private static LinkedHashMap<String, Object> getEvent(IEvent event) throws RodinDBException {
+		LinkedHashMap<String, Object> eventJSON = new LinkedHashMap<>();
+		eventJSON.put(SchemaKeys.EVENT_NAME, event.getLabel());
+		addIdentifiers(event.getParameters(), eventJSON, SchemaKeys.ANY);
+		addLabeledPredicates(event.getGuards(), eventJSON, SchemaKeys.WHERE);
+		addLabeledPredicates(event.getWitnesses(), eventJSON, SchemaKeys.WITH);
+		addLabeledAssignments(event.getActions(), eventJSON, SchemaKeys.ASSIGN);
+		return eventJSON;
 	}
 
 	private static void addEvents(IEvent[] events, LinkedHashMap<String, Object> json) throws RodinDBException {
 		List<LinkedHashMap> eventList = new ArrayList<>();
 		for (IEvent event : events) {
-			LinkedHashMap<String, Object> eventJSON = new LinkedHashMap<>();
-			eventJSON.put(SchemaKeys.EVENT_NAME, event.getLabel());
-			addIdentifiers(event.getParameters(), eventJSON, SchemaKeys.ANY);
-			addLabeledPredicates(event.getGuards(), eventJSON, SchemaKeys.WHERE);
-			addLabeledPredicates(event.getWitnesses(), eventJSON, SchemaKeys.WITH);
-			addLabeledAssignments(event.getActions(), eventJSON, SchemaKeys.ASSIGN);
-			eventList.add(eventJSON);
+			eventList.add(getEvent(event));
 		}
 		json.put(SchemaKeys.EVENTS, eventList);
 	}

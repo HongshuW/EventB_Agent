@@ -1,4 +1,4 @@
-package eventb_agent_core.llmiteractor;
+package eventb_agent_core.llminteractor;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
