@@ -9,6 +9,10 @@ import org.eventb.core.pm.IProofComponent;
 import org.eventb.core.seqprover.IProofTreeNode;
 import org.eventb.internal.core.pm.ProofManager;
 
+/**
+ * This class is a wrapper class that contains necessary information required
+ * for a proof attempt.
+ */
 public class ProofAttemptWrapper {
 
 	private IProofAttempt proofAttempt;
@@ -33,11 +37,11 @@ public class ProofAttemptWrapper {
 			this.node = newNode;
 		}
 	}
-	
+
 	public IProofAttempt getProofAttempt() {
 		return this.proofAttempt;
 	}
-	
+
 	public IProofTreeNode getNode() {
 		return this.node;
 	}

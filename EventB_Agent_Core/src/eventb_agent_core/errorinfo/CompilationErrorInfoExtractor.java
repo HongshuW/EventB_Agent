@@ -54,13 +54,15 @@ public class CompilationErrorInfoExtractor {
 		String elementTypeAndID = entries[2];
 		String[] elementTypeAndIDEntries = elementTypeAndID.split("#");
 		firstElementType = RodinCore.getInternalElementType(elementTypeAndIDEntries[0]);
-		firstElementID = elementTypeAndIDEntries[1].length() == 1 ? elementTypeAndIDEntries[1] : elementTypeAndIDEntries[1].substring(1);
+		firstElementID = elementTypeAndIDEntries[1].length() == 1 ? elementTypeAndIDEntries[1]
+				: elementTypeAndIDEntries[1].substring(1);
 
 		if (entries.length > 3) {
 			elementTypeAndID = entries[3];
 			elementTypeAndIDEntries = elementTypeAndID.split("#");
 			secondElementType = RodinCore.getInternalElementType(elementTypeAndIDEntries[0]);
-			secondElementID = elementTypeAndIDEntries[1].length() == 1 ? elementTypeAndIDEntries[1] : elementTypeAndIDEntries[1].substring(1);
+			secondElementID = elementTypeAndIDEntries[1].length() == 1 ? elementTypeAndIDEntries[1]
+					: elementTypeAndIDEntries[1].substring(1);
 		}
 	}
 
@@ -72,7 +74,10 @@ public class CompilationErrorInfoExtractor {
 			results.add(machineRoot.getVariant(firstElementID));
 		} else if (firstElementType.equals(IEvent.ELEMENT_TYPE)) {
 			results.add(machineRoot.getEvent(firstElementID));
-			results.add(getNestedInternalElement(machineRoot.getEvent(firstElementID)));
+			IInternalElement secondElement = getNestedInternalElement(machineRoot.getEvent(firstElementID));
+			if (secondElement != null) {
+				results.add(secondElement);
+			}
 		}
 		return results;
 	}
@@ -83,6 +88,9 @@ public class CompilationErrorInfoExtractor {
 	}
 
 	private IInternalElement getNestedInternalElement(IEvent event) {
+		if (secondElementType == null) {
+			return null;
+		}
 		if (secondElementType.equals(IRefinesEvent.ELEMENT_TYPE)) {
 			return event.getRefinesClause(secondElementID);
 		} else if (secondElementType.equals(IParameter.ELEMENT_TYPE)) {

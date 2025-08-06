@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import eventb_agent_core.utils.FileUtils;
@@ -27,9 +29,26 @@ public abstract class RequestBuilder {
 		return json;
 	}
 
+	protected List<Map<String, Object>> getFunctionSchemas(LLMRequestTypes requestType) throws IOException {
+		List<Map<String, Object>> functionSchemas = new ArrayList<>();
+		String[] files = getFunctionFileNamesFromType(requestType);
+		for (String file : files) {
+			Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "schemas",
+					"functions", file);
+			Map<String, Object> json = FileUtils.readOrderedJSON(path);
+			functionSchemas.add(json);
+		}
+
+		return functionSchemas;
+	}
+
 	protected abstract String getSchemaFileNameFromType(LLMRequestTypes requestType);
 
+	protected abstract String[] getFunctionFileNamesFromType(LLMRequestTypes requestType);
+
 	public abstract String getRequestWithSchema(String prompt, LLMRequestTypes requestType) throws IOException;
+
+	public abstract String getRequestWithTools(String prompt, LLMRequestTypes requestType) throws IOException;
 
 	public abstract String getRequestPlain(String prompt) throws IOException;
 

@@ -22,4 +22,10 @@ public class GeminiResponseParser extends LLMResponseParser {
 		return answer;
 	}
 
+	@Override
+	public JSONObject getResponseWithTools(String response) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

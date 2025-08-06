@@ -35,5 +35,10 @@ public class Constants {
 	public static final String PROOF_TREE_PLACE_HOLDER = "{{proof_tree}}";
 	public static final String PREV_SYS_DESC_PLACE_HOLDER = "{{prev_system_desc}}";
 	public static final String ERRORS_PLACE_HOLDER = "{{errors}}";
+	
+	/* OpenAI response keys */
+	
+	public static final String FUNCTION_NAME = "name";
+	public static final String FUNCTION_ARGS = "arguments";
 
 }

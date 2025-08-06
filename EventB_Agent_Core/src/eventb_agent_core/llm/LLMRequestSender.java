@@ -61,20 +61,18 @@ public abstract class LLMRequestSender {
 		String[] placeHolders = requestType.getPlaceHolders();
 		int length = Math.min(contentInPlaceHolders.length, placeHolders.length);
 		RequestBuilder requestBuilder = getRequestBuilder();
-		boolean isStructuredRequest = true;
 		String prompt = requestType.getPrompt();
 
 		for (int i = 0; i < length; i++) {
 			String contentInPlaceHolder = PromptUtils.removeSpecialChars(contentInPlaceHolders[i]);
 			prompt = prompt.replace(placeHolders[i], contentInPlaceHolder);
-			if (!requestType.isStructuredRequest()) {
-				isStructuredRequest = false;
-			}
 		}
 
 		String request = "";
-		if (isStructuredRequest) {
+		if (requestType.isStructuredRequest()) {
 			request = requestBuilder.getRequestWithSchema(prompt, requestType);
+		} else if (requestType.areToolsEnabled()) {
+			request = requestBuilder.getRequestWithTools(prompt, requestType);
 		} else {
 			request = requestBuilder.getRequestPlain(prompt);
 		}

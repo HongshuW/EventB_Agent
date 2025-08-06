@@ -12,11 +12,14 @@ import org.json.JSONObject;
 import eventb_agent_core.llm.schemas.SchemaKeys;
 import eventb_agent_core.proof.Hypothesis;
 import eventb_agent_core.refinement.RefinementStep;
+import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.llm.ParserUtils;
 
 public abstract class LLMResponseParser {
 
 	public abstract String getResponseString(String response);
+
+	public abstract JSONObject getResponseWithTools(String response);
 
 	public JSONObject getResponseContent(String response) throws JSONException {
 		String answer = getResponseString(response);
@@ -184,6 +187,26 @@ public abstract class LLMResponseParser {
 			Hypothesis hypothesis = new Hypothesis(label, predicate, instantiations);
 			hypotheses.add(hypothesis);
 		}
+		return hypotheses;
+	}
+
+	public List<Hypothesis> getHypotheses(JSONObject modificationJSON) {
+		List<Hypothesis> hypotheses = new ArrayList<>();
+
+		JSONObject argumentsJSON = modificationJSON.getJSONObject(Constants.FUNCTION_ARGS);
+		JSONObject hypothesisJSON = argumentsJSON.getJSONObject(SchemaKeys.HYP);
+		JSONArray instantiationsJSONArray = argumentsJSON.getJSONArray(SchemaKeys.INSTANTIATIONS);
+
+		String label = hypothesisJSON.getString(SchemaKeys.LABEL);
+		String predicate = hypothesisJSON.getString(SchemaKeys.PRED);
+		String[] instantiations = new String[instantiationsJSONArray.length()];
+		for (int j = 0; j < instantiationsJSONArray.length(); j++) {
+			instantiations[j] = instantiationsJSONArray.getString(j);
+		}
+
+		Hypothesis hypothesis = new Hypothesis(label, predicate, instantiations);
+		hypotheses.add(hypothesis);
+
 		return hypotheses;
 	}
 

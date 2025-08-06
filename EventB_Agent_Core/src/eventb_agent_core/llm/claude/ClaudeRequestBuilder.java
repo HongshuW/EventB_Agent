@@ -27,11 +27,17 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 		case SYNTHESIS:
 		case REFINE_MODEL:
 			return "claude_eventb_schema.json";
-		case FIX_PROOF:
-			return "claude_proof_schema.json";
+//		case FIX_PROOF:
+//			return "claude_proof_schema.json";
 		default:
 			return "claude_eventb_schema.json";
 		}
+	}
+
+	@Override
+	protected String[] getFunctionFileNamesFromType(LLMRequestTypes requestType) {
+		// TODO: implement this later
+		return null;
 	}
 
 	@Override
@@ -55,6 +61,12 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 
 		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
 		return jsonStr;
+	}
+
+	@Override
+	public String getRequestWithTools(String prompt, LLMRequestTypes requestType) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override

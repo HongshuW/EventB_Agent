@@ -26,11 +26,17 @@ public class GeminiRequestBuilder extends RequestBuilder {
 		case SYNTHESIS:
 		case REFINE_MODEL:
 			return "gemini_eventb_schema.json";
-		case FIX_PROOF:
-			return "gemini_proof_schema.json";
+//		case FIX_PROOF:
+//			return "gemini_proof_schema.json";
 		default:
 			return "gemini_eventb_schema.json";
 		}
+	}
+
+	@Override
+	protected String[] getFunctionFileNamesFromType(LLMRequestTypes requestType) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -56,6 +62,12 @@ public class GeminiRequestBuilder extends RequestBuilder {
 
 		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
 		return jsonStr;
+	}
+
+	@Override
+	public String getRequestWithTools(String prompt, LLMRequestTypes requestType) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override

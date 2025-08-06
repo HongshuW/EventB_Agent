@@ -31,10 +31,20 @@ public class GPTRequestBuilder extends RequestBuilder {
 			return "gpt_eventb_schema.json";
 		case REFINE_MODEL:
 			return "gpt_eventb_schema.json";
-		case FIX_PROOF:
-			return "gpt_ah_schema.json";
+//		case FIX_PROOF:
+//			return "gpt_ah_schema.json";
 		default:
 			return "gpt_eventb_schema.json";
+		}
+	}
+
+	@Override
+	protected String[] getFunctionFileNamesFromType(LLMRequestTypes requestType) {
+		switch (requestType) {
+		case FIX_PROOF:
+			return new String[] { "gpt_ah.json" };
+		default:
+			return new String[] {};
 		}
 	}
 
@@ -58,6 +68,32 @@ public class GPTRequestBuilder extends RequestBuilder {
 		LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
 		textFormat.put("format", jsonSchema);
 		request.put("text", textFormat);
+
+		request.put("temperature", Constants.TEMPERATURE);
+		request.put("top_p", Constants.TOP_P);
+		request.put("max_output_tokens", Constants.TOKEN_LIMIT);
+
+		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+		return jsonStr;
+	}
+
+	@Override
+	public String getRequestWithTools(String prompt, LLMRequestTypes requestType) throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+
+		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
+
+		request.put("model", llmModel.getModelTypeAPI());
+
+		LinkedHashMap<String, Object> requestMessage = new LinkedHashMap<>();
+		requestMessage.put("role", "user");
+		LinkedHashMap<String, Object> content = new LinkedHashMap<>();
+		content.put("type", "input_text");
+		content.put("text", prompt);
+		requestMessage.put("content", Arrays.asList(content));
+		request.put("input", Arrays.asList(requestMessage));
+
+		request.put("tools", getFunctionSchemas(requestType));
 
 		request.put("temperature", Constants.TEMPERATURE);
 		request.put("top_p", Constants.TOP_P);

@@ -15,4 +15,10 @@ public class ClaudeResponseParser extends LLMResponseParser {
 		return ParserUtils.addEscape(answer);
 	}
 
+	@Override
+	public JSONObject getResponseWithTools(String response) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

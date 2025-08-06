@@ -3,6 +3,8 @@ package eventb_agent_ui.popups;
 import static org.eventb.core.IConfigurationElement.DEFAULT_CONFIGURATION;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -23,6 +25,7 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eventb.core.IConfigurationElement;
 import org.eventb.core.IMachineRoot;
+import org.eventb.core.IPOSequent;
 import org.eventb.internal.ui.UIUtils;
 import org.eventb.internal.ui.utils.Messages;
 import org.eventb.ui.EventBUIPlugin;
@@ -39,8 +42,10 @@ import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.llminteractor.CompilationErrorFixer;
 import eventb_agent_core.llminteractor.ModelCreator;
+import eventb_agent_core.llminteractor.POFixer;
 import eventb_agent_core.llminteractor.RefinementStrategyPlanner;
 import eventb_agent_core.preference.AgentPreferenceInitializer;
+import eventb_agent_core.proof.POManager;
 import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.utils.Constants;
 import eventb_agent_ui.EventBAgentUIPlugin;
@@ -119,12 +124,16 @@ public class NewModelWizard extends Wizard implements INewWizard {
 					// synthesize abstract model
 					JSONObject response = modelCreator.synthesizeModel(refinementStep);
 					fileNames = saveModel(projectName, response);
+					fixCompilationErrors(projectName, fileNames);
+					fixPOs(projectName, fileNames);
 					previousSysDesc = newSysDesc;
 				} else {
 					// refine the previous model
 					JSONObject response = modelCreator.refineModel(projectName, fileNames, previousSysDesc,
 							refinementStep);
 					fileNames = saveModel(projectName, response);
+					fixCompilationErrors(projectName, fileNames);
+					fixPOs(projectName, fileNames);
 					previousSysDesc += "\n" + newSysDesc;
 				}
 			} catch (InterruptedException e) {
@@ -163,6 +172,14 @@ public class NewModelWizard extends Wizard implements INewWizard {
 		};
 		getContainer().run(false, false, saveModelOperation);
 
+		return new String[] { contextFileName, machineFileName };
+	}
+
+	private String[] fixCompilationErrors(String projectName, String[] fileNames)
+			throws InvocationTargetException, InterruptedException {
+		final String contextFileName = fileNames[0];
+		final String machineFileName = fileNames[1];
+
 		// fix compilation errors
 		IRunnableWithProgress fixCompilationErrorOperation = new IRunnableWithProgress() {
 			@Override
@@ -173,8 +190,10 @@ public class NewModelWizard extends Wizard implements INewWizard {
 					JSONObject newModel = compilationErrorFixer.solveCompilationErrors(projectName, machineFileName,
 							contextFileName, monitor);
 					if (newModel != null) {
-						saveModel(projectName, newModel);
+						String[] newFileNames = saveModel(projectName, newModel);
+						fixCompilationErrors(projectName, newFileNames);
 					} else {
+						// save file without modification
 						IRodinProject rodinProject = getRodinProject(projectName);
 						final IRodinFile rodinFile = rodinProject.getRodinFile(machineFileName);
 						rodinFile.save(monitor, true);
@@ -187,6 +206,39 @@ public class NewModelWizard extends Wizard implements INewWizard {
 			}
 		};
 		getContainer().run(false, false, fixCompilationErrorOperation);
+
+		return new String[] { contextFileName, machineFileName };
+	}
+
+	private String[] fixPOs(String projectName, String[] fileNames)
+			throws InvocationTargetException, InterruptedException {
+
+		final String contextFileName = fileNames[0];
+		final String machineFileName = fileNames[1];
+
+		// fix POs
+		IRunnableWithProgress fixPOsOperation = new IRunnableWithProgress() {
+			@Override
+			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				try {
+					POManager poManager = new POManager();
+					POFixer poFixer = new POFixer(llmRequestSender, llmResponseParser);
+
+					IRodinProject rodinProject = getRodinProject(projectName);
+					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
+					List<IPOSequent> pos = poManager.getOpenPOs(machineRoot);
+					for (IPOSequent po : pos) {
+						poFixer.autoFixPO(machineRoot, po);
+					}
+				} catch (Exception e) {
+					throw new InvocationTargetException(e);
+				} finally {
+					monitor.done();
+				}
+			}
+		};
+		getContainer().run(false, false, fixPOsOperation);
 
 		return new String[] { contextFileName, machineFileName };
 	}

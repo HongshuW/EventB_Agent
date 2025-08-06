@@ -40,10 +40,6 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 
 		JSONObject newModel = null;
 
-//		RodinCore.run(new IWorkspaceRunnable() {
-//
-//			@Override
-//			public void run(IProgressMonitor pMonitor) throws CoreException {
 		final IRodinFile rodinFile = rodinProject.getRodinFile(machineFileName);
 		final IInternalElement rodinRoot = rodinFile.getRoot();
 		((IConfigurationElement) rodinRoot).setConfiguration(DEFAULT_CONFIGURATION, null);
@@ -119,25 +115,11 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 			newModel = fixCompilationError(machineRoot, contextRoot, messages, resource);
 		}
 
-//				rodinFile.save(null, true);
-//			}
-//		}, monitor);
-//		monitor.worked(1);
-
 		return newModel;
 	}
 
 	private JSONObject fixCompilationError(IMachineRoot machineRoot, IContextRoot contextRoot,
 			List<String> errorMessages, IResource resource) throws CoreException {
-
-//		CompilationErrorType errorType = CompilationErrorType.getCompilationErrorType(errorMessage);
-//		if (errorType == CompilationErrorType.TYPE_MISSING) {
-//			if (element instanceof IVariable) {
-//				IVariable var = (IVariable) element;
-//				String identifierName = var.getIdentifierString();
-//				System.out.println(identifierName);
-//			}
-//		}
 
 		String modelJSON = null;
 		try {
@@ -151,7 +133,6 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 
 		System.out.println(response.toString(2));
 
-//		ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
 		return response;
 	}
 

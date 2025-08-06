@@ -67,6 +67,23 @@ public enum LLMRequestTypes {
 		case REFINE_MODEL:
 			return true;
 		case FIX_PROOF:
+			return false;
+		default:
+			return false;
+		}
+	}
+
+	public boolean areToolsEnabled() {
+		switch (this) {
+		case REFINE_STRATEGY:
+			return false;
+		case SYNTHESIS:
+			return false;
+		case FIX_COMPILATION_ERRS:
+			return false;
+		case REFINE_MODEL:
+			return false;
+		case FIX_PROOF:
 			return true;
 		default:
 			return false;
