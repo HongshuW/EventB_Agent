@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eventb.core.IAction;
+import org.eventb.core.IAxiom;
+import org.eventb.core.ICarrierSet;
+import org.eventb.core.IConstant;
 import org.eventb.core.IContextRoot;
 import org.eventb.core.IEvent;
 import org.eventb.core.IGuard;
@@ -11,6 +14,7 @@ import org.eventb.core.IInvariant;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IParameter;
 import org.eventb.core.IRefinesEvent;
+import org.eventb.core.IVariable;
 import org.eventb.core.IVariant;
 import org.eventb.core.IWitness;
 import org.rodinp.core.IInternalElement;
@@ -66,9 +70,23 @@ public class CompilationErrorInfoExtractor {
 		}
 	}
 
+	public List<IInternalElement> getErroneousElementsFromContext(IContextRoot contextRoot) {
+		List<IInternalElement> results = new ArrayList<>();
+		if (firstElementType.equals(ICarrierSet.ELEMENT_TYPE)) {
+			results.add(contextRoot.getCarrierSet(firstElementID));
+		} else if (firstElementType.equals(IConstant.ELEMENT_TYPE)) {
+			results.add(contextRoot.getConstant(firstElementID));
+		} else if (firstElementType.equals(IAxiom.ELEMENT_TYPE)) {
+			results.add(contextRoot.getAxiom(firstElementID));
+		}
+		return results;
+	}
+
 	public List<IInternalElement> getErroneousElementsFromMachine(IMachineRoot machineRoot) {
 		List<IInternalElement> results = new ArrayList<>();
-		if (firstElementType.equals(IInvariant.ELEMENT_TYPE)) {
+		if (firstElementType.equals(IVariable.ELEMENT_TYPE)) {
+			results.add(machineRoot.getVariable(firstElementID));
+		} else if (firstElementType.equals(IInvariant.ELEMENT_TYPE)) {
 			results.add(machineRoot.getInvariant(firstElementID));
 		} else if (firstElementType.equals(IVariant.ELEMENT_TYPE)) {
 			results.add(machineRoot.getVariant(firstElementID));

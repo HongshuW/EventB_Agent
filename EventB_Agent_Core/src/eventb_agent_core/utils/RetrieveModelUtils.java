@@ -102,6 +102,8 @@ public class RetrieveModelUtils {
 			json = getLabeledExpression(element);
 		} else if (type.equals(IAction.ELEMENT_TYPE)) {
 			json = getLabeledAssignment(element);
+		} else {
+			return "";
 		}
 
 		try {
