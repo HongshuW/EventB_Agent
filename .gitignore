@@ -2,3 +2,15 @@
 *.project
 resources/
 
+*/1PAT_Pipeline/
+*/existing_problems.txt
+*/generated_code/
+*/ProB/
+*/__pycache__/
+*/fileconverter/
+*/workspace/
+*/history/
+*/run_time_record/
+*.out
+*.txt
+*/database-rag-claude-real.json

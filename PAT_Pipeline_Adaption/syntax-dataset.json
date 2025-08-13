@@ -1,0 +1,4 @@
+{
+    "general_info": "Event-B is a formal method for system-level modelling and analysis. Models are specified using contexts (defining sets, constants, axioms) and machines (defining variables, invariants, and events). Invariants express properties that must always hold, and events describe state transitions via guards (conditions for execution) and actions (state updates). Refinement allows stepwise development from abstract specifications to concrete implementations while preserving correctness. Proof Obligations (POs) are generated automatically to ensure invariants are preserved and refinements are valid.",
+    "pitfalls_rules": "1. When defining events, ensure that all actions preserve the invariants.\n"
+}
