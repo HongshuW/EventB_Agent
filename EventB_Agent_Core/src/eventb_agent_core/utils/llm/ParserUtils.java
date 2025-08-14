@@ -61,13 +61,15 @@ public class ParserUtils {
 	private static char IFF = '\u21D4';
 	private static char EXISTS = '\u2203';
 	private static char LAMBDA = '\u03BB';
-	private static char IMPLIES = '\u2286';
+	private static char IMPLIES = '\u21D2';
 
 	public static String addEscape(String originalString) {
 		return originalString.replace("\\", "\\\\");
 	}
 
 	public static String lex(String originalString) {
+
+		System.out.println("Before processing: " + originalString);
 
 		Map<String, String> prioritizedMap = new HashMap<>();
 		prioritizedMap.put("||", "∥");
@@ -206,6 +208,8 @@ public class ParserUtils {
 		originalString.replace("\\\\", String.valueOf(SET_MINUS));
 		originalString.replace("\\", String.valueOf(SET_MINUS));
 
+		System.out.println("After processing: " + originalString);
+
 		return originalString;
 	}
 
@@ -308,6 +312,10 @@ public class ParserUtils {
 
 	static void show(char c) {
 		System.out.printf("%c -> \\u%04X%n", c, (int) c);
+	}
+	
+	public static void main(String[] args) {
+		show('⇒');
 	}
 
 }

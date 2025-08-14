@@ -29,10 +29,6 @@ public class Requirement {
 		return this.requirementID != null;
 	}
 
-	public boolean isFunType() {
-		return this.requirementType == RequirementType.FUN;
-	}
-
 	public RequirementType getRequirementType() {
 		return this.requirementType;
 	}

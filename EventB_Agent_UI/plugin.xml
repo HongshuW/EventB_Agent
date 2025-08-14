@@ -73,6 +73,10 @@
             id="EventB_Agent_UI.newModelCommand"
             name="Event-B Model Synthesis">
       </command>
+      <command
+            id="EventB_Agent_UI.evaluate"
+            name="Evaluation">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
@@ -83,6 +87,10 @@
       <handler
             class="eventb_agent_ui.handlers.NewModelHandler"
             commandId="EventB_Agent_UI.newModelCommand">
+      </handler>
+      <handler
+            class="eventb_agent_ui.handlers.EvaluationHandler"
+            commandId="EventB_Agent_UI.evaluate">
       </handler>
    </extension>
    <extension
@@ -101,6 +109,11 @@
             <command
                   commandId="EventB_Agent_UI.agentProverCommand"
                   label="Agent Prover"
+                  style="push">
+            </command>
+            <command
+                  commandId="EventB_Agent_UI.evaluate"
+                  label="Evaluation"
                   style="push">
             </command>
          </menu>

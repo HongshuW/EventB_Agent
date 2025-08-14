@@ -25,7 +25,8 @@ public class SystemRequirements {
 		JSONObject requirementsJSON = FileUtils.readJSON(path);
 		for (String key : requirementsJSON.keySet()) {
 			String reqText = requirementsJSON.getString(key);
-			RequirementType reqType = key.contains("FUN") ? RequirementType.FUN : RequirementType.EQP;
+			String typeString = key.split("-")[0];
+			RequirementType reqType = RequirementType.valueOf(typeString);
 			Requirement req = new Requirement(reqType, reqText);
 			requirements.add(req);
 		}
@@ -45,18 +46,31 @@ public class SystemRequirements {
 
 		int funID = 1;
 		int eqpID = 1;
+		int envID = 1;
+		int safID = 1;
 
 		for (Requirement req : this.requirements) {
 			String reqString = "";
 			if (req.hasID()) {
 				reqString = req.toString();
 			} else {
-				if (req.isFunType()) {
+				switch (req.getRequirementType()) {
+				case FUN:
 					reqString = req.toString(funID);
 					funID += 1;
-				} else {
+					break;
+				case EQP:
 					reqString = req.toString(eqpID);
 					eqpID += 1;
+					break;
+				case ENV:
+					reqString = req.toString(envID);
+					envID += 1;
+					break;
+				case SAF:
+					reqString = req.toString(safID);
+					safID += 1;
+					break;
 				}
 			}
 			output.append(reqString + "\n");
