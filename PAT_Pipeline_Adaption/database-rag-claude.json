@@ -1,0 +1,134 @@
+[
+    {
+        "nl": "",
+        "code": {
+            "context": {
+                "CONTEXT": "BridgeCtx",
+                "SETS": [
+                    "CAR"
+                ],
+                "CONSTANTS": [
+                    "MAX_BRIDGE",
+                    "MAX_ISLAND"
+                ],
+                "AXIOMS": [
+                    {
+                        "label_name": "axm1",
+                        "predicate": "MAX_BRIDGE ∈ ℕ1"
+                    },
+                    {
+                        "label_name": "axm2",
+                        "predicate": "MAX_ISLAND ∈ ℕ1"
+                    }
+                ]
+            },
+            "machine": {
+                "MACHINE": "BridgeMch",
+                "SEES": [
+                    "BridgeCtx"
+                ],
+                "VARIABLES": [
+                    "cars_on_bridge",
+                    "cars_on_island"
+                ],
+                "INVARIANTS": [
+                    {
+                        "label_name": "inv1",
+                        "predicate": "cars_on_bridge ∈ ℕ ∧ cars_on_bridge ≤ MAX_BRIDGE"
+                    },
+                    {
+                        "label_name": "inv2",
+                        "predicate": "cars_on_island ∈ ℕ ∧ cars_on_island ≤ MAX_ISLAND"
+                    }
+                ],
+                "VARIANTS": [
+                    {
+                        "label_name": "var1",
+                        "expression": "cars_on_bridge + cars_on_island"
+                    }
+                ],
+                "EVENTS": [
+                    {
+                        "event_name": "INITIALISATION",
+                        "REFINES": [],
+                        "ANY": [],
+                        "WHERE": [],
+                        "WITH": [],
+                        "THEN": [
+                            {
+                                "label_name": "init1",
+                                "assignment": "cars_on_bridge := 0"
+                            },
+                            {
+                                "label_name": "init2",
+                                "assignment": "cars_on_island := 0"
+                            }
+                        ]
+                    },
+                    {
+                        "event_name": "CarEntersBridge",
+                        "REFINES": [],
+                        "ANY": [],
+                        "WHERE": [
+                            {
+                                "label_name": "grd1",
+                                "predicate": "cars_on_bridge < MAX_BRIDGE"
+                            }
+                        ],
+                        "WITH": [],
+                        "THEN": [
+                            {
+                                "label_name": "act1",
+                                "assignment": "cars_on_bridge := cars_on_bridge + 1"
+                            }
+                        ]
+                    },
+                    {
+                        "event_name": "CarLeavesBridgeToIsland",
+                        "REFINES": [],
+                        "ANY": [],
+                        "WHERE": [
+                            {
+                                "label_name": "grd1",
+                                "predicate": "cars_on_bridge > 0"
+                            },
+                            {
+                                "label_name": "grd2",
+                                "predicate": "cars_on_island < MAX_ISLAND"
+                            }
+                        ],
+                        "WITH": [],
+                        "THEN": [
+                            {
+                                "label_name": "act1",
+                                "assignment": "cars_on_bridge := cars_on_bridge - 1"
+                            },
+                            {
+                                "label_name": "act2",
+                                "assignment": "cars_on_island := cars_on_island + 1"
+                            }
+                        ]
+                    },
+                    {
+                        "event_name": "CarLeavesIsland",
+                        "REFINES": [],
+                        "ANY": [],
+                        "WHERE": [
+                            {
+                                "label_name": "grd1",
+                                "predicate": "cars_on_island > 0"
+                            }
+                        ],
+                        "WITH": [],
+                        "THEN": [
+                            {
+                                "label_name": "act1",
+                                "assignment": "cars_on_island := cars_on_island - 1"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+]
