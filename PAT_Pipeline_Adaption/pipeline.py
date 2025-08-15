@@ -120,10 +120,15 @@ def save_run_time(model_name, stage,run_time, hasMismatch=None, codegenFailed=No
 def gen_context(structuredData):
     # modelDescription = structuredData['description'] # read in the description from structuredData
     functionalities = " ".join(v for k, v in structuredData.items() if k.startswith("FUN-"))
-    requirements    = " ".join(v for k, v in structuredData.items() if k.startswith("EQP-"))
+    eqp_requirements    = " ".join(v for k, v in structuredData.items() if k.startswith("EQP-"))
+    env_requirements    = " ".join(v for k, v in structuredData.items() if k.startswith("ENV-"))
+    saf_requirements    = " ".join(v for k, v in structuredData.items() if k.startswith("SAF-"))
+
     modelDescription = (
         f"Functionality: {functionalities}\n"
-        f"Requirements: {requirements}"
+        f"Equipment Requirements: {eqp_requirements}\n"
+        f"Environment Requirements: {env_requirements}\n"
+        f"Safety Requirements: {saf_requirements}\n"
     )
     
     prompt_gen_context = f"""As an expert in Event-B context modeling, can you extract all the constants from the following description?
@@ -184,10 +189,14 @@ def gen_machine(structured_data):
     contextJSON = _get_last_context_json()
 
     functionalities = " ".join(v for k, v in structured_data.items() if k.startswith("FUN-"))
-    requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("EQP-"))
+    eqp_requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("EQP-"))
+    env_requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("ENV-"))
+    saf_requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("SAF-"))
     modelDescription = (
         f"Functionality: {functionalities}\n"
-        f"Requirements: {requirements}"
+        f"Equipment Requirements: {eqp_requirements}\n"
+        f"Environment Requirements: {env_requirements}\n"
+        f"Safety Requirements: {saf_requirements}\n"
     )
 
     prompt_gen_machine = f"""As an expert in Event-B machine modeling, analyze the following system description and previously extracted context (constants), then produce the machine components: variables, invariants, and events.
@@ -315,10 +324,14 @@ def gen_schema(structured_data):
     print("Retrieving RAG example...")
     
     functionalities = " ".join(v for k, v in structured_data.items() if k.startswith("FUN-"))
-    requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("EQP-"))
+    eqp_requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("EQP-"))
+    env_requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("ENV-"))
+    saf_requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("SAF-"))
     modelDescription = (
         f"Functionality: {functionalities}\n"
-        f"Requirements: {requirements}"
+        f"Equipment Requirements: {eqp_requirements}\n"
+        f"Environment Requirements: {env_requirements}\n"
+        f"Safety Requirements: {saf_requirements}\n"
     )
     instruction = _process_instruction_helper(modelDescription, context, machine)
     print("instruction", instruction)
@@ -688,6 +701,7 @@ def _build_repair_prompt(original_schema: dict, verification_result: dict) -> st
     if err_type == "deadlock":
         guidance = [
             "Consider the initialization value/range for the constants/variables appearing in the trace.",
+            "Please consider constraining the range of the constants through adding a corresponding axiom. For example, if a constant should not be equal or less than 0, you can add an axiom to state that the constant is greater than 0."
         ]
         if last_event and last_event.upper() != "INITIALISATION":
             guidance.append(f"Check the enabling conditions (guards) of event `{last_event}`.")
@@ -696,7 +710,7 @@ def _build_repair_prompt(original_schema: dict, verification_result: dict) -> st
     elif err_type == "invariant_violation":
         target_event = last_event or "<event name unknown>"
         guidance = [
-            f"Consider tightening the guard of the involved event `{target_event}` so that the invariant holds after its execution.",
+            f"Consider tightening the guard of the involved event `{target_event}` if necessary, so that the invariant holds after its execution, and ensure that the action performed within the event is correct.",
         ]
     elif err_type == "parse_error":
         guidance = [
