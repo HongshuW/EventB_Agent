@@ -22,6 +22,7 @@ import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.utils.Constants;
 import eventb_agent_ui.EventBAgentUIPlugin;
+import eventb_agent_ui.exceptions.ReachMaxAttemptException;
 import eventb_agent_ui.workspaceinteractor.ModelInfo;
 import eventb_agent_ui.workspaceinteractor.ModelWorkspaceInteractor;
 
@@ -46,6 +47,7 @@ public class NewModelWizard extends Wizard implements INewWizard {
 	private ModelWorkspaceInteractor modelWorkspaceInteractor;
 
 	private boolean enableFixStrategy;
+	private int maxAttempts;
 
 	/**
 	 * Constructor: This wizard needs a progress monitor.
@@ -58,13 +60,14 @@ public class NewModelWizard extends Wizard implements INewWizard {
 		LLMModels modelType = LLMModels
 				.getLLMModel(prefs.get(AgentPreferenceInitializer.PREF_LLM_MODEL, Constants.DEFAULT_MODEL));
 		enableFixStrategy = prefs.getBoolean(AgentPreferenceInitializer.PREF_ENABLE_FIX, false);
+		maxAttempts = Integer.valueOf(prefs.get(AgentPreferenceInitializer.PREF_MAX_ATTEMPTS, "5"));
 
 		llmRequestSender = LLMInstanceFactory.getRequestSender(modelType);
 		llmResponseParser = LLMInstanceFactory.getResponseParser(modelType);
 
 		refinementStrategyPlanner = new RefinementStrategyPlanner(llmRequestSender, llmResponseParser);
 		modelWorkspaceInteractor = new ModelWorkspaceInteractor(llmRequestSender, llmResponseParser, enableFixStrategy,
-				getContainer(), getShell());
+				maxAttempts, getContainer(), getShell());
 	}
 
 	/*
@@ -108,6 +111,9 @@ public class NewModelWizard extends Wizard implements INewWizard {
 				UIUtils.showError(Messages.title_error, realException.getMessage());
 				return false;
 			} catch (CoreException e) {
+				return false;
+			} catch (ReachMaxAttemptException e) {
+				System.out.println(e);
 				return false;
 			}
 		}

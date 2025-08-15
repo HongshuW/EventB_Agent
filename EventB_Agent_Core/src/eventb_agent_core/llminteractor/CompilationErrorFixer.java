@@ -104,7 +104,6 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 						messageBuilder.append(message);
 						messageBuilder.append("\n");
 
-						System.out.println(messageBuilder.toString());
 						messages.add(messageBuilder.toString());
 					} else if (erroneousElements.size() == 2) {
 						// one element from event has error
@@ -125,7 +124,6 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 						messageBuilder.append(message);
 						messageBuilder.append("\n");
 
-						System.out.println(messageBuilder.toString());
 						messages.add(messageBuilder.toString());
 					}
 

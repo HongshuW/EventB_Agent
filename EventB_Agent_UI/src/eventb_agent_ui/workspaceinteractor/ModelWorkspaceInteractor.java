@@ -3,8 +3,9 @@ package eventb_agent_ui.workspaceinteractor;
 import static org.eventb.core.IConfigurationElement.DEFAULT_CONFIGURATION;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -40,6 +41,7 @@ import eventb_agent_core.llminteractor.ModelCreator;
 import eventb_agent_core.llminteractor.POFixer;
 import eventb_agent_core.proof.POManager;
 import eventb_agent_core.refinement.RefinementStep;
+import eventb_agent_ui.exceptions.ReachMaxAttemptException;
 import eventb_agent_ui.utils.CreateModelUtils;
 
 public class ModelWorkspaceInteractor {
@@ -56,14 +58,17 @@ public class ModelWorkspaceInteractor {
 	private ModelCreator modelCreator;
 
 	private boolean enableFixStrategy;
+	private int maxAttempts;
+
+	private Map<String, Integer> visitedPOs;
 
 	public ModelWorkspaceInteractor(LLMRequestSender llmRequestSender, LLMResponseParser llmResponseParser,
-			boolean enableFixStrategy, IRunnableContext runnableContext) {
-		this(llmRequestSender, llmResponseParser, enableFixStrategy, runnableContext, null);
+			boolean enableFixStrategy, int maxAttempts, IRunnableContext runnableContext) {
+		this(llmRequestSender, llmResponseParser, enableFixStrategy, maxAttempts, runnableContext, null);
 	}
 
 	public ModelWorkspaceInteractor(LLMRequestSender llmRequestSender, LLMResponseParser llmResponseParser,
-			boolean enableFixStrategy, IRunnableContext runnableContext, Shell shell) {
+			boolean enableFixStrategy, int maxAttempts, IRunnableContext runnableContext, Shell shell) {
 		this.llmRequestSender = llmRequestSender;
 		this.llmResponseParser = llmResponseParser;
 
@@ -73,6 +78,9 @@ public class ModelWorkspaceInteractor {
 		this.modelCreator = new ModelCreator(llmRequestSender, llmResponseParser);
 
 		this.enableFixStrategy = enableFixStrategy;
+		this.maxAttempts = maxAttempts;
+
+		this.visitedPOs = new HashMap<>();
 	}
 
 	/**
@@ -85,9 +93,10 @@ public class ModelWorkspaceInteractor {
 	 * @throws InterruptedException
 	 * @throws InvocationTargetException
 	 * @throws CoreException
+	 * @throws ReachMaxAttemptException
 	 */
 	public ModelInfo createModel(String projectName, RefinementStep refinementStep, ModelInfo previousModel)
-			throws InvocationTargetException, InterruptedException, CoreException {
+			throws InvocationTargetException, InterruptedException, CoreException, ReachMaxAttemptException {
 		String[] fileNames = new String[2];
 		String sysDesc = previousModel == null ? "" : previousModel.getSystemDescription();
 		String newSysDesc = refinementStep.getModelDesc();
@@ -96,14 +105,14 @@ public class ModelWorkspaceInteractor {
 			// synthesize abstract model
 			JSONObject response = modelCreator.synthesizeModel(refinementStep);
 			fileNames = saveModel(projectName, response);
-			fixCompilationErrors(projectName, fileNames);
+			fixCompilationErrors(projectName, fileNames, 0);
 			fixPOs(projectName, fileNames);
 			sysDesc = newSysDesc;
 		} else {
 			// refine the previous model
 			JSONObject response = modelCreator.refineModel(projectName, fileNames, sysDesc, refinementStep);
 			fileNames = saveModel(projectName, response);
-			fixCompilationErrors(projectName, fileNames);
+			fixCompilationErrors(projectName, fileNames, 0);
 			fixPOs(projectName, fileNames);
 			sysDesc += "\n" + newSysDesc;
 		}
@@ -122,11 +131,29 @@ public class ModelWorkspaceInteractor {
 		IRunnableWithProgress saveModelOperation = new IRunnableWithProgress() {
 			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
+				// context
 				try {
 					doFinish(projectName, contextFileName, monitor, contextJSON);
+				} catch (CoreException e) {
+					throw new InvocationTargetException(e);
+				} finally {
+					monitor.done();
+				}
+
+				// machine
+				try {
 					doFinish(projectName, machineFileName, monitor, machineJSON);
 				} catch (CoreException e) {
 					throw new InvocationTargetException(e);
+				} finally {
+					monitor.done();
+				}
+
+				// refresh workspace
+				try {
+					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, monitor);
+				} catch (CoreException e) {
+					e.printStackTrace();
 				} finally {
 					monitor.done();
 				}
@@ -137,8 +164,12 @@ public class ModelWorkspaceInteractor {
 		return new String[] { contextFileName, machineFileName };
 	}
 
-	private String[] fixCompilationErrors(String projectName, String[] fileNames)
-			throws InvocationTargetException, InterruptedException {
+	private String[] fixCompilationErrors(String projectName, String[] fileNames, int attempt)
+			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
+		if (attempt == maxAttempts) {
+			throw new ReachMaxAttemptException("Fix Compilation Error");
+		}
+
 		final String contextFileName = fileNames[0];
 		final String machineFileName = fileNames[1];
 
@@ -153,15 +184,17 @@ public class ModelWorkspaceInteractor {
 							contextFileName, monitor);
 					if (newModel != null) {
 						String[] newFileNames = saveModel(projectName, newModel);
-						fixCompilationErrors(projectName, newFileNames);
+						fixCompilationErrors(projectName, newFileNames, attempt + 1);
 					} else {
 						// save file without modification
 						IRodinProject rodinProject = getRodinProject(projectName);
 						final IRodinFile rodinFile = rodinProject.getRodinFile(machineFileName);
-						rodinFile.save(monitor, true);
+						rodinFile.save(null, true);
 					}
 				} catch (CoreException e) {
 					throw new InvocationTargetException(e);
+				} catch (ReachMaxAttemptException e) {
+					System.out.println(e.getMessage());
 				} finally {
 					monitor.done();
 				}
@@ -173,7 +206,7 @@ public class ModelWorkspaceInteractor {
 	}
 
 	private String[] fixPOs(String projectName, String[] fileNames)
-			throws InvocationTargetException, InterruptedException {
+			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
 
 		final String contextFileName = fileNames[0];
 		final String machineFileName = fileNames[1];
@@ -190,15 +223,31 @@ public class ModelWorkspaceInteractor {
 					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
 					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
 					List<IPOSequent> pos = poManager.getOpenPOs(machineRoot);
-					for (IPOSequent po : pos) {
-						if (enableFixStrategy) {
-							poFixer.autoFixPO(machineRoot, po);
+					int i = 0;
+					while (i < pos.size()) {
+						IPOSequent undischargedPO = pos.get(i);
+						String undischargedPOName = undischargedPO.getElementName();
+
+						if (!visitedPOs.containsKey(undischargedPOName)) {
+							visitedPOs.put(undischargedPOName, 0);
+						}
+						int attempts = visitedPOs.get(undischargedPOName);
+						if (attempts >= maxAttempts) {
+							i++;
+							continue;
 						} else {
-							JSONObject newModel = poFixer.autoFixPOWithoutStrategy(machineRoot, po);
+							visitedPOs.put(undischargedPOName, attempts + 1);
+						}
+
+						if (enableFixStrategy) {
+							poFixer.autoFixPO(machineRoot, undischargedPO);
+						} else {
+							JSONObject newModel = poFixer.autoFixPOWithoutStrategy(machineRoot, undischargedPO);
 							saveModel(projectName, newModel);
-							fixCompilationErrors(projectName, fileNames);
+							fixCompilationErrors(projectName, fileNames, 0);
 							fixPOs(projectName, fileNames);
 						}
+						break;
 					}
 				} catch (Exception e) {
 					throw new InvocationTargetException(e);
@@ -225,7 +274,7 @@ public class ModelWorkspaceInteractor {
 	private void doFinish(String projectName, final String fileName, IProgressMonitor monitor, JSONObject json)
 			throws CoreException {
 
-		monitor.beginTask("Creating " + fileName, 2);
+		monitor.setTaskName("Creating " + fileName);
 		IRodinProject rodinProject = getRodinProject(projectName);
 
 		RodinCore.run(new IWorkspaceRunnable() {
@@ -249,7 +298,6 @@ public class ModelWorkspaceInteractor {
 		}, monitor);
 
 		monitor.worked(1);
-		monitor.done();
 
 		if (enableDisplay()) {
 			monitor.setTaskName("Opening file for editing...");

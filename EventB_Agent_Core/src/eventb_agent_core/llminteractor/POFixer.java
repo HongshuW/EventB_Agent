@@ -31,10 +31,22 @@ public class POFixer extends AbstractLLMInteractor {
 		super(llmRequestSender, llmResponseParser);
 	}
 
+	/**
+	 * Fix model without pre-defined fix strategies.
+	 * 
+	 * @param machineRoot
+	 * @param poSequent
+	 * @return
+	 * @throws RodinDBException
+	 * @throws IOException
+	 */
 	public JSONObject autoFixPOWithoutStrategy(IMachineRoot machineRoot, IPOSequent poSequent)
 			throws RodinDBException, IOException {
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
-		IProofAttempt proofAttempt = pc.createProofAttempt(poSequent.getElementName(), "POFixer", null);
+		IProofAttempt proofAttempt = pc.getProofAttempt(poSequent.getElementName(), "POFixer");
+		if (proofAttempt == null) {
+			proofAttempt = pc.createProofAttempt(poSequent.getElementName(), "POFixer", null);
+		}
 
 		// retrieve information from workspace
 		IProofTree tree = proofAttempt.getProofTree();
@@ -63,7 +75,7 @@ public class POFixer extends AbstractLLMInteractor {
 	}
 
 	private JSONObject getFixedModel(String modelJSON, IProofTree tree) throws IOException {
-		String[] placeHolderContents = new String[] { modelJSON, tree.toString() };
+		String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), tree.toString() };
 
 		String response = llmRequestSender.sendRequest(placeHolderContents, LLMRequestTypes.FIX_PROOF_NO_STRATEGY);
 		return llmResponseParser.getResponseContent(response);
@@ -117,7 +129,7 @@ public class POFixer extends AbstractLLMInteractor {
 	}
 
 	private JSONObject selectFixStrategy(String modelJSON, IProofTree tree) throws IOException {
-		String[] placeHolderContents = new String[] { modelJSON, tree.toString() };
+		String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), tree.toString() };
 
 		// TODO: get LLMRequestType from fix strategy
 		String response = llmRequestSender.sendRequest(placeHolderContents, LLMRequestTypes.FIX_PROOF);

@@ -1,4 +1,4 @@
-package eventb_agent_ui.handlers;
+package eventb_agent_ui.evaluation;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -26,6 +26,7 @@ import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.refinement.SystemRequirements;
 import eventb_agent_core.utils.Constants;
+import eventb_agent_ui.exceptions.ReachMaxAttemptException;
 import eventb_agent_ui.workspaceinteractor.ModelInfo;
 import eventb_agent_ui.workspaceinteractor.ModelWorkspaceInteractor;
 
@@ -40,6 +41,7 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 	private String datasetPath;
 	private boolean enableRefinement;
 	private boolean enableFixStrategy;
+	private int maxAttempts;
 
 	public EvaluationHandler() {
 		super();
@@ -54,6 +56,7 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 		datasetPath = prefs.get(AgentPreferenceInitializer.PREF_DATASET_LOC, "");
 		enableRefinement = prefs.getBoolean(AgentPreferenceInitializer.PREF_ENABLE_REF, false);
 		enableFixStrategy = prefs.getBoolean(AgentPreferenceInitializer.PREF_ENABLE_FIX, false);
+		maxAttempts = Integer.valueOf(prefs.get(AgentPreferenceInitializer.PREF_MAX_ATTEMPTS, "5"));
 	}
 
 	@Override
@@ -68,15 +71,16 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 			return null;
 		}
 
-		RefinementStrategyPlanner refinementStrategyPlanner = new RefinementStrategyPlanner(llmRequestSender,
-				llmResponseParser);
-		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
-		ModelWorkspaceInteractor modelWorkspaceInteractor = new ModelWorkspaceInteractor(llmRequestSender,
-				llmResponseParser, enableFixStrategy, window, null);
-
 		File[] files = datasetFolder.listFiles();
 		if (files != null) {
 			for (File file : files) {
+
+				RefinementStrategyPlanner refinementStrategyPlanner = new RefinementStrategyPlanner(llmRequestSender,
+						llmResponseParser);
+				IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+				ModelWorkspaceInteractor modelWorkspaceInteractor = new ModelWorkspaceInteractor(llmRequestSender,
+						llmResponseParser, enableFixStrategy, maxAttempts, window, null);
+
 				final String projectName = file.getName().split(".json")[0];
 				// refinement steps
 				SystemRequirements systemReqs = new SystemRequirements(file.toPath());
@@ -103,6 +107,9 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 						UIUtils.showError(Messages.title_error, realException.getMessage());
 						return null;
 					} catch (CoreException e) {
+						return null;
+					} catch (ReachMaxAttemptException e) {
+						System.out.println(e.getMessage());
 						return null;
 					}
 				}

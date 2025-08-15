@@ -68,6 +68,9 @@ public abstract class LLMRequestSender {
 			prompt = prompt.replace(placeHolders[i], contentInPlaceHolder);
 		}
 
+		System.out.println(prompt);
+		System.out.println();
+
 		String request = "";
 		if (requestType.isStructuredRequest()) {
 			request = requestBuilder.getRequestWithSchema(prompt, requestType);

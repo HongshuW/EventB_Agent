@@ -35,6 +35,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 	public static final String DATASET_LOCATION = AgentPreferenceInitializer.PREF_DATASET_LOC;
 	public static final String ENABLE_REFINEMENT = AgentPreferenceInitializer.PREF_ENABLE_REF;
 	public static final String ENABLE_FIX_STRATEGY = AgentPreferenceInitializer.PREF_ENABLE_FIX;
+	public static final String MAX_ATTEMPTS = AgentPreferenceInitializer.PREF_MAX_ATTEMPTS;
 
 	/* llm config */
 	private Combo llmModelCombo;
@@ -46,6 +47,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 	private Text datasetLocationText;
 	private Button enableRefinementButton;
 	private Button enableFixStrategyButton;
+	private Text maxAttemptsText;
 
 	private String defaultLLMModel = LLMModels.GPT4_1.toString();
 
@@ -73,6 +75,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		this.datasetLocationText = null;
 		this.enableRefinementButton = null;
 		this.enableFixStrategyButton = null;
+		this.maxAttemptsText = null;
 
 		setDescription("Preference Page for Event-B Agent Plug-in.");
 		setTitle("Event-B Agent");
@@ -129,6 +132,10 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		String enableProofFixingLabel = "Enable Proof Fixing";
 		this.enableFixStrategyButton = createButton(experimentSettingGroup, enableProofFixingLabel,
 				getPreferenceStore().getBoolean(ENABLE_FIX_STRATEGY));
+
+		String maxAttemptsLabel = "Max Number of Attempts";
+		this.maxAttemptsText = createText(experimentSettingGroup, maxAttemptsLabel,
+				getPreferenceStore().getString(MAX_ATTEMPTS));
 	}
 
 	private Group initGroup(final Composite parent, String title) {
@@ -193,6 +200,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		getPreferenceStore().setValue(DATASET_LOCATION, datasetLocationText.getText());
 		getPreferenceStore().setValue(ENABLE_REFINEMENT, enableRefinementButton.getSelection());
 		getPreferenceStore().setValue(ENABLE_FIX_STRATEGY, enableFixStrategyButton.getSelection());
+		getPreferenceStore().setValue(MAX_ATTEMPTS, maxAttemptsText.getText());
 
 		try {
 			((ScopedPreferenceStore) getPreferenceStore()).save();
@@ -225,6 +233,9 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 
 		getPreferenceStore().setToDefault(ENABLE_FIX_STRATEGY);
 		enableFixStrategyButton.setSelection(getPreferenceStore().getBoolean(ENABLE_FIX_STRATEGY));
+
+		getPreferenceStore().setToDefault(MAX_ATTEMPTS);
+		maxAttemptsText.setText(getPreferenceStore().getString(MAX_ATTEMPTS));
 
 		super.performDefaults();
 	}

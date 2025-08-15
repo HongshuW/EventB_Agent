@@ -23,6 +23,11 @@ public abstract class AbstractLLMInteractor {
 		String response;
 		try {
 			response = llmRequestSender.sendRequest(placeHolderContents, requestType);
+			if (response.matches(".*\\\\+u[0-9A-Fa-f]{4}.*")) {
+				System.out.println("llm contains invalid characters, try again...");
+				System.out.println(response);
+				getLLMResponse(placeHolderContents, requestType);
+			}
 			return llmResponseParser.getResponseContent(response);
 		} catch (IOException e) {
 			e.printStackTrace();
