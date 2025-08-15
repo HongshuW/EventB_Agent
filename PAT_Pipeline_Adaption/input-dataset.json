@@ -9,5 +9,75 @@
     "EQP-3": "Cars are not supposed to pass on a red traffic light, only on a green one.",
     "EQP-4": "The system is equipped with four sensors with two states: on or off.",
     "EQP-5": "The sensors are used to detect the presence of a car entering or leaving the bridge: “on” means that a car is willing to enter the bridge or to leave it."
+  },
+  {
+    "modelName": "ch3_mechanical_press_controller",
+    "EQP-1": "The system has got the following pieces of equipment: a Motor, a Clutch, and a Door.",
+    "EQP-2": "Four Buttons are used to start and stop the motor, and engage and disengage the clutch.",
+    "EQP-3": "A Controller is supposed to manage these equipment.",
+    "FUN-1": "Buttons and Controller are weakly synchronized.",
+    "FUN-2": "Controller and Equipment are strongly synchronized",
+    "FUN-3": "When the clutch is disengaged, the door cannot be closed several times, ONLY ONCE.",
+    "FUN-4": "When the door is closed, the clutch cannot be disengaged several times, ONLY ONCE.",
+    "FUN-5": "Opening and closing the door is not independent. It must be synchronized with disengaging and engaging the clutch.",
+    "SAF-1": "When the clutch is engaged, the motor must work.",
+    "SAF-2": "When the clutch is engaged, the door must be closed."
+  },
+  {
+    "modelName": "ch4_simple_file_transfer_protocol",
+    "FUN-1": "The protocol ensures the copy of a file from one site to another one.",
+    "FUN-2": "The file is supposed to be made of a sequence of items.",
+    "FUN-3": "The file is send piece by piece between the two sites."
+  },
+  {
+    "modelName": "ch6_bounded_retransmission_protocol",
+    "FUN-1": "The Bounded Retransmission Protocol is a file transfer protocol. Its goal is to totally or partially transfer a certain non-empty original sequential file from one site, the sender, to another, the receiver.",
+    "FUN-2": "A \"total transfer\" means that the transmitted file is an exact copy of the original one.",
+    "FUN-3": "A \"partial transfer\" means that the transmitted file is a prefix of the original one.",
+    "FUN-4": "Each site may end up in any of the two situations: either it believes that the protocol has terminated successfully , or it believes that the protocol has aborted before being successfully terminated.",
+    "FUN-5": "When the sender believes that the protocol has terminated successfully then the receiver believes so too. Conversely, when the receiver believes that the protocol has aborted then the sender believes so too.",
+    "FUN-6": "However, it is possible for the sender to believe that the protocol has aborted while the receiver believes that it has terminated successfully.",
+    "FUN-7": "When the receiver believes that the protocol has terminated successfully, this is because the original file has been entirely copied on the receiver’s site. In other words, the receiver’s belief is true.",
+    "FUN-8": "When the receiver believes that the protocol has aborted, this is because the original file has not been copied entirely on the receiver’s site. Again, the receiver’s belief is true."
+  },
+  {
+    "modelName": "ch8_electronic_circuit",
+    "FUN-1": "The circuit has two boolean inputs i1 and i2 and two boolean outputs o1 and o2.",
+    "FUN-2": "A TRUE input means a user (associated with that input) is asking for a certain resource.",
+    "FUN-3": "The circuit reacts positively to a request by setting the corresponding output to TRUE.",
+    "FUN-4": "The circuit can react positively to one request only at a time (mutual exclusion).",
+    "FUN-5": "Each user frees the resource immediately.",
+    "FUN-6": "A requesting user cannot be postponed indefinitely.",
+    "FUN-7": "A user asking for a resource comtinues to ask for it as long as it is not served.",
+    "FUN-8": "The resource cannot be granted without a user asking for it."
+  },
+  {
+    "modelName": "ch11_tree_shaped_network",
+    "ENV-1": "We have a set of nodes forming a tree.",
+    "FUN-1": "Each node has a counter, which is a natural number.",
+    "FUN-2": "The difference between any two counters is at most equal to 1.",
+    "FUN-3": "Each node can only read the counter of its immediate neighbors in the tree.",
+    "FUN-4": "The counter of a node can be modified by this node only."
+  },
+  {
+    "modelName": "ch16_location_access_controller",
+    "FUN-1": "The system concerns people and locations.",
+    "FUN-2": "People are permanently assigned the authorization to access certain locations.",
+    "FUN-3": "A person which is in a location must be authorized to be there.",
+    "FUN-4": "Turnstiles are normally blocked.",
+    "FUN-5": "A person willing to pass through a turnsile puts its card in the fence of the card reader.",
+    "FUN-6": "If the person is accepted, the green light is lit and the turnstile is unblocked for at most 30 seconds.",
+    "FUN-7": "If the person is not accepted, the red light is lit for 2 seconds and the turnstile remains blocked.",
+    "FUN-8": "As soon as an accepted person has gone through an unblocked turnstile, the green light is turned off and the turnstile is blocked again.",
+    "FUN-9": "If nobody goes through an unblocked turnstile during the 30 seconds period, the green light is turned off and the turnstile is blocked again.",
+    "EQP-1": "Each person receives a personal magnetic card.",
+    "EQP-2": "Each entrance and exit of a location is equipped with a card reader.",
+    "EQP-3": "Each card reader has two lights: one green light and one red light.",
+    "EQP-4": "Each light can be “on” or “off”.",
+    "EQP-5": "Locations communicate via one-way turstiles.",
+    "EQP-6": "A sensor detects the passage of a person through a turnstile.",
+    "SAF-1": "No persons must remain blocked in a location.",
+    "SAF-2": "Any person authorized to be in a location must also be authorized to go in another location which communicates with the first one.",
+    "SAF-3": "Any person authorized to be in a location which is not “outside”, must also be authorized to be in another location communicating with the former and leading towards outside."
   }
 ]
