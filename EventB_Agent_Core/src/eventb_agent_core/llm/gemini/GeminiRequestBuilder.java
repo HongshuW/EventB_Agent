@@ -23,11 +23,10 @@ public class GeminiRequestBuilder extends RequestBuilder {
 	protected String getSchemaFileNameFromType(LLMRequestTypes requestType) {
 		switch (requestType) {
 		// TODO: case REFINE_STRATEGY
+		// TODO: case FIX_PROOF_NO_STRATEGY
 		case SYNTHESIS:
 		case REFINE_MODEL:
 			return "gemini_eventb_schema.json";
-//		case FIX_PROOF:
-//			return "gemini_proof_schema.json";
 		default:
 			return "gemini_eventb_schema.json";
 		}

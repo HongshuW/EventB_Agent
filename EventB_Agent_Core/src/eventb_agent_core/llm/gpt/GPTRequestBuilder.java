@@ -31,8 +31,8 @@ public class GPTRequestBuilder extends RequestBuilder {
 			return "gpt_eventb_schema.json";
 		case REFINE_MODEL:
 			return "gpt_eventb_schema.json";
-//		case FIX_PROOF:
-//			return "gpt_ah_schema.json";
+		case FIX_PROOF_NO_STRATEGY:
+			return "gpt_eventb_schema.json";
 		default:
 			return "gpt_eventb_schema.json";
 		}

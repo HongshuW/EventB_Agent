@@ -77,8 +77,6 @@ public abstract class LLMRequestSender {
 			request = requestBuilder.getRequestPlain(prompt);
 		}
 
-		System.out.println(request);
-
 		return getRequest(requestBuilder, request);
 	}
 

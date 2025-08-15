@@ -26,7 +26,7 @@ public class ParserUtils {
 	private static char RANGE = '\u2025';
 	private static char SET_MINUS = '\u2216';
 	private static char TIMES = '\u00D7';
-	private static char MINUS = '\u2208';
+	private static char MINUS = '\u2212';
 	private static char DOT = '\u00B7';
 	private static char K_PRODUCT = '\u2297';
 	private static char RIGHT_TRI = '\u25B7';
@@ -53,7 +53,7 @@ public class ParserUtils {
 	private static char NOT_SUBSET = '\u2288';
 	private static char PROPER_SUBSET = '\u2282';
 	private static char NOT_EQ = '\u2260';
-	private static char LEQ = '\u2209';
+	private static char LEQ = '\u2264';
 	private static char GEQ = '\u2265';
 	private static char ASSIGN = '\u2254';
 
@@ -62,6 +62,61 @@ public class ParserUtils {
 	private static char EXISTS = '\u2203';
 	private static char LAMBDA = '\u03BB';
 	private static char IMPLIES = '\u21D2';
+
+	private static Map<Character, String> reverseLexMap;
+
+	private static void initMap() {
+		reverseLexMap = new HashMap<>();
+		reverseLexMap.put(INT, "INT");
+		reverseLexMap.put(NAT, "NAT");
+		reverseLexMap.put(POW, "POW");
+		reverseLexMap.put(EMPTY_SET, "{}");
+		reverseLexMap.put(TRUE, "true");
+		reverseLexMap.put(FALSE, "false");
+		reverseLexMap.put(OR, "\\lor");
+		reverseLexMap.put(NOT, "\\neg");
+		reverseLexMap.put(AND, "\\land");
+		reverseLexMap.put(UNION, "UNION");
+		reverseLexMap.put(INTER, "INTER");
+		reverseLexMap.put(SMALL_UNION, "\\/");
+		reverseLexMap.put(SMALL_INTER, "/\\");
+		reverseLexMap.put(RANGE, "..");
+		reverseLexMap.put(SET_MINUS, "\\");
+		reverseLexMap.put(TIMES, "\\times");
+		reverseLexMap.put(MINUS, "-");
+		reverseLexMap.put(DOT, ".");
+		reverseLexMap.put(K_PRODUCT, "><");
+		reverseLexMap.put(RIGHT_TRI, "|>");
+		reverseLexMap.put(LEFT_TRI, "<|");
+		reverseLexMap.put(DOMAIN_ANTIRESTRICTION, "<<|");
+		reverseLexMap.put(RANGE_ANTIRESTRICTION, "|>>");
+		reverseLexMap.put(VERTICAL_LINE, "|");
+		reverseLexMap.put(CIRC, "circ");
+		reverseLexMap.put(RIGHT_ARROW, "-->");
+		reverseLexMap.put(ARROW1, "-->>");
+		reverseLexMap.put(ARROW2, ">+>");
+		reverseLexMap.put(ARROW3, "+->>");
+		reverseLexMap.put(ARROW4, ">->>");
+		reverseLexMap.put(ARROW5, "<->");
+		reverseLexMap.put(ARROW6, "+->");
+		reverseLexMap.put(ARROW7, ">->");
+		reverseLexMap.put(ARROW8, "|->");
+		reverseLexMap.put(IN, "\\in");
+		reverseLexMap.put(SUBSET_EQ, "\\subseteq");
+		reverseLexMap.put(NOT_IN, "\\notin");
+		reverseLexMap.put(NOT_PROPER_SUBSET, "/<<:");
+		reverseLexMap.put(NOT_SUBSET, "/<:");
+		reverseLexMap.put(PROPER_SUBSET, "<<:");
+		reverseLexMap.put(NOT_EQ, "\\neq");
+		reverseLexMap.put(LEQ, "<=");
+		reverseLexMap.put(GEQ, ">=");
+		reverseLexMap.put(ASSIGN, ":=");
+		reverseLexMap.put(FOR_ALL, "\\forall");
+		reverseLexMap.put(IFF, "<=>");
+		reverseLexMap.put(EXISTS, "\\exists");
+		reverseLexMap.put(LAMBDA, "%");
+		reverseLexMap.put(IMPLIES, "=>");
+	}
 
 	public static String addEscape(String originalString) {
 		return originalString.replace("\\", "\\\\");
@@ -109,6 +164,8 @@ public class ParserUtils {
 		specialCharsMap.put("\triangleright", String.valueOf(RIGHT_TRI));
 		specialCharsMap.put("\tfun", String.valueOf(RIGHT_ARROW));
 		specialCharsMap.put("\bunion", String.valueOf(SMALL_UNION));
+		specialCharsMap.put("\rel", String.valueOf(ARROW5));
+		specialCharsMap.put("\neg", String.valueOf(NOT));
 		specialCharsMap.put("{}", String.valueOf(EMPTY_SET));
 		specialCharsMap.put("|", String.valueOf(VERTICAL_LINE));
 		specialCharsMap.put("!=", String.valueOf(NOT_EQ));
@@ -119,6 +176,7 @@ public class ParserUtils {
 		specialCharsMap.put("<=>", String.valueOf(IFF));
 		specialCharsMap.put(".", String.valueOf(DOT));
 		specialCharsMap.put("#", String.valueOf(EXISTS));
+		specialCharsMap.put("\\pow(", String.valueOf(POW) + "(");
 		specialCharsMap.put("POW(", String.valueOf(POW) + "(");
 		specialCharsMap.put("POW1(", String.valueOf(POW) + "1(");
 		specialCharsMap.put("P(", String.valueOf(POW) + "(");
@@ -131,7 +189,7 @@ public class ParserUtils {
 		specialCharsMap.put("%", String.valueOf(LAMBDA));
 
 		Map<String, String> regexMap = new HashMap<>();
-		regexMap.put("\\|(?!->)([^|]+)\\|(?!->)", "card($1)"); // replace |...| with card(...)
+//		regexMap.put("\\|(?!->)([^|]+)\\|(?!->)", "card($1)"); // replace |...| with card(...)
 		regexMap.put("\\∣([^∣]+)\\∣", "card($1)"); // replace ∣...∣ with card(...)
 		regexMap.put("\\\\math(bb|bf|cal|rm|it|frak|tt)\\{([^}]*)\\}", "$2"); // replace \mathXX{...} with ...
 		regexMap.put("\\\\text(|bf|it|tt|sf|rm|sc|sl|normal|up)\\{([^}]*)\\}", "$2"); // replace \textXX{...} with ...
@@ -139,11 +197,11 @@ public class ParserUtils {
 		regexMap.put("(?<![|<>+\\\\-])-(?![|<>+\\\\-])", String.valueOf(MINUS)); // replace "-" with "−"
 		regexMap.put("(?<![<])=>", String.valueOf(IMPLIES)); // replace "=>" with "⇒"
 		regexMap.put("!(?![=])", String.valueOf(FOR_ALL)); // replace "!" with "∀"
-		regexMap.put("\\*{1,2}", String.valueOf(TIMES)); // replace "*|**" with String.valueOf(DOT)
-		regexMap.put("<=(?![>])", String.valueOf(LEQ)); // replace "<=" with String.valueOf(ARROW5)
+		regexMap.put("\\*{1,2}", String.valueOf(TIMES)); // replace "*|**" with "×"
+		regexMap.put("<=(?![>])", String.valueOf(LEQ)); // replace "<=" with "≤"
 		regexMap.put("(?<![<])<->(?![>])", String.valueOf(ARROW5)); // replace "<->" with "↔"
 		regexMap.put("(?<![<])<\\|", String.valueOf(LEFT_TRI)); // replace "<|" with "◁"
-		regexMap.put("<<\\|", String.valueOf(DOMAIN_ANTIRESTRICTION)); // replace "<NOT_IN with "⩤"
+		regexMap.put("<<\\|", String.valueOf(DOMAIN_ANTIRESTRICTION)); // replace "<<| with "⩤"
 		regexMap.put("\\|>(?![>])", String.valueOf(RIGHT_TRI)); // replace "|>" with "▷"
 		regexMap.put("\\|>>", String.valueOf(RANGE_ANTIRESTRICTION)); // replace "|>>" with "⩥"
 		regexMap.put("\\+->(?![>])", String.valueOf(ARROW6)); // replace "+->" with "⇸"
@@ -184,6 +242,10 @@ public class ParserUtils {
 		regexMap.put("\\\\+implies", String.valueOf(IMPLIES));
 		regexMap.put("\\\\+domres", String.valueOf(DOMAIN_ANTIRESTRICTION));
 		regexMap.put("\\\\+bunion", String.valueOf(SMALL_UNION));
+		regexMap.put("\\\\+rel", String.valueOf(ARROW5));
+		regexMap.put("\\\\+neg", String.valueOf(NOT));
+		regexMap.put("\\\\+exists", String.valueOf(EXISTS));
+		regexMap.put("\\\\+leftrightarrow", String.valueOf(ARROW5));
 		regexMap.put("\\\\\\{", "{");
 		regexMap.put("\\\\\\}", "}");
 
@@ -310,12 +372,38 @@ public class ParserUtils {
 				|| characters[index - 1] == '/' || characters[index - 1] == '<' || characters[index - 1] == ':');
 	}
 
+	public static String reverseLex(String originalString) {
+		if (reverseLexMap == null) {
+			initMap();
+		}
+		StringBuilder newString = new StringBuilder();
+		char[] characters = originalString.toCharArray();
+		for (char c : characters) {
+			if (reverseLexMap.containsKey(c)) {
+				newString.append(reverseLexMap.get(c));
+			} else {
+				newString.append(String.valueOf(c));
+			}
+		}
+		return newString.toString();
+	}
+
+	public static String addMarker(String originalString, int start, int end) {
+		StringBuilder newString = new StringBuilder();
+		newString.append(originalString.substring(0, start));
+		newString.append("***");
+		newString.append(originalString.substring(start, end));
+		newString.append("***");
+		newString.append(originalString.substring(end));
+		return newString.toString();
+	}
+
 	static void show(char c) {
 		System.out.printf("%c -> \\u%04X%n", c, (int) c);
 	}
-	
+
 	public static void main(String[] args) {
-		show('⇒');
+		show('≤');
 	}
 
 }

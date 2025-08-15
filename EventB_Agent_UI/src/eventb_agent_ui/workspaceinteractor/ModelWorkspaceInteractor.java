@@ -55,13 +55,15 @@ public class ModelWorkspaceInteractor {
 
 	private ModelCreator modelCreator;
 
+	private boolean enableFixStrategy;
+
 	public ModelWorkspaceInteractor(LLMRequestSender llmRequestSender, LLMResponseParser llmResponseParser,
-			IRunnableContext runnableContext) {
-		this(llmRequestSender, llmResponseParser, runnableContext, null);
+			boolean enableFixStrategy, IRunnableContext runnableContext) {
+		this(llmRequestSender, llmResponseParser, enableFixStrategy, runnableContext, null);
 	}
 
 	public ModelWorkspaceInteractor(LLMRequestSender llmRequestSender, LLMResponseParser llmResponseParser,
-			IRunnableContext runnableContext, Shell shell) {
+			boolean enableFixStrategy, IRunnableContext runnableContext, Shell shell) {
 		this.llmRequestSender = llmRequestSender;
 		this.llmResponseParser = llmResponseParser;
 
@@ -69,6 +71,8 @@ public class ModelWorkspaceInteractor {
 		this.shell = shell;
 
 		this.modelCreator = new ModelCreator(llmRequestSender, llmResponseParser);
+
+		this.enableFixStrategy = enableFixStrategy;
 	}
 
 	/**
@@ -187,7 +191,14 @@ public class ModelWorkspaceInteractor {
 					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
 					List<IPOSequent> pos = poManager.getOpenPOs(machineRoot);
 					for (IPOSequent po : pos) {
-						poFixer.autoFixPO(machineRoot, po);
+						if (enableFixStrategy) {
+							poFixer.autoFixPO(machineRoot, po);
+						} else {
+							JSONObject newModel = poFixer.autoFixPOWithoutStrategy(machineRoot, po);
+							saveModel(projectName, newModel);
+							fixCompilationErrors(projectName, fileNames);
+							fixPOs(projectName, fileNames);
+						}
 					}
 				} catch (Exception e) {
 					throw new InvocationTargetException(e);
@@ -238,6 +249,7 @@ public class ModelWorkspaceInteractor {
 		}, monitor);
 
 		monitor.worked(1);
+		monitor.done();
 
 		if (enableDisplay()) {
 			monitor.setTaskName("Opening file for editing...");

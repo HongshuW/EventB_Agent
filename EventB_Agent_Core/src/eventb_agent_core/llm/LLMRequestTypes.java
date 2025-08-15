@@ -13,7 +13,8 @@ public enum LLMRequestTypes {
 	FIX_COMPILATION_ERRS, // Fix compilation errors in a model
 	REFINE_MODEL, // Given previous system description, previous model, and new system
 					// description, refine the model
-	FIX_PROOF; // Retrieve proof tree to be used as part of the prompt
+	FIX_PROOF, // Retrieve proof tree to be used as part of the prompt
+	FIX_PROOF_NO_STRATEGY; // Retrieve proof tree to be used as part of the prompt
 
 	public String getPrompt() {
 		Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "prompts",
@@ -32,7 +33,9 @@ public enum LLMRequestTypes {
 		case REFINE_MODEL:
 			return "refine_model.txt";
 		case FIX_PROOF:
-			return "add_hypothesis.txt";
+			return "fix_proof_with_strategy.txt";
+		case FIX_PROOF_NO_STRATEGY:
+			return "fix_proof_no_strategy.txt";
 		default:
 			return "synthesize_machine.txt";
 		}
@@ -50,6 +53,7 @@ public enum LLMRequestTypes {
 			return new String[] { Constants.PREV_SYS_DESC_PLACE_HOLDER, Constants.MODEL_PLACE_HOLDER,
 					Constants.SYS_DESC_PLACE_HOLDER };
 		case FIX_PROOF:
+		case FIX_PROOF_NO_STRATEGY:
 			return new String[] { Constants.MODEL_PLACE_HOLDER, Constants.PROOF_TREE_PLACE_HOLDER };
 		default:
 			return new String[] { Constants.DEFAULT_PLACE_HOLDER };
@@ -68,6 +72,8 @@ public enum LLMRequestTypes {
 			return true;
 		case FIX_PROOF:
 			return false;
+		case FIX_PROOF_NO_STRATEGY:
+			return true;
 		default:
 			return false;
 		}
@@ -85,6 +91,8 @@ public enum LLMRequestTypes {
 			return false;
 		case FIX_PROOF:
 			return true;
+		case FIX_PROOF_NO_STRATEGY:
+			return false;
 		default:
 			return false;
 		}

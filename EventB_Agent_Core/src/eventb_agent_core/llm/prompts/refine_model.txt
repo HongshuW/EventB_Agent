@@ -1,4 +1,4 @@
-Refine the provided Event-B model according to the refined system description. Return a new model which refines the provided model. The new model must have a different name from the provided model.
+Refine the provided Event-B model according to the refined system description. Return a new model which refines the provided model. The new model must have a different name from the provided model.\n
 \n
 Previous System Description:\n
 {{prev_system_desc}}

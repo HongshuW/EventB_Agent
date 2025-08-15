@@ -63,7 +63,6 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 				+ "\n==========");
 
 		File datasetFolder = new File(datasetPath);
-
 		if (!datasetFolder.exists() || !datasetFolder.isDirectory()) {
 			System.out.println("Invalid dataset folder path: " + datasetPath + "\nPlease specify a valid folder.");
 			return null;
@@ -73,7 +72,7 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 				llmResponseParser);
 		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
 		ModelWorkspaceInteractor modelWorkspaceInteractor = new ModelWorkspaceInteractor(llmRequestSender,
-				llmResponseParser, window, null);
+				llmResponseParser, enableFixStrategy, window, null);
 
 		File[] files = datasetFolder.listFiles();
 		if (files != null) {
@@ -81,7 +80,12 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 				final String projectName = file.getName().split(".json")[0];
 				// refinement steps
 				SystemRequirements systemReqs = new SystemRequirements(file.toPath());
-				JSONArray refinementSteps = refinementStrategyPlanner.getRefinementSteps(systemReqs.toString());
+				JSONArray refinementSteps = new JSONArray();
+				if (enableRefinement) {
+					refinementSteps = refinementStrategyPlanner.getRefinementSteps(systemReqs.toString());
+				} else {
+					refinementSteps = refinementStrategyPlanner.getSingleRefinementStep(systemReqs.toString());
+				}
 
 				// create models
 				ModelInfo previousModel = null;

@@ -20,5 +20,9 @@ public class RefinementStrategyPlanner extends AbstractLLMInteractor {
 		JSONObject response = getLLMResponse(new String[] { sysDesc }, LLMRequestTypes.REFINE_STRATEGY);
 		return llmResponseParser.getRefinementStepsJSONArray(response);
 	}
-
+	
+	public JSONArray getSingleRefinementStep(String sysDesc) {
+		JSONObject response = getLLMResponse(new String[] { sysDesc + "\n\nReturn one refinement step with all the requirements." }, LLMRequestTypes.REFINE_STRATEGY);
+		return llmResponseParser.getRefinementStepsJSONArray(response);
+	}
 }

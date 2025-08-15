@@ -45,6 +45,8 @@ public class NewModelWizard extends Wizard implements INewWizard {
 	private RefinementStrategyPlanner refinementStrategyPlanner;
 	private ModelWorkspaceInteractor modelWorkspaceInteractor;
 
+	private boolean enableFixStrategy;
+
 	/**
 	 * Constructor: This wizard needs a progress monitor.
 	 */
@@ -55,11 +57,14 @@ public class NewModelWizard extends Wizard implements INewWizard {
 		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
 		LLMModels modelType = LLMModels
 				.getLLMModel(prefs.get(AgentPreferenceInitializer.PREF_LLM_MODEL, Constants.DEFAULT_MODEL));
+		enableFixStrategy = prefs.getBoolean(AgentPreferenceInitializer.PREF_ENABLE_FIX, false);
+
 		llmRequestSender = LLMInstanceFactory.getRequestSender(modelType);
 		llmResponseParser = LLMInstanceFactory.getResponseParser(modelType);
 
 		refinementStrategyPlanner = new RefinementStrategyPlanner(llmRequestSender, llmResponseParser);
-		modelWorkspaceInteractor = new ModelWorkspaceInteractor(llmRequestSender, llmResponseParser, getContainer(), getShell());
+		modelWorkspaceInteractor = new ModelWorkspaceInteractor(llmRequestSender, llmResponseParser, enableFixStrategy,
+				getContainer(), getShell());
 	}
 
 	/*

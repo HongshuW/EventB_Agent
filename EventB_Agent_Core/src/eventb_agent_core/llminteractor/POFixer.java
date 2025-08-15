@@ -31,6 +31,51 @@ public class POFixer extends AbstractLLMInteractor {
 		super(llmRequestSender, llmResponseParser);
 	}
 
+	public JSONObject autoFixPOWithoutStrategy(IMachineRoot machineRoot, IPOSequent poSequent)
+			throws RodinDBException, IOException {
+		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
+		IProofAttempt proofAttempt = pc.createProofAttempt(poSequent.getElementName(), "POFixer", null);
+
+		// retrieve information from workspace
+		IProofTree tree = proofAttempt.getProofTree();
+		IProofTreeNode node = ProofTreeUtils.getLastNodeFromTree(proofAttempt);
+		IContextRoot contextRoot = null;
+		try {
+			contextRoot = RetrieveModelUtils.getContextRoot(tree);
+		} catch (RodinDBException e) {
+			e.printStackTrace();
+		}
+
+		String modelJSON = null;
+		try {
+			modelJSON = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
+		} catch (RodinDBException e) {
+			e.printStackTrace();
+		}
+
+		if (tree != null) {
+			return getFixedModel(modelJSON, tree);
+		} else {
+			System.out.println("Proof tree is null.");
+			return null;
+		}
+
+	}
+
+	private JSONObject getFixedModel(String modelJSON, IProofTree tree) throws IOException {
+		String[] placeHolderContents = new String[] { modelJSON, tree.toString() };
+
+		String response = llmRequestSender.sendRequest(placeHolderContents, LLMRequestTypes.FIX_PROOF_NO_STRATEGY);
+		return llmResponseParser.getResponseContent(response);
+	}
+
+	/**
+	 * Fix the model based on fix strategy.
+	 * 
+	 * @param machineRoot
+	 * @param poSequent
+	 * @throws RodinDBException
+	 */
 	public void autoFixPO(IMachineRoot machineRoot, IPOSequent poSequent) throws RodinDBException {
 
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);

@@ -1,7 +1,0 @@
-Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Complete the proof by calling a function.
-\n
-Model:\n
-{{model}}
-\n
-Proof Tree:\n
-{{proof_tree}}

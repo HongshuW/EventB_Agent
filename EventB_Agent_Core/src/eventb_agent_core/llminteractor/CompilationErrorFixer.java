@@ -25,6 +25,7 @@ import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.RodinUtils;
+import eventb_agent_core.utils.llm.ParserUtils;
 
 public class CompilationErrorFixer extends AbstractLLMInteractor {
 
@@ -74,17 +75,8 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 			int severity = marker.getAttribute(IMarker.SEVERITY, -1);
 			if (severity == IMarker.SEVERITY_ERROR || severity == IMarker.SEVERITY_WARNING) {
 				String message = (String) marker.getAttribute(IMarker.MESSAGE);
-				int charStart = marker.getAttribute(IMarker.CHAR_START, -1);
-				int charEnd = marker.getAttribute(IMarker.CHAR_END, -1);
-				int lineNo = marker.getAttribute(IMarker.LINE_NUMBER, -1);
-
-				System.out.println("Error: " + message);
-				System.out.println("Char Start: " + charStart);
-				System.out.println("Char End: " + charEnd);
-				System.out.println("Line Number: " + lineNo);
 
 				String handle = (String) marker.getAttribute("element", null);
-				System.out.println(handle);
 				if (handle != null) {
 					CompilationErrorInfoExtractor infoExtractor = new CompilationErrorInfoExtractor(handle);
 					List<IInternalElement> erroneousElements = new ArrayList<>();
@@ -102,13 +94,17 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 						IInternalElement element = erroneousElements.get(0);
 						String type = element.getElementType().getName();
 
-						String jsonStr = RetrieveModelUtils.getComponentJSON(element);
+						int markerStart = (int) marker.getAttribute(IMarker.CHAR_START, -1);
+						int markerEnd = (int) marker.getAttribute(IMarker.CHAR_END, -1);
+						String jsonStr = RetrieveModelUtils.getComponentJSON(element, markerStart, markerEnd);
 
 						StringBuilder messageBuilder = new StringBuilder();
 						messageBuilder.append(type + ": ");
 						messageBuilder.append(jsonStr + " has the issue:\n");
 						messageBuilder.append(message);
+						messageBuilder.append("\n");
 
+						System.out.println(messageBuilder.toString());
 						messages.add(messageBuilder.toString());
 					} else if (erroneousElements.size() == 2) {
 						// one element from event has error
@@ -118,14 +114,18 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 						IInternalElement element = erroneousElements.get(1);
 						String type = element.getElementType().getName();
 
-						String jsonStr = RetrieveModelUtils.getComponentJSON(element);
+						int markerStart = (int) marker.getAttribute(IMarker.CHAR_START, -1);
+						int markerEnd = (int) marker.getAttribute(IMarker.CHAR_END, -1);
+						String jsonStr = RetrieveModelUtils.getComponentJSON(element, markerStart, markerEnd);
 
 						StringBuilder messageBuilder = new StringBuilder();
 						messageBuilder.append(type + ": ");
 						messageBuilder.append(jsonStr + " from event `");
 						messageBuilder.append(eventName + "` has the issue:\n");
 						messageBuilder.append(message);
+						messageBuilder.append("\n");
 
+						System.out.println(messageBuilder.toString());
 						messages.add(messageBuilder.toString());
 					}
 
@@ -147,10 +147,10 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 			e.printStackTrace();
 		}
 
-		JSONObject response = getLLMResponse(new String[] { modelJSON, getErrorsPlaceHolderContent(errorMessages) },
+		JSONObject response = getLLMResponse(
+				new String[] { ParserUtils.reverseLex(modelJSON),
+						ParserUtils.reverseLex(getErrorsPlaceHolderContent(errorMessages)) },
 				LLMRequestTypes.FIX_COMPILATION_ERRS);
-
-		System.out.println(response.toString(2));
 
 		return response;
 	}
