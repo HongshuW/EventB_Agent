@@ -356,12 +356,4 @@ public class NewModelWizardPage extends WizardPage {
 		return systemDesc;
 	}
 
-	public String getMachineFileType() {
-		return "bum";
-	}
-
-	public String getContextFileType() {
-		return "buc";
-	}
-
 }

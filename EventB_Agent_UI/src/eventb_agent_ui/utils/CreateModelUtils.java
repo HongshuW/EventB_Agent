@@ -34,8 +34,6 @@ public class CreateModelUtils {
 	public static void initiateContext(IInternalElement rodinRoot, IProgressMonitor pMonitor, LLMResponseParser parser,
 			JSONObject json) throws RodinDBException {
 
-		System.out.println(json);
-
 		// parse response
 		List<String> extendedContexts = parser.getExtends(json);
 		List<String> sets = parser.getSets(json);
@@ -85,8 +83,6 @@ public class CreateModelUtils {
 
 	public static void initiateMachine(IInternalElement rodinRoot, IProgressMonitor pMonitor, LLMResponseParser parser,
 			JSONObject json) throws RodinDBException {
-
-		System.out.println(json);
 
 		// parse response
 		List<String> refines = parser.getRefines(json);

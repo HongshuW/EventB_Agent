@@ -8,6 +8,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -31,11 +32,20 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 	public static final String GPT_KEY = AgentPreferenceInitializer.PREF_GPT_KEY;
 	public static final String CLAUDE_KEY = AgentPreferenceInitializer.PREF_CLAUDE_KEY;
 	public static final String GEMINI_KEY = AgentPreferenceInitializer.PREF_GEMINI_KEY;
+	public static final String DATASET_LOCATION = AgentPreferenceInitializer.PREF_DATASET_LOC;
+	public static final String ENABLE_REFINEMENT = AgentPreferenceInitializer.PREF_ENABLE_REF;
+	public static final String ENABLE_FIX_STRATEGY = AgentPreferenceInitializer.PREF_ENABLE_FIX;
 
+	/* llm config */
 	private Combo llmModelCombo;
 	private Text gptKeyText;
 	private Text claudeKeyText;
 	private Text geminiKeyText;
+
+	/* experiment config */
+	private Text datasetLocationText;
+	private Button enableRefinementButton;
+	private Button enableFixStrategyButton;
 
 	private String defaultLLMModel = LLMModels.GPT4_1.toString();
 
@@ -60,9 +70,13 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		this.claudeKeyText = null;
 		this.geminiKeyText = null;
 
+		this.datasetLocationText = null;
+		this.enableRefinementButton = null;
+		this.enableFixStrategyButton = null;
+
 		setDescription("Preference Page for Event-B Agent Plug-in.");
 		setTitle("Event-B Agent");
-		setMessage("Enter your LLM Keys:");
+		setMessage("Event-B Agent Settings");
 	}
 
 	@Override
@@ -71,14 +85,15 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		composite.setLayout(new GridLayout(1, false));
 		composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-		createSettingGroup(composite);
+		createLLMGroup(composite);
+		createExperimentGroup(composite);
 
 		return composite;
 	}
 
-	private void createSettingGroup(final Composite parent) {
+	private void createLLMGroup(final Composite parent) {
 		String title = "LLM Setting";
-		Group experimentSettingGroup = initGroup(parent, title);
+		Group llmSettingGroup = initGroup(parent, title);
 
 		String modelSelectionLabel = "LLM Model";
 		String modelString = getPreferenceStore().getString(LLM_MODEL);
@@ -86,19 +101,34 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 			modelString = defaultLLMModel;
 		}
 		LLMModels selectedModel = LLMModels.getLLMModel(modelString);
-		this.llmModelCombo = createDropDown(experimentSettingGroup, modelSelectionLabel, LLMModels.values(),
+		this.llmModelCombo = createDropDown(llmSettingGroup, modelSelectionLabel, LLMModels.values(),
 				selectedModel.ordinal());
 
 		String gptKeyLabel = "GPT Key";
-		this.gptKeyText = createText(experimentSettingGroup, gptKeyLabel, getPreferenceStore().getString(GPT_KEY));
+		this.gptKeyText = createText(llmSettingGroup, gptKeyLabel, getPreferenceStore().getString(GPT_KEY));
 
 		String claudeKeyLabel = "Claude Key";
-		this.claudeKeyText = createText(experimentSettingGroup, claudeKeyLabel,
-				getPreferenceStore().getString(CLAUDE_KEY));
+		this.claudeKeyText = createText(llmSettingGroup, claudeKeyLabel, getPreferenceStore().getString(CLAUDE_KEY));
 
 		String geminiKeyLabel = "Gemini Key";
-		this.geminiKeyText = createText(experimentSettingGroup, geminiKeyLabel,
-				getPreferenceStore().getString(GEMINI_KEY));
+		this.geminiKeyText = createText(llmSettingGroup, geminiKeyLabel, getPreferenceStore().getString(GEMINI_KEY));
+	}
+
+	private void createExperimentGroup(final Composite parent) {
+		String title = "Experiment Setting";
+		Group experimentSettingGroup = initGroup(parent, title);
+
+		String datasetLocationLabel = "Dataset Location";
+		this.datasetLocationText = createText(experimentSettingGroup, datasetLocationLabel,
+				getPreferenceStore().getString(DATASET_LOCATION));
+
+		String enableRefinementLabel = "Enable Refinement";
+		this.enableRefinementButton = createButton(experimentSettingGroup, enableRefinementLabel,
+				getPreferenceStore().getBoolean(ENABLE_REFINEMENT));
+
+		String enableProofFixingLabel = "Enable Proof Fixing";
+		this.enableFixStrategyButton = createButton(experimentSettingGroup, enableProofFixingLabel,
+				getPreferenceStore().getBoolean(ENABLE_FIX_STRATEGY));
 	}
 
 	private Group initGroup(final Composite parent, String title) {
@@ -144,12 +174,25 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		return contentCombo;
 	}
 
+	private Button createButton(Group settingGroup, String textLabel, boolean defaultSelection) {
+		Button newButton = new Button(settingGroup, SWT.CHECK);
+		newButton.setText(textLabel);
+		newButton.setSelection(defaultSelection);
+		GridData gd = new GridData(SWT.BEGINNING, SWT.CENTER, false, false, 2, 1);
+		newButton.setLayoutData(gd);
+
+		return newButton;
+	}
+
 	@Override
 	public boolean performOk() {
 		getPreferenceStore().setValue(LLM_MODEL, llmModelCombo.getText());
 		getPreferenceStore().setValue(GPT_KEY, gptKeyText.getText());
 		getPreferenceStore().setValue(CLAUDE_KEY, claudeKeyText.getText());
 		getPreferenceStore().setValue(GEMINI_KEY, geminiKeyText.getText());
+		getPreferenceStore().setValue(DATASET_LOCATION, datasetLocationText.getText());
+		getPreferenceStore().setValue(ENABLE_REFINEMENT, enableRefinementButton.getSelection());
+		getPreferenceStore().setValue(ENABLE_FIX_STRATEGY, enableFixStrategyButton.getSelection());
 
 		try {
 			((ScopedPreferenceStore) getPreferenceStore()).save();
@@ -173,6 +216,15 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 
 		getPreferenceStore().setToDefault(GEMINI_KEY);
 		geminiKeyText.setText(getPreferenceStore().getString(GEMINI_KEY));
+
+		getPreferenceStore().setToDefault(DATASET_LOCATION);
+		datasetLocationText.setText(getPreferenceStore().getString(DATASET_LOCATION));
+
+		getPreferenceStore().setToDefault(ENABLE_REFINEMENT);
+		enableRefinementButton.setSelection(getPreferenceStore().getBoolean(ENABLE_REFINEMENT));
+
+		getPreferenceStore().setToDefault(ENABLE_FIX_STRATEGY);
+		enableFixStrategyButton.setSelection(getPreferenceStore().getBoolean(ENABLE_FIX_STRATEGY));
 
 		super.performDefaults();
 	}

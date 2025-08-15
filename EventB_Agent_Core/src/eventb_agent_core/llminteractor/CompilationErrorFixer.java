@@ -40,15 +40,34 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 
 		JSONObject newModel = null;
 
-		final IRodinFile rodinFile = rodinProject.getRodinFile(machineFileName);
-		final IInternalElement rodinRoot = rodinFile.getRoot();
-		((IConfigurationElement) rodinRoot).setConfiguration(DEFAULT_CONFIGURATION, null);
+		final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+		final IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
+		IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
+		IContextRoot contextRoot = (IContextRoot) contextFile.getRoot();
 
-		IMachineRoot machineRoot = (IMachineRoot) rodinFile.getRoot();
-		IContextRoot contextRoot = (IContextRoot) rodinProject.getRodinFile(contextFileName).getRoot();
+		((IConfigurationElement) machineRoot).setConfiguration(DEFAULT_CONFIGURATION, null);
+		((IConfigurationElement) contextRoot).setConfiguration(DEFAULT_CONFIGURATION, null);
 
-		IResource resource = rodinRoot.getResource();
-		IMarker[] markers = resource.findMarkers("org.rodinp.core.problem", true, IResource.DEPTH_INFINITE); // org.rodinp.core.problem
+		IResource machineResource = machineRoot.getResource();
+		IResource contextResource = contextRoot.getResource();
+		IMarker[] machineMarkers = machineResource.findMarkers("org.rodinp.core.problem", true,
+				IResource.DEPTH_INFINITE);
+		IMarker[] contextMarkers = contextResource.findMarkers("org.rodinp.core.problem", true,
+				IResource.DEPTH_INFINITE);
+
+		List<String> messages = new ArrayList<>();
+		messages.addAll(getCompilationErrors(contextRoot, contextMarkers, true));
+		messages.addAll(getCompilationErrors(machineRoot, machineMarkers, false));
+
+		if (!messages.isEmpty()) {
+			newModel = fixCompilationError(machineRoot, contextRoot, messages, machineResource);
+		}
+
+		return newModel;
+	}
+
+	private List<String> getCompilationErrors(IInternalElement componentRoot, IMarker[] markers, boolean isContext)
+			throws CoreException {
 		List<String> messages = new ArrayList<>();
 		for (int i = 0; i < markers.length; i++) {
 			IMarker marker = markers[i];
@@ -68,8 +87,13 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 				System.out.println(handle);
 				if (handle != null) {
 					CompilationErrorInfoExtractor infoExtractor = new CompilationErrorInfoExtractor(handle);
-					List<IInternalElement> erroneousElements = infoExtractor
-							.getErroneousElementsFromMachine(machineRoot);
+					List<IInternalElement> erroneousElements = new ArrayList<>();
+					if (isContext) {
+						erroneousElements = infoExtractor.getErroneousElementsFromContext((IContextRoot) componentRoot);
+					} else {
+						erroneousElements = infoExtractor.getErroneousElementsFromMachine((IMachineRoot) componentRoot);
+					}
+
 					if (erroneousElements == null) {
 						messages.add(message);
 						continue;
@@ -77,7 +101,6 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 						// one element with error
 						IInternalElement element = erroneousElements.get(0);
 						String type = element.getElementType().getName();
-//						IRodinElement element = RodinCore.valueOf(handle);
 
 						String jsonStr = RetrieveModelUtils.getComponentJSON(element);
 
@@ -111,11 +134,7 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 				}
 			}
 		}
-		if (!messages.isEmpty()) {
-			newModel = fixCompilationError(machineRoot, contextRoot, messages, resource);
-		}
-
-		return newModel;
+		return messages;
 	}
 
 	private JSONObject fixCompilationError(IMachineRoot machineRoot, IContextRoot contextRoot,

@@ -1,4 +1,4 @@
-Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Complete the proof by calling a function. In this case, add an hypothesis (i.e. an axiom in the context). If the added hypothesis is a universal predicate or an existential predicate, you must specify the instantiations.
+Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Complete the proof by calling a function.
 \n
 Model:\n
 {{model}}
