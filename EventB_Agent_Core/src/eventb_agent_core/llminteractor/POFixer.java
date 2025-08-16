@@ -66,19 +66,13 @@ public class POFixer extends AbstractLLMInteractor {
 		}
 
 		if (tree != null) {
-			return getFixedModel(modelJSON, tree);
+			String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), tree.toString() };
+			return getLLMResponse(placeHolderContents, LLMRequestTypes.FIX_PROOF_NO_STRATEGY);
 		} else {
 			System.out.println("Proof tree is null.");
 			return null;
 		}
 
-	}
-
-	private JSONObject getFixedModel(String modelJSON, IProofTree tree) throws IOException {
-		String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), tree.toString() };
-
-		String response = llmRequestSender.sendRequest(placeHolderContents, LLMRequestTypes.FIX_PROOF_NO_STRATEGY);
-		return llmResponseParser.getResponseContent(response);
 	}
 
 	/**
@@ -114,26 +108,16 @@ public class POFixer extends AbstractLLMInteractor {
 
 		if (tree != null) {
 			try {
-				JSONObject answer = selectFixStrategy(modelJSON, tree);
+				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), tree.toString() };
+				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF);
 				modifyModel(answer, machineRoot, contextRoot, proofAttempt, node, poName);
-			} catch (IOException e) {
-				e.printStackTrace();
 			} catch (CoreException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} else {
 			System.out.println("Proof tree is null.");
 		}
 
-	}
-
-	private JSONObject selectFixStrategy(String modelJSON, IProofTree tree) throws IOException {
-		String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), tree.toString() };
-
-		// TODO: get LLMRequestType from fix strategy
-		String response = llmRequestSender.sendRequest(placeHolderContents, LLMRequestTypes.FIX_PROOF);
-		return llmResponseParser.getResponseWithTools(response);
 	}
 
 	private void modifyModel(JSONObject answer, IMachineRoot machineRoot, IContextRoot contextRoot,

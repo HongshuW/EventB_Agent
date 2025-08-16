@@ -3,9 +3,10 @@ package eventb_agent_ui.workspaceinteractor;
 import static org.eventb.core.IConfigurationElement.DEFAULT_CONFIGURATION;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -34,6 +35,8 @@ import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
 import org.rodinp.core.RodinCore;
 
+import eventb_agent_core.evaluation.ComponentType;
+import eventb_agent_core.evaluation.EvaluationManager;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.llminteractor.CompilationErrorFixer;
@@ -60,7 +63,7 @@ public class ModelWorkspaceInteractor {
 	private boolean enableFixStrategy;
 	private int maxAttempts;
 
-	private Map<String, Integer> visitedPOs;
+	private Set<String> visitedPOs;
 
 	public ModelWorkspaceInteractor(LLMRequestSender llmRequestSender, LLMResponseParser llmResponseParser,
 			boolean enableFixStrategy, int maxAttempts, IRunnableContext runnableContext) {
@@ -80,7 +83,7 @@ public class ModelWorkspaceInteractor {
 		this.enableFixStrategy = enableFixStrategy;
 		this.maxAttempts = maxAttempts;
 
-		this.visitedPOs = new HashMap<>();
+		this.visitedPOs = new HashSet<>();
 	}
 
 	/**
@@ -97,6 +100,8 @@ public class ModelWorkspaceInteractor {
 	 */
 	public ModelInfo createModel(String projectName, RefinementStep refinementStep, ModelInfo previousModel)
 			throws InvocationTargetException, InterruptedException, CoreException, ReachMaxAttemptException {
+		EvaluationManager.addAndStartNewAction(ComponentType.SYNTHESIS, 0);
+
 		String[] fileNames = new String[2];
 		String sysDesc = previousModel == null ? "" : previousModel.getSystemDescription();
 		String newSysDesc = refinementStep.getModelDesc();
@@ -105,15 +110,19 @@ public class ModelWorkspaceInteractor {
 			// synthesize abstract model
 			JSONObject response = modelCreator.synthesizeModel(refinementStep);
 			fileNames = saveModel(projectName, response);
-			fixCompilationErrors(projectName, fileNames, 0);
-			fixPOs(projectName, fileNames);
+			EvaluationManager.endLatestAction();
+
+			fixCompilationErrors(projectName, fileNames);
+			fixPOs(projectName, fileNames, null);
 			sysDesc = newSysDesc;
 		} else {
 			// refine the previous model
 			JSONObject response = modelCreator.refineModel(projectName, fileNames, sysDesc, refinementStep);
 			fileNames = saveModel(projectName, response);
-			fixCompilationErrors(projectName, fileNames, 0);
-			fixPOs(projectName, fileNames);
+			EvaluationManager.endLatestAction();
+
+			fixCompilationErrors(projectName, fileNames);
+			fixPOs(projectName, fileNames, null);
 			sysDesc += "\n" + newSysDesc;
 		}
 
@@ -164,11 +173,45 @@ public class ModelWorkspaceInteractor {
 		return new String[] { contextFileName, machineFileName };
 	}
 
-	private String[] fixCompilationErrors(String projectName, String[] fileNames, int attempt)
-			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
-		if (attempt == maxAttempts) {
+	private int getNextAttemptIDForFixCompilation() throws ReachMaxAttemptException {
+		if (EvaluationManager.getComponentTypeFromLatestAction() != ComponentType.FIX_COMPILATION) {
+			// if last action has different type, this is the first attempt => no error
+			return 0;
+		}
+		int attempt = EvaluationManager.getAttemptsFromLatestAction();
+		if (attempt >= maxAttempts - 1) {
 			throw new ReachMaxAttemptException("Fix Compilation Error");
 		}
+
+		return attempt + 1;
+	}
+
+	private int getNextAttemptIDForFixProof(String poName) throws ReachMaxAttemptException {
+		if (EvaluationManager.getLastPOActionIndex() == -1) {
+			// no proof action before
+			return 0;
+		} else {
+			String previousPOName = EvaluationManager.getPONameFromLatestProofAction();
+			if (poName == null || (!poName.equals(previousPOName) && poName != previousPOName)) {
+				// different PO
+				return 0;
+			}
+
+			int attempt = EvaluationManager.getAttemptsFromLatestProofAction();
+			if (attempt >= maxAttempts - 1) {
+				visitedPOs.add(poName);
+				throw new ReachMaxAttemptException("Fix Proof");
+			}
+
+			return attempt + 1;
+		}
+	}
+
+	private String[] fixCompilationErrors(String projectName, String[] fileNames)
+			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
+		// throw exception and stop if exceeds limit
+		int newAttemptID = getNextAttemptIDForFixCompilation();
+		EvaluationManager.addAndStartNewAction(ComponentType.FIX_COMPILATION, newAttemptID);
 
 		final String contextFileName = fileNames[0];
 		final String machineFileName = fileNames[1];
@@ -182,20 +225,26 @@ public class ModelWorkspaceInteractor {
 							llmResponseParser);
 					JSONObject newModel = compilationErrorFixer.solveCompilationErrors(projectName, machineFileName,
 							contextFileName, monitor);
+					EvaluationManager.endLatestAction();
+
 					if (newModel != null) {
 						String[] newFileNames = saveModel(projectName, newModel);
-						fixCompilationErrors(projectName, newFileNames, attempt + 1);
-					} else {
-						// save file without modification
-						IRodinProject rodinProject = getRodinProject(projectName);
-						final IRodinFile rodinFile = rodinProject.getRodinFile(machineFileName);
-						rodinFile.save(null, true);
+						fixCompilationErrors(projectName, newFileNames);
 					}
 				} catch (CoreException e) {
 					throw new InvocationTargetException(e);
 				} catch (ReachMaxAttemptException e) {
 					System.out.println(e.getMessage());
+					EvaluationManager.setErrorToLatestAction(e.getMessage());
 				} finally {
+					// save file without modification
+					try {
+						IRodinProject rodinProject = getRodinProject(projectName);
+						final IRodinFile rodinFile = rodinProject.getRodinFile(machineFileName);
+						rodinFile.save(null, true);
+					} catch (CoreException e) {
+						throw new InvocationTargetException(e);
+					}
 					monitor.done();
 				}
 			}
@@ -205,8 +254,27 @@ public class ModelWorkspaceInteractor {
 		return new String[] { contextFileName, machineFileName };
 	}
 
-	private String[] fixPOs(String projectName, String[] fileNames)
+	private IPOSequent getPO(List<IPOSequent> pos, String poName) {
+		for (IPOSequent po : pos) {
+			if (visitedPOs.contains(po.getElementName())) {
+				continue;
+			}
+			if (poName == null) {
+				return po;
+			}
+			String otherPOName = po.getElementName();
+			if (otherPOName.equals(poName) || otherPOName == poName) {
+				return po;
+			}
+		}
+		return null;
+	}
+
+	private String[] fixPOs(String projectName, String[] fileNames, String poName)
 			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
+
+		// throw exception and stop if exceeds limit
+		int newAttemptID = getNextAttemptIDForFixProof(poName);
 
 		final String contextFileName = fileNames[0];
 		final String machineFileName = fileNames[1];
@@ -223,31 +291,40 @@ public class ModelWorkspaceInteractor {
 					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
 					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
 					List<IPOSequent> pos = poManager.getOpenPOs(machineRoot);
-					int i = 0;
-					while (i < pos.size()) {
-						IPOSequent undischargedPO = pos.get(i);
+
+					IPOSequent undischargedPO = getPO(pos, poName);
+					if (undischargedPO != null) {
 						String undischargedPOName = undischargedPO.getElementName();
 
-						if (!visitedPOs.containsKey(undischargedPOName)) {
-							visitedPOs.put(undischargedPOName, 0);
-						}
-						int attempts = visitedPOs.get(undischargedPOName);
-						if (attempts >= maxAttempts) {
-							i++;
-							continue;
-						} else {
-							visitedPOs.put(undischargedPOName, attempts + 1);
-						}
+						EvaluationManager.addAndStartNewAction(ComponentType.FIX_PROOF, newAttemptID);
+						EvaluationManager.setPONameToLatestAction(undischargedPOName);
 
 						if (enableFixStrategy) {
 							poFixer.autoFixPO(machineRoot, undischargedPO);
 						} else {
 							JSONObject newModel = poFixer.autoFixPOWithoutStrategy(machineRoot, undischargedPO);
 							saveModel(projectName, newModel);
-							fixCompilationErrors(projectName, fileNames, 0);
-							fixPOs(projectName, fileNames);
+							EvaluationManager.setLastPOActionIndex();
+							EvaluationManager.endLatestAction();
+
+							fixCompilationErrors(projectName, fileNames);
+							if (poManager.isDischarged(machineRoot, undischargedPOName)) {
+								visitedPOs.add(undischargedPOName);
+								fixPOs(projectName, fileNames, null);
+							} else {
+								fixPOs(projectName, fileNames, undischargedPOName);
+							}
 						}
-						break;
+					}
+
+				} catch (ReachMaxAttemptException e) {
+					System.out.println(e.getMessage());
+					EvaluationManager.setErrorToLatestAction(e.getMessage());
+					try {
+						fixPOs(projectName, fileNames, null);
+					} catch (InvocationTargetException | InterruptedException | ReachMaxAttemptException e1) {
+						e1.printStackTrace();
+						throw new InvocationTargetException(e);
 					}
 				} catch (Exception e) {
 					throw new InvocationTargetException(e);
@@ -259,6 +336,7 @@ public class ModelWorkspaceInteractor {
 		runnableContext.run(false, false, fixPOsOperation);
 
 		return new String[] { contextFileName, machineFileName };
+
 	}
 
 	/**

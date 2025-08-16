@@ -89,7 +89,7 @@
             commandId="EventB_Agent_UI.newModelCommand">
       </handler>
       <handler
-            class="eventb_agent_ui.evaluation.EvaluationHandler"
+            class="eventb_agent_ui.handlers.EvaluationHandler"
             commandId="EventB_Agent_UI.evaluate">
       </handler>
    </extension>

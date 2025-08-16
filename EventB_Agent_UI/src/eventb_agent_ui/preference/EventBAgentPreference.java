@@ -33,6 +33,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 	public static final String CLAUDE_KEY = AgentPreferenceInitializer.PREF_CLAUDE_KEY;
 	public static final String GEMINI_KEY = AgentPreferenceInitializer.PREF_GEMINI_KEY;
 	public static final String DATASET_LOCATION = AgentPreferenceInitializer.PREF_DATASET_LOC;
+	public static final String RESULTS_LOCATION = AgentPreferenceInitializer.PREF_RESULTS_LOC;
 	public static final String ENABLE_REFINEMENT = AgentPreferenceInitializer.PREF_ENABLE_REF;
 	public static final String ENABLE_FIX_STRATEGY = AgentPreferenceInitializer.PREF_ENABLE_FIX;
 	public static final String MAX_ATTEMPTS = AgentPreferenceInitializer.PREF_MAX_ATTEMPTS;
@@ -45,6 +46,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 
 	/* experiment config */
 	private Text datasetLocationText;
+	private Text resultsLocationText;
 	private Button enableRefinementButton;
 	private Button enableFixStrategyButton;
 	private Text maxAttemptsText;
@@ -73,6 +75,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		this.geminiKeyText = null;
 
 		this.datasetLocationText = null;
+		this.resultsLocationText = null;
 		this.enableRefinementButton = null;
 		this.enableFixStrategyButton = null;
 		this.maxAttemptsText = null;
@@ -124,6 +127,10 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		String datasetLocationLabel = "Dataset Location";
 		this.datasetLocationText = createText(experimentSettingGroup, datasetLocationLabel,
 				getPreferenceStore().getString(DATASET_LOCATION));
+
+		String resultsLocationLabel = "Log Location";
+		this.resultsLocationText = createText(experimentSettingGroup, resultsLocationLabel,
+				getPreferenceStore().getString(RESULTS_LOCATION));
 
 		String enableRefinementLabel = "Enable Refinement";
 		this.enableRefinementButton = createButton(experimentSettingGroup, enableRefinementLabel,
@@ -198,6 +205,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		getPreferenceStore().setValue(CLAUDE_KEY, claudeKeyText.getText());
 		getPreferenceStore().setValue(GEMINI_KEY, geminiKeyText.getText());
 		getPreferenceStore().setValue(DATASET_LOCATION, datasetLocationText.getText());
+		getPreferenceStore().setValue(RESULTS_LOCATION, resultsLocationText.getText());
 		getPreferenceStore().setValue(ENABLE_REFINEMENT, enableRefinementButton.getSelection());
 		getPreferenceStore().setValue(ENABLE_FIX_STRATEGY, enableFixStrategyButton.getSelection());
 		getPreferenceStore().setValue(MAX_ATTEMPTS, maxAttemptsText.getText());
@@ -227,6 +235,9 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 
 		getPreferenceStore().setToDefault(DATASET_LOCATION);
 		datasetLocationText.setText(getPreferenceStore().getString(DATASET_LOCATION));
+
+		getPreferenceStore().setToDefault(RESULTS_LOCATION);
+		resultsLocationText.setText(getPreferenceStore().getString(RESULTS_LOCATION));
 
 		getPreferenceStore().setToDefault(ENABLE_REFINEMENT);
 		enableRefinementButton.setSelection(getPreferenceStore().getBoolean(ENABLE_REFINEMENT));

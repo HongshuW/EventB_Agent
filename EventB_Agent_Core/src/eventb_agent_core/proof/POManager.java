@@ -13,6 +13,7 @@ import org.eventb.core.IPSRoot;
 import org.eventb.core.IPSStatus;
 import org.eventb.core.pm.IProofComponent;
 import org.eventb.internal.core.pm.ProofManager;
+import org.rodinp.core.RodinDBException;
 
 public class POManager {
 
@@ -38,6 +39,22 @@ public class POManager {
 		}
 
 		return open;
+	}
+
+	public boolean isDischarged(IMachineRoot machineRoot, String poName) throws RodinDBException, CoreException {
+		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
+		IPSRoot psRoot = pc.getPSRoot();
+
+		for (IPSStatus st : psRoot.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
+			String stPOName = st.getPOSequent().getElementName();
+			if (stPOName.equals(poName) || stPOName == poName) {
+				if (!isDischarged(st)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	private boolean isDischarged(IPSStatus poStatus) throws CoreException {
