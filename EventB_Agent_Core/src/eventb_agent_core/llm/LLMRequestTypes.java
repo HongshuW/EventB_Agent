@@ -54,7 +54,8 @@ public enum LLMRequestTypes {
 					Constants.SYS_DESC_PLACE_HOLDER };
 		case FIX_PROOF:
 		case FIX_PROOF_NO_STRATEGY:
-			return new String[] { Constants.MODEL_PLACE_HOLDER, Constants.PROOF_TREE_PLACE_HOLDER };
+			return new String[] { Constants.MODEL_PLACE_HOLDER, Constants.PO_NAME_PLACE_HOLDER,
+					Constants.PROOF_TREE_PLACE_HOLDER };
 		default:
 			return new String[] { Constants.DEFAULT_PLACE_HOLDER };
 		}

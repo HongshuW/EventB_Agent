@@ -148,7 +148,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 				getPreferenceStore().getString(MAX_ATTEMPTS_SYNTH));
 
 		String maxAttemptsProofLabel = "Max Number of Attempts for Proof Fixing";
-		this.maxAttemptsSynthText = createText(experimentSettingGroup, maxAttemptsProofLabel,
+		this.maxAttemptsProofText = createText(experimentSettingGroup, maxAttemptsProofLabel,
 				getPreferenceStore().getString(MAX_ATTEMPTS_PROOF));
 	}
 

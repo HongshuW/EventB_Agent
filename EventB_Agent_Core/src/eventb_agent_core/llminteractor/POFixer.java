@@ -44,10 +44,11 @@ public class POFixer extends AbstractLLMInteractor {
 	 */
 	public JSONObject autoFixPOWithoutStrategy(IMachineRoot machineRoot, IPOSequent poSequent)
 			throws RodinDBException, IOException, ReachMaxAttemptException {
+		String poName = poSequent.getElementName();
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
-		IProofAttempt proofAttempt = pc.getProofAttempt(poSequent.getElementName(), "POFixer");
+		IProofAttempt proofAttempt = pc.getProofAttempt(poName, "POFixer");
 		if (proofAttempt == null) {
-			proofAttempt = pc.createProofAttempt(poSequent.getElementName(), "POFixer", null);
+			proofAttempt = pc.createProofAttempt(poName, "POFixer", null);
 		}
 
 		// retrieve information from workspace
@@ -68,7 +69,7 @@ public class POFixer extends AbstractLLMInteractor {
 		}
 
 		if (tree != null) {
-			String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), tree.toString() };
+			String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName, tree.toString() };
 			return getLLMResponse(placeHolderContents, LLMRequestTypes.FIX_PROOF_NO_STRATEGY);
 		} else {
 			System.out.println("Proof tree is null.");
@@ -86,8 +87,9 @@ public class POFixer extends AbstractLLMInteractor {
 	 */
 	public void autoFixPO(IMachineRoot machineRoot, IPOSequent poSequent) throws RodinDBException {
 
+		String poName = poSequent.getElementName();
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
-		IProofAttempt proofAttempt = pc.createProofAttempt(poSequent.getElementName(), "POFixer", null);
+		IProofAttempt proofAttempt = pc.createProofAttempt(poName, "POFixer", null);
 
 		// retrieve information from workspace
 		IProofTree tree = proofAttempt.getProofTree();
@@ -99,8 +101,6 @@ public class POFixer extends AbstractLLMInteractor {
 			e.printStackTrace();
 		}
 
-		String poName = proofAttempt.getName();
-
 		String modelJSON = null;
 		try {
 			modelJSON = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
@@ -110,7 +110,8 @@ public class POFixer extends AbstractLLMInteractor {
 
 		if (tree != null) {
 			try {
-				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), tree.toString() };
+				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName,
+						tree.toString() };
 				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF);
 				modifyModel(answer, machineRoot, contextRoot, proofAttempt, node, poName);
 			} catch (CoreException e) {

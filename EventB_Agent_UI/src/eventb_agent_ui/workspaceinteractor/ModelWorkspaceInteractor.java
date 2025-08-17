@@ -132,8 +132,8 @@ public class ModelWorkspaceInteractor {
 			EvaluationManager.endLatestAction();
 
 			fixCompilationErrors(projectName, fileNames);
-//			fixPOs(projectName, fileNames, null);
-//			sysDesc = newSysDesc;
+			fixPOs(projectName, fileNames, null);
+			sysDesc = newSysDesc;
 		} else {
 			// refine the previous model
 			JSONObject response = modelCreator.refineModel(projectName, fileNames, sysDesc, refinementStep);
@@ -367,7 +367,7 @@ public class ModelWorkspaceInteractor {
 					EvaluationManager.endLatestAction();
 
 					if (newModel != null) {
-						System.out.println(newModel.toString(2));
+//						System.out.println(newModel.toString(2));
 						String[] newFileNames = saveModel(projectName, newModel);
 						fixCompilationErrors(projectName, newFileNames);
 					}
@@ -453,7 +453,7 @@ public class ModelWorkspaceInteractor {
 						} else {
 							JSONObject newModel = poFixer.autoFixPOWithoutStrategy(machineRoot, undischargedPO);
 							if (newModel != null) {
-								System.out.println(newModel.toString(2));
+//								System.out.println(newModel.toString(2));
 								saveModel(projectName, newModel);
 								EvaluationManager.setLastPOActionIndex();
 								EvaluationManager.endLatestAction();

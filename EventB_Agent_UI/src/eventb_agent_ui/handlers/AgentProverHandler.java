@@ -110,7 +110,7 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 				if (tree != null) {
 					String response;
 					try {
-						String[] placeHolderContents = new String[] { modelJSON, tree.toString() };
+						String[] placeHolderContents = new String[] { modelJSON, poName, tree.toString() };
 
 						// TODO: get LLMRequestType from fix strategy
 						response = llmRequestSender.sendRequest(placeHolderContents, LLMRequestTypes.FIX_PROOF);
