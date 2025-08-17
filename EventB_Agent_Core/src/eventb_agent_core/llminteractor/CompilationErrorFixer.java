@@ -20,6 +20,7 @@ import org.rodinp.core.IRodinProject;
 import org.rodinp.core.RodinDBException;
 
 import eventb_agent_core.errorinfo.CompilationErrorInfoExtractor;
+import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
@@ -34,7 +35,7 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 	}
 
 	public JSONObject solveCompilationErrors(String projectName, final String machineFileName,
-			final String contextFileName, IProgressMonitor monitor) throws CoreException {
+			final String contextFileName, IProgressMonitor monitor) throws CoreException, ReachMaxAttemptException {
 
 		monitor.beginTask("Fixing compilation errors in " + machineFileName, 2);
 		IRodinProject rodinProject = RodinUtils.getRodinProject(projectName);
@@ -136,7 +137,7 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 	}
 
 	private JSONObject fixCompilationError(IMachineRoot machineRoot, IContextRoot contextRoot,
-			List<String> errorMessages, IResource resource) throws CoreException {
+			List<String> errorMessages, IResource resource) throws CoreException, ReachMaxAttemptException {
 
 		String modelJSON = null;
 		try {

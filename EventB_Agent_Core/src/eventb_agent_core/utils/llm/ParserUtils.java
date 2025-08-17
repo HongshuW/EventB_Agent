@@ -83,6 +83,7 @@ public class ParserUtils {
 	}
 
 	public static void main(String[] args) {
+		System.out.println(lex("\\le "));
 	}
 
 	private static void initMap() {
@@ -134,7 +135,7 @@ public class ParserUtils {
 		reverseLexMap.put(FOR_ALL, "\\forall");
 		reverseLexMap.put(EQUIVALENCE, "<=>");
 		reverseLexMap.put(EXISTS, "\\exists");
-		reverseLexMap.put(LAMBDA, "%");
+		reverseLexMap.put(LAMBDA, "\\lambda");
 		reverseLexMap.put(IMPLIES, "=>");
 		reverseLexMap.put(TOTAL_SURJECTIVE_RELATION, "<<->>");
 		reverseLexMap.put(TOTAL_RELATION, "<<->");
@@ -153,7 +154,7 @@ public class ParserUtils {
 
 	public static String lex(String originalString) {
 
-		System.out.println("Before processing: " + originalString);
+//		System.out.println("Before processing: " + originalString);
 
 		Map<String, String> prioritizedMap = new HashMap<>();
 		prioritizedMap.put("||", String.valueOf(PARALLEL_PRODUCT));
@@ -178,12 +179,14 @@ public class ParserUtils {
 
 		Map<String, String> specialCharsMap = new HashMap<>();
 		specialCharsMap.put("\subseteq", String.valueOf(SUBSET));
+		specialCharsMap.put("\subset ", String.valueOf(SUBSET) + " ");
 		specialCharsMap.put("\notin", String.valueOf(NOT_ELEMENT_OF));
 		specialCharsMap.put("\rightarrow", String.valueOf(TOTAL_FUNCTION));
 		specialCharsMap.put("\\/", String.valueOf(UNION));
 		specialCharsMap.put("/\\", String.valueOf(INTER));
 		specialCharsMap.put("\forall", String.valueOf(FOR_ALL));
 		specialCharsMap.put("\neq", String.valueOf(NOT_EQ));
+		specialCharsMap.put("\noteq", String.valueOf(NOT_EQ));
 		specialCharsMap.put("\times", String.valueOf(CARTESIAN_PRODUCT));
 		specialCharsMap.put("\bullet", String.valueOf(DOT));
 		specialCharsMap.put("\not=", String.valueOf(NOT_EQ));
@@ -194,6 +197,8 @@ public class ParserUtils {
 		specialCharsMap.put("\bunion", String.valueOf(UNION));
 		specialCharsMap.put("\rel", String.valueOf(RELATION));
 		specialCharsMap.put("\neg", String.valueOf(NOT));
+		specialCharsMap.put("\rightharpoonup", String.valueOf(PARTIAL_FUNCTION));
+		specialCharsMap.put("\binter", String.valueOf(INTER));
 		specialCharsMap.put("{}", String.valueOf(EMPTY_SET));
 		specialCharsMap.put("|", String.valueOf(SUCH_THAT));
 		specialCharsMap.put("!=", String.valueOf(NOT_EQ));
@@ -244,6 +249,7 @@ public class ParserUtils {
 		regexMap.put("\\|->(?![>])", String.valueOf(MAP_LET)); // replace "|->" with "↦"
 		regexMap.put("\\\\+pfun", String.valueOf(PARTIAL_FUNCTION));
 		regexMap.put("\\\\+subseteq", String.valueOf(SUBSET));
+		regexMap.put("\\\\+subset ", String.valueOf(SUBSET) + " ");
 		regexMap.put("\\\\+in", String.valueOf(ELEMENT_OF));
 		regexMap.put("\\\\+mapsto", String.valueOf(MAP_LET));
 		regexMap.put("\\\\+notin", String.valueOf(NOT_ELEMENT_OF));
@@ -251,6 +257,7 @@ public class ParserUtils {
 		regexMap.put("\\\\+Rightarrow", String.valueOf(TOTAL_FUNCTION));
 		regexMap.put("\\\\+forall", String.valueOf(FOR_ALL));
 		regexMap.put("\\\\+neq", String.valueOf(NOT_EQ));
+		regexMap.put("\\\\+noteq", String.valueOf(NOT_EQ));
 		regexMap.put("\\\\+times", String.valueOf(CARTESIAN_PRODUCT));
 		regexMap.put("\\\\+land", String.valueOf(AND));
 		regexMap.put("\\\\+bullet", String.valueOf(DOT));
@@ -260,9 +267,9 @@ public class ParserUtils {
 		regexMap.put("\\\\+emptyset", String.valueOf(EMPTY_SET));
 		regexMap.put("\\\\+setminus", String.valueOf(SET_MINUS));
 		regexMap.put("\\\\+leq", String.valueOf(LEQ));
-		regexMap.put("\\\\+le", String.valueOf(LEQ));
+		regexMap.put("\\\\+le ", String.valueOf(LEQ) + " ");
 		regexMap.put("\\\\+geq", String.valueOf(GEQ));
-		regexMap.put("\\\\+ge", String.valueOf(GEQ));
+		regexMap.put("\\\\+ge ", String.valueOf(GEQ) + " ");
 		regexMap.put("\\\\+triangleright", String.valueOf(RANGE_RESTRICTION));
 		regexMap.put("\\\\+mid", String.valueOf(SUCH_THAT));
 		regexMap.put("\\\\+wedge", String.valueOf(AND));
@@ -289,6 +296,9 @@ public class ParserUtils {
 		regexMap.put("\\\\+oftype", String.valueOf(OF_TYPE));
 		regexMap.put("\\\\+iff", String.valueOf(EQUIVALENCE));
 		regexMap.put("\\\\+lambda", String.valueOf(LAMBDA));
+		regexMap.put("\\\\+rightharpoonup", String.valueOf(PARTIAL_FUNCTION));
+		regexMap.put("\\\\+dom\\(", "dom(");
+		regexMap.put("\\\\+binter", String.valueOf(INTER));
 		regexMap.put("\\\\\\{", "{");
 		regexMap.put("\\\\\\}", "}");
 
@@ -313,7 +323,7 @@ public class ParserUtils {
 		originalString.replace("\\\\", String.valueOf(SET_MINUS));
 		originalString.replace("\\", String.valueOf(SET_MINUS));
 
-		System.out.println("After processing: " + originalString);
+//		System.out.println("After processing: " + originalString);
 
 		return originalString;
 	}

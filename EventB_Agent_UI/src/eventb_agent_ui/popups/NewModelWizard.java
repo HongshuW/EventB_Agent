@@ -13,6 +13,8 @@ import org.eventb.internal.ui.UIUtils;
 import org.eventb.internal.ui.utils.Messages;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMInstanceFactory;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMModels;
@@ -22,7 +24,6 @@ import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.utils.Constants;
 import eventb_agent_ui.EventBAgentUIPlugin;
-import eventb_agent_ui.exceptions.ReachMaxAttemptException;
 import eventb_agent_ui.workspaceinteractor.ModelInfo;
 import eventb_agent_ui.workspaceinteractor.ModelWorkspaceInteractor;
 
@@ -47,7 +48,8 @@ public class NewModelWizard extends Wizard implements INewWizard {
 	private ModelWorkspaceInteractor modelWorkspaceInteractor;
 
 	private boolean enableFixStrategy;
-	private int maxAttempts;
+	private int maxAttemptsSynth;
+	private int maxAttemptsProof;
 
 	/**
 	 * Constructor: This wizard needs a progress monitor.
@@ -60,14 +62,15 @@ public class NewModelWizard extends Wizard implements INewWizard {
 		LLMModels modelType = LLMModels
 				.getLLMModel(prefs.get(AgentPreferenceInitializer.PREF_LLM_MODEL, Constants.DEFAULT_MODEL));
 		enableFixStrategy = prefs.getBoolean(AgentPreferenceInitializer.PREF_ENABLE_FIX, false);
-		maxAttempts = Integer.valueOf(prefs.get(AgentPreferenceInitializer.PREF_MAX_ATTEMPTS, "5"));
+		maxAttemptsSynth = Integer.valueOf(prefs.get(AgentPreferenceInitializer.PREF_MAX_ATTEMPTS_SYNTH, "5"));
+		maxAttemptsProof = Integer.valueOf(prefs.get(AgentPreferenceInitializer.PREF_MAX_ATTEMPTS_PROOF, "1"));
 
 		llmRequestSender = LLMInstanceFactory.getRequestSender(modelType);
 		llmResponseParser = LLMInstanceFactory.getResponseParser(modelType);
 
 		refinementStrategyPlanner = new RefinementStrategyPlanner(llmRequestSender, llmResponseParser);
 		modelWorkspaceInteractor = new ModelWorkspaceInteractor(llmRequestSender, llmResponseParser, enableFixStrategy,
-				maxAttempts, getContainer(), getShell());
+				maxAttemptsSynth, maxAttemptsProof, getContainer(), getShell());
 	}
 
 	/*
@@ -93,7 +96,12 @@ public class NewModelWizard extends Wizard implements INewWizard {
 		final String sysDesc = page.getSystemDesc();
 
 		// refinement steps
-		JSONArray refinementSteps = refinementStrategyPlanner.getRefinementSteps(sysDesc);
+		JSONArray refinementSteps = new JSONArray();
+		try {
+			refinementSteps = refinementStrategyPlanner.getRefinementSteps(sysDesc);
+		} catch (ReachMaxAttemptException e) {
+			System.out.println(e.getMessage());
+		}
 
 		// create models
 		ModelInfo previousModel = null;

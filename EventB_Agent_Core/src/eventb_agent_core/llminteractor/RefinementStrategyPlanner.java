@@ -3,6 +3,7 @@ package eventb_agent_core.llminteractor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
@@ -16,12 +17,12 @@ public class RefinementStrategyPlanner extends AbstractLLMInteractor {
 		super(llmRequestSender, llmResponseParser);
 	}
 
-	public JSONArray getRefinementSteps(String sysDesc) {
+	public JSONArray getRefinementSteps(String sysDesc) throws ReachMaxAttemptException {
 		JSONObject response = getLLMResponse(new String[] { sysDesc }, LLMRequestTypes.REFINE_STRATEGY);
 		return llmResponseParser.getRefinementStepsJSONArray(response);
 	}
 	
-	public JSONArray getSingleRefinementStep(String sysDesc) {
+	public JSONArray getSingleRefinementStep(String sysDesc) throws ReachMaxAttemptException {
 		JSONObject response = getLLMResponse(new String[] { sysDesc + "\n\nReturn one refinement step with all the requirements." }, LLMRequestTypes.REFINE_STRATEGY);
 		return llmResponseParser.getRefinementStepsJSONArray(response);
 	}

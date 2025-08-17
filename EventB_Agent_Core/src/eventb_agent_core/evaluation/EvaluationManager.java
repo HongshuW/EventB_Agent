@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import eventb_agent_core.exception.ReachMaxAttemptException;
+
 /**
  * This class records the overall time taken and the executed actions during
  * experiment.
@@ -80,7 +82,7 @@ public class EvaluationManager {
 		}
 		return getLatestAction().getAttemptID();
 	}
-	
+
 	public static int getAttemptsFromLatestProofAction() {
 		if (getLatestProofAction() == null) {
 			return -1;
@@ -135,9 +137,24 @@ public class EvaluationManager {
 	/* actions */
 
 	public static void addAndStartNewAction(ComponentType type, int attempt) {
+		System.out.println(type.toString() + ": started");
 		ExecutedAction action = new ExecutedAction(type, attempt);
 		getActions().add(action);
 		action.start();
+	}
+
+	public static void repeatAndStartPrevoiusAction(int maxAttempt) throws ReachMaxAttemptException {
+		ExecutedAction prevAction = getLatestAction();
+		ComponentType type = prevAction.getType();
+		int attempt = prevAction.getAttemptID();
+		if (attempt + 1 < maxAttempt) {
+			addAndStartNewAction(type, attempt + 1);
+			String poName = getLatestAction().getPoName();
+			setPONameToLatestAction(poName);
+		} else {
+			throw new ReachMaxAttemptException(type.name());
+		}
+
 	}
 
 	public static void endLatestAction() {
@@ -145,6 +162,7 @@ public class EvaluationManager {
 			return;
 		}
 		getLatestAction().finish();
+		System.out.println(getLatestAction().getType().toString() + ": finished");
 	}
 
 	private static List<ExecutedAction> getActions() {

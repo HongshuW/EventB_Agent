@@ -17,6 +17,7 @@ import org.json.JSONObject;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.RodinDBException;
 
+import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
@@ -39,9 +40,10 @@ public class POFixer extends AbstractLLMInteractor {
 	 * @return
 	 * @throws RodinDBException
 	 * @throws IOException
+	 * @throws ReachMaxAttemptException
 	 */
 	public JSONObject autoFixPOWithoutStrategy(IMachineRoot machineRoot, IPOSequent poSequent)
-			throws RodinDBException, IOException {
+			throws RodinDBException, IOException, ReachMaxAttemptException {
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
 		IProofAttempt proofAttempt = pc.getProofAttempt(poSequent.getElementName(), "POFixer");
 		if (proofAttempt == null) {
@@ -113,6 +115,8 @@ public class POFixer extends AbstractLLMInteractor {
 				modifyModel(answer, machineRoot, contextRoot, proofAttempt, node, poName);
 			} catch (CoreException e) {
 				e.printStackTrace();
+			} catch (ReachMaxAttemptException e) {
+				System.out.println(e.getMessage());
 			}
 		} else {
 			System.out.println("Proof tree is null.");
