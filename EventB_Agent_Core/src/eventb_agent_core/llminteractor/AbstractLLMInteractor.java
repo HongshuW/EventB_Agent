@@ -48,10 +48,11 @@ public abstract class AbstractLLMInteractor {
 		String response;
 		try {
 			response = llmRequestSender.sendRequest(placeHolderContents, requestType);
-			if (response.matches(".*\\\\+u[0-9A-Fa-f]{4}.*") || response.matches(".*\\\\+&#[0-9A-Fa-f]{1};.*")) {
+			System.out.println(response);
+			if (response.matches(".*\\\\+u[0-9A-Fa-f]{4}.*") || containsInvalidXmlChar(response)) {
 				String message = "llm contains invalid characters, try again...";
 				System.out.println(message);
-				System.out.println(response);
+//				System.out.println(response);
 
 				EvaluationManager.setErrorToLatestAction(message);
 				updateTokenCount(response);
@@ -87,9 +88,11 @@ public abstract class AbstractLLMInteractor {
 	private void reattemptAction() throws ReachMaxAttemptException {
 		EvaluationManager.endLatestAction();
 		ComponentType type = EvaluationManager.getComponentTypeFromLatestAction();
+		String poName = null;
 
 		try {
 			if (type == ComponentType.FIX_PROOF) {
+				poName = EvaluationManager.getPONameFromLatestProofAction();
 				EvaluationManager.repeatAndStartPrevoiusAction(maxAttemptsProof);
 			} else {
 				EvaluationManager.repeatAndStartPrevoiusAction(maxAttemptsSynth);
@@ -97,8 +100,26 @@ public abstract class AbstractLLMInteractor {
 		} catch (ReachMaxAttemptException e) {
 			System.out.println(e.getMessage());
 			EvaluationManager.setErrorToLatestAction(e.getMessage());
-			throw new ReachMaxAttemptException(e.componentName);
+			throw new ReachMaxAttemptException(e.componentName, poName);
 		}
+	}
+
+	public boolean containsInvalidXmlChar(String input) {
+		for (int i = 0; i < input.length(); i++) {
+			int codePoint = input.codePointAt(i);
+			if (!isValidXmlChar(codePoint)) {
+				return true;
+			}
+			if (Character.isSupplementaryCodePoint(codePoint)) {
+				i++;
+			}
+		}
+		return false;
+	}
+
+	private boolean isValidXmlChar(int codePoint) {
+		return (codePoint == 0x9 || codePoint == 0xA || codePoint == 0xD || (codePoint >= 0x20 && codePoint <= 0xD7FF)
+				|| (codePoint >= 0xE000 && codePoint <= 0xFFFD) || (codePoint >= 0x10000 && codePoint <= 0x10FFFF));
 	}
 
 }

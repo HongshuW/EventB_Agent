@@ -127,7 +127,13 @@ public class ModelWorkspaceInteractor {
 
 		if (previousModel == null) {
 			// synthesize abstract model
-			JSONObject response = modelCreator.synthesizeModel(refinementStep);
+			JSONObject response = new JSONObject();
+			try {
+				response = modelCreator.synthesizeModel(refinementStep);
+			} catch (ReachMaxAttemptException e) {
+				System.out.println(e.getMessage());
+				EvaluationManager.setErrorToLatestAction(e.getMessage());
+			}
 			fileNames = saveModel(projectName, response);
 			EvaluationManager.endLatestAction();
 
@@ -136,7 +142,13 @@ public class ModelWorkspaceInteractor {
 			sysDesc = newSysDesc;
 		} else {
 			// refine the previous model
-			JSONObject response = modelCreator.refineModel(projectName, fileNames, sysDesc, refinementStep);
+			JSONObject response = new JSONObject();
+			try {
+				response = modelCreator.refineModel(projectName, fileNames, sysDesc, refinementStep);
+			} catch (ReachMaxAttemptException e) {
+				System.out.println(e.getMessage());
+				EvaluationManager.setErrorToLatestAction(e.getMessage());
+			}
 			fileNames = saveModel(projectName, response);
 			EvaluationManager.endLatestAction();
 
@@ -473,6 +485,7 @@ public class ModelWorkspaceInteractor {
 				} catch (ReachMaxAttemptException e) {
 					System.out.println(e.getMessage());
 					EvaluationManager.setErrorToLatestAction(e.getMessage());
+					visitedPOs.add(e.poName == null ? poName : e.poName);
 					try {
 						fixPOs(projectName, fileNames, null);
 					} catch (InvocationTargetException | InterruptedException | ReachMaxAttemptException e1) {

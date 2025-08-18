@@ -148,8 +148,8 @@ public class EvaluationManager {
 		ComponentType type = prevAction.getType();
 		int attempt = prevAction.getAttemptID();
 		if (attempt + 1 < maxAttempt) {
-			addAndStartNewAction(type, attempt + 1);
 			String poName = getLatestAction().getPoName();
+			addAndStartNewAction(type, attempt + 1);
 			setPONameToLatestAction(poName);
 		} else {
 			throw new ReachMaxAttemptException(type.name());
@@ -186,7 +186,11 @@ public class EvaluationManager {
 	 */
 	private static ExecutedAction getLatestProofAction() {
 		List<ExecutedAction> actions = getActions();
-		return actions.get(getLastPOActionIndex());
+		int index = getLastPOActionIndex();
+		if (index < 0) {
+			return null;
+		}
+		return actions.get(index);
 	}
 
 	/* write output */

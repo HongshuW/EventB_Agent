@@ -21,4 +21,10 @@ public class ClaudeResponseParser extends LLMResponseParser {
 		return null;
 	}
 
+	@Override
+	public long getTokens(String response) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }
