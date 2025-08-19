@@ -10,11 +10,14 @@ import org.json.JSONObject;
 import org.rodinp.core.RodinDBException;
 
 import de.prob.core.Animator;
+import de.prob.core.command.GetFullTraceCommand;
+import de.prob.core.command.GetFullTraceCommand.TraceResult;
 import de.prob.core.command.LoadEventBModelCommand;
 import de.prob.core.command.ModelCheckingCommand;
 import de.prob.core.command.ModelCheckingCommand.Result;
 import de.prob.core.command.ModelCheckingResult;
 import de.prob.exceptions.ProBException;
+import eventb_agent_core.evaluation.EvaluationManager;
 import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
@@ -33,35 +36,69 @@ public class ModelCheckingFixer extends AbstractLLMInteractor {
 			throws ReachMaxAttemptException {
 
 		String modelJSON = getModelString(contextRoot, machineRoot);
-		JSONArray modelCheckingParams = getModelCheckingParameters(modelJSON);
 
+		// get parameters for model checking
+		JSONArray modelCheckingParams = getModelCheckingParameters(modelJSON);
+		List<String> opts = new ArrayList<>();
+		StringBuilder setupConsts = new StringBuilder("setup_constants(");
+		for (int i = 0; i < modelCheckingParams.length(); i++) {
+			setupConsts.append(modelCheckingParams.getString(i));
+			if (i < modelCheckingParams.length() - 1) {
+				setupConsts.append(",");
+			}
+		}
+		setupConsts.append(")");
+		opts.add(setupConsts.toString());
+
+		StringBuilder resultString = new StringBuilder();
+
+		// load animator and model
 		Animator animator = Animator.getAnimator();
 		try {
 			LoadEventBModelCommand.load(animator, machineRoot);
-			List<String> opts = new ArrayList<>();
-			StringBuilder setupConsts = new StringBuilder("setup_constants(");
-			for (int i = 0; i < modelCheckingParams.length(); i++) {
-				setupConsts.append(modelCheckingParams.getString(i));
-				if (i < modelCheckingParams.length() - 1) {
-					setupConsts.append(",");
-				}
-			}
-			setupConsts.append(")");
-			opts.add(setupConsts.toString());
-			ModelCheckingResult<Result> modelCheckingResult = ModelCheckingCommand.modelcheck(animator, 10000, opts);
+		} catch (ProBException e) {
+			EvaluationManager.setErrorToLatestAction(e.getMessage());
+			resultString.append("\nError: ");
+			resultString.append(e.getMessage().replace("\n", "\\n"));
+			return fixBasedOnModelCheckingResults(modelJSON, resultString.toString());
+		}
+
+		ModelCheckingResult<Result> modelCheckingResult = null;
+		try {
+			modelCheckingResult = ModelCheckingCommand.modelcheck(animator, 10000, opts);
+		} catch (ProBException e) {
+			EvaluationManager.setErrorToLatestAction(e.getMessage());
+			resultString.append("\nError: ");
+			resultString.append(e.getMessage().replace("\n", "\\n"));
+			return fixBasedOnModelCheckingResults(modelJSON, resultString.toString());
+		}
+
+		if (modelCheckingResult != null) {
 			Result result = modelCheckingResult.getResult();
+			EvaluationManager.setErrorToLatestAction(result.name());
 			if (!result.equals(Result.ok) && !result.equals(Result.ok_not_all_nodes_considered)) {
-				StringBuilder resultString = new StringBuilder(result.name());
+				resultString.append(result.name());
 				resultString.append("\nWorked: ");
 				resultString.append(String.valueOf(modelCheckingResult.getWorked()));
 				resultString.append("\nNumber of states: ");
 				resultString.append(String.valueOf(modelCheckingResult.getNumStates()));
 				resultString.append("\nNumber of transitions: ");
 				resultString.append(String.valueOf(modelCheckingResult.getNumTransitions()));
+				TraceResult traceResult;
+				try {
+					traceResult = GetFullTraceCommand.getTrace(animator);
+					resultString.append("\nTrace: ");
+					List<String> operations = traceResult.getOperations();
+					for (String op : operations) {
+						resultString.append(op + ",");
+					}
+				} catch (ProBException e) {
+					EvaluationManager.setErrorToLatestAction(e.getMessage());
+					resultString.append("\nError: ");
+					resultString.append(e.getMessage().replace("\n", "\\n"));
+				}
 				return fixBasedOnModelCheckingResults(modelJSON, resultString.toString());
 			}
-		} catch (ProBException e) {
-			e.printStackTrace();
 		}
 		return null;
 	}

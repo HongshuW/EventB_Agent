@@ -157,6 +157,7 @@ public class ModelWorkspaceInteractor {
 			EvaluationManager.endLatestAction();
 
 			fixCompilationErrors(projectName, fileNames);
+			fixBasedOnModelCheckingResults(projectName, fileNames);
 			fixPOs(projectName, fileNames, null);
 			sysDesc += "\n" + newSysDesc;
 		}
@@ -438,11 +439,20 @@ public class ModelWorkspaceInteractor {
 					if (newModel != null) {
 //						System.out.println(newModel.toString(2));
 						String[] newFileNames = saveModel(projectName, newModel);
+						fixBasedOnModelCheckingResults(projectName, newFileNames);
 					}
 				} catch (CoreException | ReachMaxAttemptException e) {
 					System.out.println(e.getMessage());
 					EvaluationManager.setErrorToLatestAction(e.getMessage());
 				} finally {
+					// save file without modification
+					try {
+						IRodinProject rodinProject = getRodinProject(projectName);
+						final IRodinFile rodinFile = rodinProject.getRodinFile(machineFileName);
+						rodinFile.save(null, true);
+					} catch (CoreException e) {
+						throw new InvocationTargetException(e);
+					}
 					monitor.done();
 				}
 			}
@@ -503,6 +513,7 @@ public class ModelWorkspaceInteractor {
 
 						EvaluationManager.addAndStartNewAction(ComponentType.FIX_PROOF, newAttemptID);
 						EvaluationManager.setPONameToLatestAction(undischargedPOName);
+						EvaluationManager.setLastPOActionIndex();
 
 						if (enableFixStrategy) {
 							poFixer.autoFixPO(machineRoot, undischargedPO);
@@ -511,7 +522,6 @@ public class ModelWorkspaceInteractor {
 							if (newModel != null) {
 //								System.out.println(newModel.toString(2));
 								saveModel(projectName, newModel);
-								EvaluationManager.setLastPOActionIndex();
 								EvaluationManager.endLatestAction();
 
 //								fixCompilationErrors(projectName, fileNames);
