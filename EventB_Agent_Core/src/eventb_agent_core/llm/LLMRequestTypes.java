@@ -13,6 +13,9 @@ public enum LLMRequestTypes {
 	FIX_COMPILATION_ERRS, // Fix compilation errors in a model
 	REFINE_MODEL, // Given previous system description, previous model, and new system
 					// description, refine the model
+	MODEL_CHECKING_PARAMS, // Given a model, get the model checking parameters
+	FIX_MODEL_CHECKING, // Given model and model checking results, generate a new model to fix the
+						// problem
 	FIX_PROOF, // Retrieve proof tree to be used as part of the prompt
 	FIX_PROOF_NO_STRATEGY; // Retrieve proof tree to be used as part of the prompt
 
@@ -32,6 +35,10 @@ public enum LLMRequestTypes {
 			return "fix_compilation_errors.txt";
 		case REFINE_MODEL:
 			return "refine_model.txt";
+		case MODEL_CHECKING_PARAMS:
+			return "model_checking_parameters.txt";
+		case FIX_MODEL_CHECKING:
+			return "fix_model_checking.txt";
 		case FIX_PROOF:
 			return "fix_proof_with_strategy.txt";
 		case FIX_PROOF_NO_STRATEGY:
@@ -52,6 +59,10 @@ public enum LLMRequestTypes {
 		case REFINE_MODEL:
 			return new String[] { Constants.PREV_SYS_DESC_PLACE_HOLDER, Constants.MODEL_PLACE_HOLDER,
 					Constants.SYS_DESC_PLACE_HOLDER };
+		case MODEL_CHECKING_PARAMS:
+			return new String[] { Constants.MODEL_PLACE_HOLDER };
+		case FIX_MODEL_CHECKING:
+			return new String[] { Constants.MODEL_PLACE_HOLDER, Constants.MODEL_CHECK_RESULT_PLACE_HOLDER };
 		case FIX_PROOF:
 		case FIX_PROOF_NO_STRATEGY:
 			return new String[] { Constants.MODEL_PLACE_HOLDER, Constants.PO_NAME_PLACE_HOLDER,
@@ -71,6 +82,10 @@ public enum LLMRequestTypes {
 			return true;
 		case REFINE_MODEL:
 			return true;
+		case MODEL_CHECKING_PARAMS:
+			return false;
+		case FIX_MODEL_CHECKING:
+			return true;
 		case FIX_PROOF:
 			return false;
 		case FIX_PROOF_NO_STRATEGY:
@@ -89,6 +104,10 @@ public enum LLMRequestTypes {
 		case FIX_COMPILATION_ERRS:
 			return false;
 		case REFINE_MODEL:
+			return false;
+		case MODEL_CHECKING_PARAMS:
+			return true;
+		case FIX_MODEL_CHECKING:
 			return false;
 		case FIX_PROOF:
 			return true;

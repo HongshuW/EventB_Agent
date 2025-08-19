@@ -17,5 +17,5 @@ Generate a json with the same format as the model below.\n
 Model:\n
 {{model}}
 \n
-Errors:\n
+\nErrors:\n
 {{errors}}

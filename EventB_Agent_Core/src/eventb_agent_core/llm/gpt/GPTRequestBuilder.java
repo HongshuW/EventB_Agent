@@ -31,6 +31,8 @@ public class GPTRequestBuilder extends RequestBuilder {
 			return "gpt_eventb_schema.json";
 		case REFINE_MODEL:
 			return "gpt_eventb_schema.json";
+		case FIX_MODEL_CHECKING:
+			return "gpt_eventb_schema.json";
 		case FIX_PROOF_NO_STRATEGY:
 			return "gpt_eventb_schema.json";
 		default:
@@ -41,6 +43,8 @@ public class GPTRequestBuilder extends RequestBuilder {
 	@Override
 	protected String[] getFunctionFileNamesFromType(LLMRequestTypes requestType) {
 		switch (requestType) {
+		case MODEL_CHECKING_PARAMS:
+			return new String[] { "gpt_model_checking.json" };
 		case FIX_PROOF:
 			return new String[] { "gpt_ah.json", "gpt_ah_guard.json" };
 		default:

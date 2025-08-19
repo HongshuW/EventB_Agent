@@ -1,0 +1,23 @@
+{
+	"type": "function",
+	"name": "model_checking",
+	"description": "Call ProB to check the model.",
+	"strict": true,
+	"parameters": {
+		"type": "object",
+		"properties": {
+			"parameters": {
+				"type": "array",
+				"description": "Array of parameters specific to the model.",
+				"items": {
+					"type": "string",
+					"pattern": "^.*=.*$"
+				}
+			}
+		},
+		"additionalProperties": false,
+		"required": [
+			"parameters"
+		]
+	}
+}

@@ -33,6 +33,7 @@ import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.Shell;
 import org.eventb.core.IConfigurationElement;
+import org.eventb.core.IContextRoot;
 import org.eventb.core.IEventBRoot;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPOSequent;
@@ -54,10 +55,12 @@ import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.llminteractor.CompilationErrorFixer;
+import eventb_agent_core.llminteractor.ModelCheckingFixer;
 import eventb_agent_core.llminteractor.ModelCreator;
 import eventb_agent_core.llminteractor.POFixer;
 import eventb_agent_core.proof.POManager;
 import eventb_agent_core.refinement.RefinementStep;
+import eventb_agent_core.utils.RodinUtils;
 import eventb_agent_ui.utils.CreateModelUtils;
 
 public class ModelWorkspaceInteractor {
@@ -138,6 +141,7 @@ public class ModelWorkspaceInteractor {
 			EvaluationManager.endLatestAction();
 
 			fixCompilationErrors(projectName, fileNames);
+			fixBasedOnModelCheckingResults(projectName, fileNames);
 			fixPOs(projectName, fileNames, null);
 			sysDesc = newSysDesc;
 		} else {
@@ -324,14 +328,14 @@ public class ModelWorkspaceInteractor {
 
 	}
 
-	private int getNextAttemptIDForFixCompilation() throws ReachMaxAttemptException {
-		if (EvaluationManager.getComponentTypeFromLatestAction() != ComponentType.FIX_COMPILATION) {
+	private int getNextAttemptID(ComponentType currentType) throws ReachMaxAttemptException {
+		if (EvaluationManager.getComponentTypeFromLatestAction() != currentType) {
 			// if last action has different type, this is the first attempt => no error
 			return 0;
 		}
 		int attempt = EvaluationManager.getAttemptsFromLatestAction();
 		if (attempt >= maxAttemptsSynth - 1) {
-			throw new ReachMaxAttemptException(ComponentType.FIX_COMPILATION.name());
+			throw new ReachMaxAttemptException(currentType.name());
 		}
 
 		return attempt + 1;
@@ -361,7 +365,7 @@ public class ModelWorkspaceInteractor {
 	private String[] fixCompilationErrors(String projectName, String[] fileNames)
 			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
 		// throw exception and stop if exceeds limit
-		int newAttemptID = getNextAttemptIDForFixCompilation();
+		int newAttemptID = getNextAttemptID(ComponentType.FIX_COMPILATION);
 		EvaluationManager.addAndStartNewAction(ComponentType.FIX_COMPILATION, newAttemptID);
 
 		final String contextFileName = fileNames[0];
@@ -404,6 +408,46 @@ public class ModelWorkspaceInteractor {
 		runnableContext.run(false, false, fixCompilationErrorOperation);
 
 		return new String[] { contextFileName, machineFileName };
+	}
+
+	private void fixBasedOnModelCheckingResults(String projectName, String[] fileNames)
+			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
+
+		// throw exception and stop if exceeds limit
+		int newAttemptID = getNextAttemptID(ComponentType.FIX_MODEL_CHECKING);
+		EvaluationManager.addAndStartNewAction(ComponentType.FIX_MODEL_CHECKING, newAttemptID);
+
+		final String contextFileName = fileNames[0];
+		final String machineFileName = fileNames[1];
+
+		IRunnableWithProgress modelCheckingOperation = new IRunnableWithProgress() {
+			@Override
+			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				try {
+					IRodinProject rodinProject = RodinUtils.getRodinProject(projectName);
+
+					final IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
+					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+					IContextRoot contextRoot = (IContextRoot) contextFile.getRoot();
+					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
+
+					ModelCheckingFixer fixer = new ModelCheckingFixer(llmRequestSender, llmResponseParser);
+					JSONObject newModel = fixer.fixModelBasedOnProBResults(contextRoot, machineRoot);
+					EvaluationManager.endLatestAction();
+
+					if (newModel != null) {
+//						System.out.println(newModel.toString(2));
+						String[] newFileNames = saveModel(projectName, newModel);
+					}
+				} catch (CoreException | ReachMaxAttemptException e) {
+					System.out.println(e.getMessage());
+					EvaluationManager.setErrorToLatestAction(e.getMessage());
+				} finally {
+					monitor.done();
+				}
+			}
+		};
+		runnableContext.run(false, false, modelCheckingOperation);
 	}
 
 	private IPOSequent getPO(List<IPOSequent> pos, String poName) {

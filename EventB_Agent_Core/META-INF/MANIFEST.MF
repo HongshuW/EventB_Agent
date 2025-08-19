@@ -9,7 +9,8 @@ Require-Bundle: org.eclipse.core.resources;bundle-version="3.20.0",
  org.rodinp.core;bundle-version="1.10.0",
  org.eventb.core;bundle-version="3.7.0",
  org.eventb.core.seqprover;bundle-version="3.7.0",
- org.eventb.core.ast;bundle-version="3.8.0"
+ org.eventb.core.ast;bundle-version="3.8.0",
+ de.prob.core;bundle-version="9.6.1"
 Bundle-ClassPath: 
  .,
  lib/json-20220924.jar,

@@ -3,8 +3,8 @@ Refine the provided Event-B model according to the refined system description. R
 Previous System Description:\n
 {{prev_system_desc}}
 \n
-Model:\n
+\nModel:\n
 {{model}}
 \n
-Refined System Description:\n
+\nRefined System Description:\n
 {{system_desc}}

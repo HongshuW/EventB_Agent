@@ -49,5 +49,8 @@ public class SchemaKeys {
 	public static final String MODIFICATION = "modification";
 	public static final String HYP = "hypothesis";
 	public static final String INSTANTIATIONS = "instantiations";
+	
+	/* keys for model checking */
+	public static final String MODEL_CHECKING_PARAMS = "parameters";
 
 }
