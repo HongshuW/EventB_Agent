@@ -1,5 +1,21 @@
 Refine the provided Event-B model according to the refined system description. Return a new model which refines the provided model. The new model must have a different name from the provided model.\n
 \n
+For each variable v in machine, include an invariant `v ∈|⊆|⊂ ...` to specify its type.\n 
+For each constant c in context, include an axiom `c ∈|⊆|⊂ ...` to specify its type.\n
+Make sure sets are not misplaced into constants, e.g. sets are types that are capitalized.\n
+If a constant `fun` is used, make sure define its type, use format fun(x) if x is an element, and fun[X] if X is a set.\n
+Any variable, constant or parameter in event must have a corresponding invariant, axiom, or guard to define its type.\n
+Do not include comments.\n
+Respond using only code-points 0x20-0x7E. Do not emit \\u0000 to \\u001F. For Event-B use: \in for '∈', \subseteq for '⊆', not for '¬', etc.\n
+If latex commands are used, make sure that only commands with a corresponding symbol in Event-B is included, e.g. exclude commands like \bcmin, \quad, etc.\n
+Clauses such as "if...else..." are not supported by Event-B, use two events with different guards to represent the logic.\n
+(x,y) is not supported and you must use x |-> y.\n
+\n
+The new concrete model must be different from the abstract model.\n
+The new concrete model must only contain new information that's not already in the abstract model, and gluing invariants that link the abstract and concrete models.\n
+The new context must extends the original context. The new machine must sees the new context, and refines the original machine.\n
+The machines in the new model should refine those in the abstract model whenever possible.\n
+\n
 Previous System Description:\n
 {{prev_system_desc}}
 \n

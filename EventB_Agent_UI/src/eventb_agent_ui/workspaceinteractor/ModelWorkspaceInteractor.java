@@ -612,7 +612,6 @@ public class ModelWorkspaceInteractor {
 			});
 			monitor.worked(1);
 		}
-
 	}
 
 	private IRodinProject getRodinProject(String projectName) throws CoreException {

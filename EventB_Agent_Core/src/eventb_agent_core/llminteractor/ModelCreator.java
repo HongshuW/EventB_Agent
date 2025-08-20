@@ -16,6 +16,7 @@ import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.RodinUtils;
+import eventb_agent_core.utils.llm.ParserUtils;
 
 /**
  * This class interacts with the llm to create an Event-B model.
@@ -70,7 +71,7 @@ public class ModelCreator extends AbstractLLMInteractor {
 
 		String refineSysDesc = refinementStep.getModelDesc();
 
-		JSONObject response = getLLMResponse(new String[] { previousSysDesc, modelJSON, refineSysDesc },
+		JSONObject response = getLLMResponse(new String[] { previousSysDesc, ParserUtils.reverseLex(modelJSON), refineSysDesc },
 				LLMRequestTypes.REFINE_MODEL);
 
 		return response;

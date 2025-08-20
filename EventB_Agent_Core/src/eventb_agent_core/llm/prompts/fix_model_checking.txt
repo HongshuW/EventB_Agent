@@ -10,6 +10,9 @@ Respond using only code-points 0x20-0x7E. Do not emit \\u0000 to \\u001F. For Ev
 If latex commands are used, make sure that only commands with a corresponding symbol in Event-B is included, e.g. exclude commands like \bcmin, \quad, etc.\n
 Clauses such as "if...else..." are not supported by Event-B, use two events with different guards to represent the logic.\n
 (x,y) is not supported and you must use x |-> y.\n
+\n
+Never remove machine or event refinements.\n
+\n
 Model:\n
 {{model}}
 \n

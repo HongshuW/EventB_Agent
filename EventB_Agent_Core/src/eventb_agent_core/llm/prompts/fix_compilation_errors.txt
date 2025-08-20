@@ -14,6 +14,7 @@ Clauses such as "if...else..." are not supported by Event-B, use two events with
 (x,y) is not supported and you must use x |-> y.\n
 \n
 Generate a json with the same format as the model below.\n
+Never remove machine or event refinements.\n
 \n
 Model:\n
 {{model}}

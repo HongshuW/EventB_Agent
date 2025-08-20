@@ -135,8 +135,7 @@ public class RetrieveModelUtils {
 		String contextName = contextRoot.getComponentName();
 		contextJSON.put(SchemaKeys.CONTEXT, contextName);
 
-		// TODO: add extends
-
+		addIdentifiers(contextRoot.getExtendsClauses(), contextJSON, SchemaKeys.EXTENDS);
 		addIdentifiers(contextRoot.getCarrierSets(), contextJSON, SchemaKeys.SETS);
 		addIdentifiers(contextRoot.getConstants(), contextJSON, SchemaKeys.CONSTANTS);
 		addLabeledPredicates(contextRoot.getAxioms(), contextJSON, SchemaKeys.AXIOMS);
@@ -150,8 +149,7 @@ public class RetrieveModelUtils {
 		String machineName = machineRoot.getComponentName();
 		machineJSON.put(SchemaKeys.MACHINE, machineName);
 
-		// TODO: add refines
-
+		addIdentifiers(machineRoot.getRefinesClauses(), machineJSON, SchemaKeys.REFINES);
 		addIdentifiers(machineRoot.getSeesClauses(), machineJSON, SchemaKeys.SEES);
 		addIdentifiers(machineRoot.getVariables(), machineJSON, SchemaKeys.VARIABLES);
 		addLabeledPredicates(machineRoot.getInvariants(), machineJSON, SchemaKeys.INVARIANTS);
@@ -231,6 +229,7 @@ public class RetrieveModelUtils {
 	private static LinkedHashMap<String, Object> getEvent(IEvent event) throws RodinDBException {
 		LinkedHashMap<String, Object> eventJSON = new LinkedHashMap<>();
 		eventJSON.put(SchemaKeys.EVENT_NAME, event.getLabel());
+		addIdentifiers(event.getRefinesClauses(), eventJSON, SchemaKeys.REFINES);
 		addIdentifiers(event.getParameters(), eventJSON, SchemaKeys.ANY);
 		addLabeledPredicates(event.getGuards(), eventJSON, SchemaKeys.WHERE);
 		addLabeledPredicates(event.getWitnesses(), eventJSON, SchemaKeys.WITH);
