@@ -42,11 +42,8 @@ public class ModelCheckingFixer extends AbstractLLMInteractor {
 		List<String> opts = new ArrayList<>();
 		for (int i = 0; i < modelCheckingParams.length(); i++) {
 			String paramVal = modelCheckingParams.getString(i);
-			String param = paramVal.split("=")[0];
-			String val = paramVal.split("=")[1];
-			opts.add("-p");
-			opts.add(param);
-			opts.add(val);
+			opts.add("-scope");
+			opts.add(paramVal);
 		}
 
 		StringBuilder resultString = new StringBuilder();
@@ -113,9 +110,8 @@ public class ModelCheckingFixer extends AbstractLLMInteractor {
 	}
 
 	private JSONArray getModelCheckingParameters(String modelJSON) throws ReachMaxAttemptException {
-		JSONObject response = getLLMResponseWithTools(new String[] { modelJSON },
-				LLMRequestTypes.MODEL_CHECKING_PARAMS);
-		return response.getJSONObject(Constants.FUNCTION_ARGS).getJSONArray(SchemaKeys.MODEL_CHECKING_PARAMS);
+		JSONObject response = getLLMResponse(new String[] { modelJSON }, LLMRequestTypes.MODEL_CHECKING_PARAMS);
+		return response.getJSONArray(SchemaKeys.MODEL_CHECKING_PARAMS);
 	}
 
 	private JSONObject fixBasedOnModelCheckingResults(String modelJSON, String results)

@@ -83,7 +83,7 @@ public enum LLMRequestTypes {
 		case REFINE_MODEL:
 			return true;
 		case MODEL_CHECKING_PARAMS:
-			return false;
+			return true;
 		case FIX_MODEL_CHECKING:
 			return true;
 		case FIX_PROOF:
@@ -106,7 +106,7 @@ public enum LLMRequestTypes {
 		case REFINE_MODEL:
 			return false;
 		case MODEL_CHECKING_PARAMS:
-			return true;
+			return false;
 		case FIX_MODEL_CHECKING:
 			return false;
 		case FIX_PROOF:
