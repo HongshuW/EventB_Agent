@@ -125,7 +125,12 @@ public class ModelWorkspaceInteractor {
 		EvaluationManager.addAndStartNewAction(ComponentType.SYNTHESIS, 0);
 
 		String[] fileNames = new String[2];
-		String sysDesc = previousModel == null ? "" : previousModel.getSystemDescription();
+		String sysDesc = "";
+		if (previousModel != null) {
+			sysDesc = previousModel.getSystemDescription();
+			fileNames[0] = previousModel.getContextFileName();
+			fileNames[1] = previousModel.getMachineFileName();
+		}
 		String newSysDesc = refinementStep.getModelDesc();
 
 		if (previousModel == null) {

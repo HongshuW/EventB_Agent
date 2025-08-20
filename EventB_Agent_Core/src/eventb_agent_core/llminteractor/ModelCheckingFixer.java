@@ -40,15 +40,14 @@ public class ModelCheckingFixer extends AbstractLLMInteractor {
 		// get parameters for model checking
 		JSONArray modelCheckingParams = getModelCheckingParameters(modelJSON);
 		List<String> opts = new ArrayList<>();
-		StringBuilder setupConsts = new StringBuilder("setup_constants(");
 		for (int i = 0; i < modelCheckingParams.length(); i++) {
-			setupConsts.append(modelCheckingParams.getString(i));
-			if (i < modelCheckingParams.length() - 1) {
-				setupConsts.append(",");
-			}
+			String paramVal = modelCheckingParams.getString(i);
+			String param = paramVal.split("=")[0];
+			String val = paramVal.split("=")[1];
+			opts.add("-p");
+			opts.add(param);
+			opts.add(val);
 		}
-		setupConsts.append(")");
-		opts.add(setupConsts.toString());
 
 		StringBuilder resultString = new StringBuilder();
 

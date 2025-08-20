@@ -1,0 +1,4 @@
+Given the Event-B model below, call the model_checking function with suitable parameters to set up bound for model checking. The parameters array should be specific to the model.\n
+\n
+Model:\n
+{{model}}
