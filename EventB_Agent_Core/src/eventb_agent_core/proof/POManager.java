@@ -13,6 +13,7 @@ import org.eventb.core.IPSRoot;
 import org.eventb.core.IPSStatus;
 import org.eventb.core.pm.IProofAttempt;
 import org.eventb.core.pm.IProofComponent;
+import org.eventb.core.seqprover.IConfidence;
 import org.eventb.core.seqprover.IProofTree;
 import org.eventb.core.seqprover.IProofTreeNode;
 import org.eventb.core.seqprover.ProverFactory;
@@ -26,6 +27,33 @@ public class POManager {
 	public POManager() {
 	}
 
+	public IPOSequent[] getAllPOs(IMachineRoot machineRoot) throws RodinDBException {
+		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
+		IPORoot poRoot = proofComponent.getPORoot();
+		return poRoot.getSequents();
+	}
+
+	public List<IPOSequent> getOpenPOsWithoutAdditionalOperations(IMachineRoot machineRoot) throws CoreException {
+		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
+		IPORoot poRoot = proofComponent.getPORoot();
+		IPSRoot psRoot = proofComponent.getPSRoot();
+
+		Map<String, IPSStatus> statusByPO = getStatusByPOMap(psRoot);
+
+		statusByPO = getStatusByPOMap(psRoot);
+
+		// collect undischarged POs
+		List<IPOSequent> open = new ArrayList<>();
+		for (IPOSequent poSequent : poRoot.getSequents()) {
+			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
+			if (!isDischarged(machineRoot, psStatus.getElementName())) {
+				open.add(poSequent);
+			}
+		}
+
+		return open;
+	}
+
 	public List<IPOSequent> getOpenPOs(IMachineRoot machineRoot) throws Exception {
 		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
 		IPORoot poRoot = proofComponent.getPORoot();
@@ -36,7 +64,7 @@ public class POManager {
 		// try to discharge POs by running SMT solvers
 		for (IPOSequent poSequent : poRoot.getSequents()) {
 			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
-			if (!isDischarged(psStatus)) {
+			if (!isDischarged(machineRoot, psStatus.getElementName())) {
 				runAllEnabledSMT(poSequent, machineRoot);
 			}
 		}
@@ -47,7 +75,7 @@ public class POManager {
 		List<IPOSequent> open = new ArrayList<>();
 		for (IPOSequent poSequent : poRoot.getSequents()) {
 			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
-			if (!isDischarged(psStatus)) {
+			if (!isDischarged(machineRoot, psStatus.getElementName())) {
 				open.add(poSequent);
 			}
 		}
@@ -57,18 +85,31 @@ public class POManager {
 
 	public boolean isDischarged(IMachineRoot machineRoot, String poName) throws RodinDBException, CoreException {
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
+		pc.save(null, true);
+
 		IPSRoot psRoot = pc.getPSRoot();
+
+		boolean found = false;
 
 		for (IPSStatus st : psRoot.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
 			String stPOName = st.getPOSequent().getElementName();
-			if (stPOName.equals(poName) || stPOName == poName) {
-				if (!isDischarged(st)) {
+			if (poName.equals(stPOName)) {
+				found = true;
+
+				// Treat broken/missing proofs as NOT discharged
+				if (st.isBroken())
+					return false;
+
+				int conf = st.getConfidence();
+
+				// Consider discharged only at/above the discharged threshold
+				if (conf < IConfidence.DISCHARGED_MAX) {
 					return false;
 				}
 			}
 		}
 
-		return true;
+		return found;
 	}
 
 	private Map<String, IPSStatus> getStatusByPOMap(IPSRoot psRoot) throws RodinDBException {
@@ -77,10 +118,6 @@ public class POManager {
 			statusByPO.put(st.getPOSequent().getElementName(), st);
 		}
 		return statusByPO;
-	}
-
-	private boolean isDischarged(IPSStatus poStatus) throws CoreException {
-		return poStatus.getProof().getProofTree(null).isClosed();
 	}
 
 	private void runAllEnabledSMT(IPOSequent poSequent, IMachineRoot machineRoot) throws RodinDBException {

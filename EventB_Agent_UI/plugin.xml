@@ -77,6 +77,11 @@
             id="EventB_Agent_UI.evaluate"
             name="Evaluation">
       </command>
+      <command
+            defaultHandler="eventb_agent_ui.handlers.DataCollectionHandler"
+            id="EventB_Agent_UI.collectdata"
+            name="Collect Evaluation Data">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
@@ -91,6 +96,10 @@
       <handler
             class="eventb_agent_ui.handlers.EvaluationHandler"
             commandId="EventB_Agent_UI.evaluate">
+      </handler>
+      <handler
+            class="eventb_agent_ui.handlers.DataCollectionHandler"
+            commandId="EventB_Agent_UI.collectdata">
       </handler>
    </extension>
    <extension
@@ -114,6 +123,11 @@
             <command
                   commandId="EventB_Agent_UI.evaluate"
                   label="Evaluation"
+                  style="push">
+            </command>
+            <command
+                  commandId="EventB_Agent_UI.collectdata"
+                  label="Collect Evaluation Data"
                   style="push">
             </command>
          </menu>
