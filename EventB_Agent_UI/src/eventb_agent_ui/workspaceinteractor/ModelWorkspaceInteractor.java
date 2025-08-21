@@ -511,7 +511,9 @@ public class ModelWorkspaceInteractor {
 
 					List<IPOSequent> pos = poManager.getOpenPOs(machineRoot);
 					if (pos.isEmpty()) {
+						EvaluationManager.addAndStartNewAction(ComponentType.FIX_PROOF, newAttemptID);
 						EvaluationManager.setErrorToLatestAction("All POs discharged.");
+						EvaluationManager.endLatestAction();
 					}
 
 					IPOSequent undischargedPO = getPO(pos, poName);
