@@ -111,7 +111,7 @@ public class POFixer extends AbstractLLMInteractor {
 		if (tree != null) {
 			try {
 				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName,
-						tree.toString() };
+						ParserUtils.reverseLex(tree.toString()) };
 				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF);
 				modifyModel(answer, machineRoot, contextRoot, proofAttempt, node, poName);
 			} catch (CoreException e) {

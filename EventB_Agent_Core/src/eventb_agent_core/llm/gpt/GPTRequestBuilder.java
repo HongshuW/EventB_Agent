@@ -46,7 +46,9 @@ public class GPTRequestBuilder extends RequestBuilder {
 	protected String[] getFunctionFileNamesFromType(LLMRequestTypes requestType) {
 		switch (requestType) {
 		case FIX_PROOF:
-			return new String[] { "gpt_ah.json", "gpt_ah_guard.json" };
+			return new String[] { "gpt_ae.json", "gpt_ah_guard.json", "gpt_ah.json", "gpt_dc.json",
+					"gpt_remove_membership.json", "gpt_strengthen_guard.json", "gpt_strengthen_inv.json",
+					"gpt_weaken_guard.json", "gpt_weaken_inv.json" };
 		default:
 			return new String[] {};
 		}

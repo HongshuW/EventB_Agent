@@ -1,0 +1,71 @@
+{
+	"type": "function",
+	"name": "caseDistinction",
+	"description": "Split an event by cases to assist proving.",
+	"strict": true,
+	"parameters": {
+		"type": "object",
+		"$defs": {
+			"predicate": {
+				"type": "string"
+			},
+			"identifier": {
+				"type": "string",
+				"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+			},
+			"labeled_predicate": {
+				"type": "object",
+				"required": [
+					"label_name",
+					"predicate"
+				],
+				"properties": {
+					"label_name": {
+						"$ref": "#/$defs/identifier"
+					},
+					"predicate": {
+						"$ref": "#/$defs/predicate"
+					}
+				},
+				"additionalProperties": false
+			},
+			"event_name_and_guards": {
+				"type": "object",
+				"description": "A simplified representation of event, only include event name and its guards.",
+				"required": [
+					"event_name",
+					"guards"
+				],
+				"properties": {
+					"event_name": {
+						"$ref": "#/$defs/identifier"
+					},
+					"guards": {
+						"type": "array",
+						"items": {
+							"$ref": "#/$defs/labeled_predicate"
+						}
+					}
+				},
+				"additionalProperties": false
+			}
+		},
+		"properties": {
+			"original_event_name": {
+				"type": "string",
+				"description": "Name of the original event to split."
+			},
+			"new_events": {
+				"type": "array",
+				"items": {
+					"$ref": "#/$defs/event_name_and_guards"
+				}
+			}
+		},
+		"additionalProperties": false,
+		"required": [
+			"original_event_name",
+			"new_events"
+		]
+	}
+}

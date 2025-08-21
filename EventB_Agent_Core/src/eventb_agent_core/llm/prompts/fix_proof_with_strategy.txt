@@ -1,4 +1,4 @@
-Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Complete the proof by calling a function.\n
+Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Complete the proof by calling the most suitable function. Each function will either modify the proof or modify the Event-B model.\n
 \n
 Model:\n
 {{model}}

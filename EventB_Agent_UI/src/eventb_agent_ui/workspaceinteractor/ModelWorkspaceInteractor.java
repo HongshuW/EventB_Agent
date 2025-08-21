@@ -510,6 +510,9 @@ public class ModelWorkspaceInteractor {
 					POFixer poFixer = new POFixer(llmRequestSender, llmResponseParser);
 
 					List<IPOSequent> pos = poManager.getOpenPOs(machineRoot);
+					if (pos.isEmpty()) {
+						EvaluationManager.setErrorToLatestAction("All POs discharged.");
+					}
 
 					IPOSequent undischargedPO = getPO(pos, poName);
 					if (undischargedPO != null) {
@@ -522,10 +525,18 @@ public class ModelWorkspaceInteractor {
 
 						if (enableFixStrategy) {
 							poFixer.autoFixPO(machineRoot, undischargedPO);
+							EvaluationManager.endLatestAction();
+
+							if (poManager.isDischarged(machineRoot, undischargedPOName)) {
+								visitedPOs.add(undischargedPOName);
+								EvaluationManager.setErrorToLatestAction("PO discharged");
+								fixPOs(projectName, fileNames, null);
+							} else {
+								fixPOs(projectName, fileNames, undischargedPOName);
+							}
 						} else {
 							JSONObject newModel = poFixer.autoFixPOWithoutStrategy(machineRoot, undischargedPO);
 							if (newModel != null) {
-//								System.out.println(newModel.toString(2));
 								saveModel(projectName, newModel);
 								EvaluationManager.endLatestAction();
 

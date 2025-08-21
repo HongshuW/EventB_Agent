@@ -1,7 +1,7 @@
 {
 	"type": "function",
-	"name": "addHypothesesToContext",
-	"description": "Add hypothesis to the context. Use this function when a standard fact that is not recognized by Event-B should be added.",
+	"name": "weakenInvariant",
+	"description": "Weaken an invariant of the machine.",
 	"strict": true,
 	"parameters": {
 		"type": "object",
@@ -31,21 +31,18 @@
 			}
 		},
 		"properties": {
-			"hypothesis": {
+			"invariant": {
 				"$ref": "#/$defs/labeled_predicate"
 			},
-			"instantiations": {
-				"type": "array",
-				"items": {
-					"$ref": "#/$defs/identifier"
-				},
-				"description": "If the added hypothesis is a universal predicate or an existential predicate, specify the instantiations."
+			"event_name": {
+				"type": "string",
+				"description": "Name of the event to be modified."
 			}
 		},
 		"additionalProperties": false,
 		"required": [
-			"hypothesis",
-			"instantiations"
+			"invariant",
+			"event_name"
 		]
 	}
 }
