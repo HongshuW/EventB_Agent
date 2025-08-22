@@ -7,6 +7,7 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -90,7 +91,7 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 				if (undischargedPO != null) {
 					try {
 						poFixer.autoFixPO(machineRoot, undischargedPO);
-					} catch (RodinDBException e) {
+					} catch (CoreException e) {
 						e.printStackTrace();
 					}
 				}

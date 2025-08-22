@@ -1,7 +1,7 @@
 {
 	"type": "function",
 	"name": "addHypothesesAsGuard",
-	"description": "Add hypothesis as a guard of an event.",
+	"description": "Add hypothesis as a guard of an existing event in the machine.",
 	"strict": true,
 	"parameters": {
 		"type": "object",
@@ -36,7 +36,7 @@
 			},
 			"event_name": {
 				"type": "string",
-				"description": "Name of the event to be modified."
+				"description": "Name of the event to be modified. The name must refer to an existing event in the machine, not PO name or invariant name."
 			}
 		},
 		"additionalProperties": false,

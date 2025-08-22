@@ -1,13 +1,14 @@
 {
 	"type": "function",
 	"name": "addAbstractExpression",
-	"description": "Add an abstract expression to assist proving. It doesn't unfold any logical formula, only call this if the current expressions are too complicated and it's necessary to add some simplifications.",
+	"description": "Add a symbol to represent an expression to assist proving. It doesn't unfold any logical formula, only call this if the current expressions are too complicated and it's necessary to add some simplifications.",
 	"strict": true,
 	"parameters": {
 		"type": "object",
 		"$defs": {
 			"expression": {
-				"type": "string"
+				"type": "string",
+				"description": "The expression must be in the form of ident=expr. The expr must be in the goal or the selected hypothesis."
 			},
 			"identifier": {
 				"type": "string",

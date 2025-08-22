@@ -1,38 +1,18 @@
 {
 	"type": "function",
 	"name": "removeMembership",
-	"description": "Eliminate membership \\in by unfolding it into a logical formula without the membership operator. Use this function when the item is clearly in the set, but Event-B cannot infer this automatically.",
+	"description": "Select a predicate in the proof tree and eliminate membership \\in by unfolding it into a logical formula without the membership operator. Use this function when the item is clearly in the set, but Event-B cannot infer this automatically.",
 	"strict": true,
 	"parameters": {
 		"type": "object",
 		"$defs": {
 			"predicate": {
 				"type": "string"
-			},
-			"identifier": {
-				"type": "string",
-				"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
-			},
-			"labeled_predicate": {
-				"type": "object",
-				"required": [
-					"label_name",
-					"predicate"
-				],
-				"properties": {
-					"label_name": {
-						"$ref": "#/$defs/identifier"
-					},
-					"predicate": {
-						"$ref": "#/$defs/predicate"
-					}
-				},
-				"additionalProperties": false
 			}
 		},
 		"properties": {
 			"predicate": {
-				"$ref": "#/$defs/labeled_predicate"
+				"$ref": "#/$defs/predicate"
 			}
 		},
 		"additionalProperties": false,

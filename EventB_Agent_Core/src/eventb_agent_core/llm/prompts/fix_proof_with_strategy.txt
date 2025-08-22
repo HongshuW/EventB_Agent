@@ -1,6 +1,8 @@
-Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Complete the proof by calling the most suitable function. Each function will either modify the proof or modify the Event-B model.\n
+Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Consider the goal in the proof tree, complete the proof by calling the most suitable function.\n
 \n
-Model:\n
+You must include explanation before returning the decision on function.\n
+\n
+\nModel:\n
 {{model}}
 \n
 \nProof Obligation:\n

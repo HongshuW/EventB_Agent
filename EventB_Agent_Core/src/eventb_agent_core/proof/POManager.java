@@ -23,7 +23,7 @@ import eventb_agent_core.utils.proof.ProofUtils;
  */
 public class POManager {
 
-	private static final String PO_OWNER_NAME = "POFixer";
+	private static final String PO_OWNER_NAME = "POManager";
 
 	public POManager() {
 	}

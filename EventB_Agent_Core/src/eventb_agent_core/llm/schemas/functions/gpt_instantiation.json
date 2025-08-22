@@ -1,0 +1,51 @@
+{
+	"type": "function",
+	"name": "instantiation",
+	"description": "For instantiations of existential predicates, you must use existing constants defined in the context. e.g. To instantiate `\\exists x \\cdot x \\in TYPE`, you need to inspect the constants and axioms, and make sure to choose a constant with `TYPE`. For example, axioms `t \\in TYPE` and `partition(TYPE, {t1, t2})` indicate that t, t1, t2 are in TYPE set. You instantiation could be either t, t1, or t2.",
+	"strict": true,
+	"parameters": {
+		"type": "object",
+		"$defs": {
+			"predicate": {
+				"type": "string"
+			},
+			"identifier": {
+				"type": "string",
+				"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+			},
+			"labeled_predicate": {
+				"type": "object",
+				"required": [
+					"label_name",
+					"predicate"
+				],
+				"properties": {
+					"label_name": {
+						"$ref": "#/$defs/identifier"
+					},
+					"predicate": {
+						"$ref": "#/$defs/predicate"
+					}
+				},
+				"additionalProperties": false
+			}
+		},
+		"properties": {
+			"predicate": {
+				"$ref": "#/$defs/predicate"
+			},
+			"instantiations": {
+				"type": "array",
+				"items": {
+					"$ref": "#/$defs/identifier"
+				},
+				"description": "If the predicate is from the selected hypotheses, suggest instantiations for universal predicate. If the predicate is from the goal, suggest instantiations for existential predicate, which must be constant(s) defined in the context with matching type."
+			}
+		},
+		"additionalProperties": false,
+		"required": [
+			"predicate",
+			"instantiations"
+		]
+	}
+}
