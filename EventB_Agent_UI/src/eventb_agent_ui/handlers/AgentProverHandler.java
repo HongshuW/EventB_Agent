@@ -31,7 +31,7 @@ import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.proof.POManager;
 import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.RetrieveModelUtils;
-import eventb_agent_core.utils.proof.ProofTreeUtils;
+import eventb_agent_core.utils.proof.ProofUtils;
 
 public class AgentProverHandler extends AbstractHandler implements IHandler {
 
@@ -76,7 +76,7 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 
 				IMachineRoot machineRoot = RetrieveModelUtils.getMachineRoot(tree);
 
-				IProofAttempt proofAttempt = ProofTreeUtils.getProofAttempt(tree, machineRoot);
+				IProofAttempt proofAttempt = ProofUtils.getProofAttempt(tree, machineRoot);
 				String poName = proofAttempt.getName();
 
 				List<IPOSequent> pos = new ArrayList<>();

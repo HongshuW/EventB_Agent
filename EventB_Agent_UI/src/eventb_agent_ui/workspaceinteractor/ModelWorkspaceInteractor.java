@@ -61,6 +61,7 @@ import eventb_agent_core.llminteractor.POFixer;
 import eventb_agent_core.proof.POManager;
 import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.utils.RodinUtils;
+import eventb_agent_core.utils.proof.ProofUtils;
 import eventb_agent_ui.utils.CreateModelUtils;
 
 public class ModelWorkspaceInteractor {
@@ -147,6 +148,8 @@ public class ModelWorkspaceInteractor {
 
 			fixCompilationErrors(projectName, fileNames);
 			fixBasedOnModelCheckingResults(projectName, fileNames);
+
+			runAutoProvers(projectName, fileNames);
 			fixPOs(projectName, fileNames, null);
 			sysDesc = newSysDesc;
 		} else {
@@ -163,6 +166,8 @@ public class ModelWorkspaceInteractor {
 
 			fixCompilationErrors(projectName, fileNames);
 			fixBasedOnModelCheckingResults(projectName, fileNames);
+
+			runAutoProvers(projectName, fileNames);
 			fixPOs(projectName, fileNames, null);
 			sysDesc += "\n" + newSysDesc;
 		}
@@ -481,6 +486,45 @@ public class ModelWorkspaceInteractor {
 		return null;
 	}
 
+	private void runAutoProvers(String projectName, String[] fileNames)
+			throws InvocationTargetException, InterruptedException {
+		final String machineFileName = fileNames[1];
+
+		// fix POs
+		IRunnableWithProgress fixPOsOperation = new IRunnableWithProgress() {
+			@Override
+			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				try {
+					IRodinProject rodinProject = getRodinProject(projectName);
+					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
+
+					// wait for bps file to be generated
+					try {
+						buildAndWaitForPOs(machineFile, monitor);
+					} finally {
+						monitor.done();
+					}
+
+					POManager poManager = new POManager();
+					POFixer poFixer = new POFixer(llmRequestSender, llmResponseParser);
+
+					int totalPOCount = poManager.getAllPOs(machineRoot).length;
+					int undischargedPOCount = poManager.getOpenPOs(machineRoot).size();
+					System.out.println(totalPOCount);
+					System.out.println(undischargedPOCount);
+
+					poManager.runAutoProvers(machineRoot);
+				} catch (Exception e) {
+					throw new InvocationTargetException(e);
+				} finally {
+					monitor.done();
+				}
+			}
+		};
+		runnableContext.run(false, false, fixPOsOperation);
+	}
+
 	private String[] fixPOs(String projectName, String[] fileNames, String poName)
 			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
 
@@ -510,6 +554,7 @@ public class ModelWorkspaceInteractor {
 					POFixer poFixer = new POFixer(llmRequestSender, llmResponseParser);
 
 					List<IPOSequent> pos = poManager.getOpenPOs(machineRoot);
+
 					if (pos.isEmpty()) {
 						EvaluationManager.addAndStartNewAction(ComponentType.FIX_PROOF, newAttemptID);
 						EvaluationManager.setErrorToLatestAction("All POs discharged.");
@@ -529,7 +574,7 @@ public class ModelWorkspaceInteractor {
 							poFixer.autoFixPO(machineRoot, undischargedPO);
 							EvaluationManager.endLatestAction();
 
-							if (poManager.isDischarged(machineRoot, undischargedPOName)) {
+							if (ProofUtils.isDischarged(machineRoot, undischargedPOName)) {
 								visitedPOs.add(undischargedPOName);
 								EvaluationManager.setErrorToLatestAction("PO discharged");
 								fixPOs(projectName, fileNames, null);
@@ -543,7 +588,7 @@ public class ModelWorkspaceInteractor {
 								EvaluationManager.endLatestAction();
 
 //								fixCompilationErrors(projectName, fileNames);
-								if (poManager.isDischarged(machineRoot, undischargedPOName)) {
+								if (ProofUtils.isDischarged(machineRoot, undischargedPOName)) {
 									visitedPOs.add(undischargedPOName);
 									EvaluationManager.setErrorToLatestAction("PO discharged");
 									fixPOs(projectName, fileNames, null);

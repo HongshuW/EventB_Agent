@@ -21,10 +21,11 @@ import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
+import eventb_agent_core.proof.FixProofStrategyRunner;
 import eventb_agent_core.proof.Hypothesis;
 import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.llm.ParserUtils;
-import eventb_agent_core.utils.proof.ProofTreeUtils;
+import eventb_agent_core.utils.proof.ProofUtils;
 
 public class POFixer extends AbstractLLMInteractor {
 
@@ -53,7 +54,6 @@ public class POFixer extends AbstractLLMInteractor {
 
 		// retrieve information from workspace
 		IProofTree tree = proofAttempt.getProofTree();
-		IProofTreeNode node = ProofTreeUtils.getLastNodeFromTree(proofAttempt);
 		IContextRoot contextRoot = null;
 		try {
 			contextRoot = RetrieveModelUtils.getContextRoot(tree);
@@ -93,7 +93,7 @@ public class POFixer extends AbstractLLMInteractor {
 
 		// retrieve information from workspace
 		IProofTree tree = proofAttempt.getProofTree();
-		IProofTreeNode node = ProofTreeUtils.getLastNodeFromTree(proofAttempt);
+		IProofTreeNode node = ProofUtils.getLastNodeFromTree(proofAttempt);
 		IContextRoot contextRoot = null;
 		try {
 			contextRoot = RetrieveModelUtils.getContextRoot(tree);
@@ -133,8 +133,10 @@ public class POFixer extends AbstractLLMInteractor {
 		for (Hypothesis hypothesis : hypotheses) {
 			String predicate = ParserUtils.lex(hypothesis.getPredicate());
 			String[] instantiations = hypothesis.getInstantiations();
-			ProofTreeUtils.addHypothesis(proofAttempt, node, poName, machineRoot, predicate, instantiations);
-			ProofTreeUtils.applyPostTacticAndSave(proofAttempt, node, poName, machineRoot);
+
+			FixProofStrategyRunner fixer = new FixProofStrategyRunner();
+			fixer.addHypothesis(proofAttempt, node, poName, machineRoot, predicate, instantiations);
+			fixer.applyPostTacticAndSave(proofAttempt, node, poName, machineRoot);
 		}
 	}
 

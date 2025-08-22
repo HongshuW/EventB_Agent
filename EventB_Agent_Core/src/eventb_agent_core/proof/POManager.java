@@ -11,18 +11,19 @@ import org.eventb.core.IPORoot;
 import org.eventb.core.IPOSequent;
 import org.eventb.core.IPSRoot;
 import org.eventb.core.IPSStatus;
-import org.eventb.core.pm.IProofAttempt;
 import org.eventb.core.pm.IProofComponent;
-import org.eventb.core.seqprover.IConfidence;
-import org.eventb.core.seqprover.IProofTree;
-import org.eventb.core.seqprover.IProofTreeNode;
-import org.eventb.core.seqprover.ProverFactory;
 import org.eventb.internal.core.pm.ProofManager;
-import org.eventb.smt.core.internal.tactics.SMTAutoTactic;
-import org.rodinp.core.IRodinFile;
 import org.rodinp.core.RodinDBException;
 
+import eventb_agent_core.utils.proof.ProofUtils;
+
+/**
+ * This class is responsible for querying the PO list, and run auto provers on
+ * all POs.
+ */
 public class POManager {
+
+	private static final String PO_OWNER_NAME = "POFixer";
 
 	public POManager() {
 	}
@@ -33,7 +34,7 @@ public class POManager {
 		return poRoot.getSequents();
 	}
 
-	public List<IPOSequent> getOpenPOsWithoutAdditionalOperations(IMachineRoot machineRoot) throws CoreException {
+	public List<IPOSequent> getOpenPOs(IMachineRoot machineRoot) throws CoreException {
 		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
 		IPORoot poRoot = proofComponent.getPORoot();
 		IPSRoot psRoot = proofComponent.getPSRoot();
@@ -46,7 +47,7 @@ public class POManager {
 		List<IPOSequent> open = new ArrayList<>();
 		for (IPOSequent poSequent : poRoot.getSequents()) {
 			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
-			if (!isDischarged(machineRoot, psStatus.getElementName())) {
+			if (!ProofUtils.isDischarged(machineRoot, psStatus.getElementName())) {
 				open.add(poSequent);
 			}
 		}
@@ -54,62 +55,24 @@ public class POManager {
 		return open;
 	}
 
-	public List<IPOSequent> getOpenPOs(IMachineRoot machineRoot) throws Exception {
+	public void runAutoProvers(IMachineRoot machineRoot) throws Exception {
 		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
 		IPORoot poRoot = proofComponent.getPORoot();
 		IPSRoot psRoot = proofComponent.getPSRoot();
 
 		Map<String, IPSStatus> statusByPO = getStatusByPOMap(psRoot);
 
-		// try to discharge POs by running SMT solvers
+		// try to discharge POs by running auto provers, PP, and SMT solvers
 		for (IPOSequent poSequent : poRoot.getSequents()) {
 			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
-			if (!isDischarged(machineRoot, psStatus.getElementName())) {
-				runAllEnabledSMT(poSequent, machineRoot);
+			if (!ProofUtils.isDischarged(machineRoot, psStatus.getElementName())) {
+				FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent, machineRoot, PO_OWNER_NAME);
+				fixer.applyLasoo();
+				fixer.runAutoProvers();
 			}
 		}
 
-		statusByPO = getStatusByPOMap(psRoot);
-
-		// collect undischarged POs
-		List<IPOSequent> open = new ArrayList<>();
-		for (IPOSequent poSequent : poRoot.getSequents()) {
-			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
-			if (!isDischarged(machineRoot, psStatus.getElementName())) {
-				open.add(poSequent);
-			}
-		}
-
-		return open;
-	}
-
-	public boolean isDischarged(IMachineRoot machineRoot, String poName) throws RodinDBException, CoreException {
-		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
-		pc.save(null, true);
-
-		IPSRoot psRoot = pc.getPSRoot();
-
-		boolean found = false;
-
-		for (IPSStatus st : psRoot.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
-			String stPOName = st.getPOSequent().getElementName();
-			if (poName.equals(stPOName)) {
-				found = true;
-
-				// Treat broken/missing proofs as NOT discharged
-				if (st.isBroken())
-					return false;
-
-				int conf = st.getConfidence();
-
-				// Consider discharged only at/above the discharged threshold
-				if (conf < IConfidence.DISCHARGED_MAX) {
-					return false;
-				}
-			}
-		}
-
-		return found;
+		System.out.println(getOpenPOs(machineRoot).size());
 	}
 
 	private Map<String, IPSStatus> getStatusByPOMap(IPSRoot psRoot) throws RodinDBException {
@@ -118,29 +81,6 @@ public class POManager {
 			statusByPO.put(st.getPOSequent().getElementName(), st);
 		}
 		return statusByPO;
-	}
-
-	private void runAllEnabledSMT(IPOSequent poSequent, IMachineRoot machineRoot) throws RodinDBException {
-		String poName = poSequent.getElementName();
-		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
-		IProofAttempt proofAttempt = proofComponent.getProofAttempt(poName, "POFixer");
-		if (proofAttempt == null) {
-			proofAttempt = proofComponent.createProofAttempt(poName, "POFixer", null);
-		}
-
-		// retrieve information from workspace
-		IProofTree tree = proofAttempt.getProofTree();
-		IProofTreeNode root = tree.getRoot();
-		SMTAutoTactic smtAutoTactic = new SMTAutoTactic();
-		smtAutoTactic.apply(root, null);
-
-		IRodinFile bpo = proofAttempt.getComponent().getPORoot().getRodinFile();
-		IRodinFile bps = proofAttempt.getComponent().getPSRoot().getRodinFile();
-		proofAttempt.commit(false, false, null);
-		bpo.save(null, true);
-		bps.save(null, true);
-
-		proofAttempt.dispose();
 	}
 
 }

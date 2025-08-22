@@ -84,7 +84,7 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 
 					/* PO Discharge Rate */
 					POManager poManager = new POManager();
-					List<IPOSequent> undischargedPOs = poManager.getOpenPOsWithoutAdditionalOperations(machineRoot);
+					List<IPOSequent> undischargedPOs = poManager.getOpenPOs(machineRoot);
 					IPOSequent[] POs = poManager.getAllPOs(machineRoot);
 					System.out.println("Discharged POs: " + String.valueOf(POs.length - undischargedPOs.size()));
 					System.out.println("Total POs: " + String.valueOf(POs.length));
