@@ -1,4 +1,4 @@
 Extract requirements from the provided system description, then develop a refinement strategy in Event-B.
-\n
-System Description:\n
+
+System Description:
 {{system_desc}}

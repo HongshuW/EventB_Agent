@@ -31,8 +31,12 @@ public class GPTRequestBuilder extends RequestBuilder {
 			return "gpt_eventb_schema.json";
 		case REFINE_MODEL:
 			return "gpt_eventb_schema.json";
-//		case FIX_PROOF:
-//			return "gpt_ah_schema.json";
+		case MODEL_CHECKING_PARAMS:
+			return "gpt_model_checking_schema.json";
+		case FIX_MODEL_CHECKING:
+			return "gpt_eventb_schema.json";
+		case FIX_PROOF_NO_STRATEGY:
+			return "gpt_eventb_schema.json";
 		default:
 			return "gpt_eventb_schema.json";
 		}
@@ -42,7 +46,9 @@ public class GPTRequestBuilder extends RequestBuilder {
 	protected String[] getFunctionFileNamesFromType(LLMRequestTypes requestType) {
 		switch (requestType) {
 		case FIX_PROOF:
-			return new String[] { "gpt_ah.json", "gpt_ah_guard.json" };
+			return new String[] { "gpt_ae.json", "gpt_ah_guard.json", "gpt_ah.json", "gpt_dc.json",
+					"gpt_instantiation.json", "gpt_remove_membership.json", "gpt_strengthen_guard.json",
+					"gpt_strengthen_inv.json", "gpt_weaken_guard.json", "gpt_weaken_inv.json" };
 		default:
 			return new String[] {};
 		}

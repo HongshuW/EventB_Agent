@@ -1,4 +1,4 @@
-Refine the provided Event-B model according to the refined system description. Return a new model which refines the provided model. The new model must have a different name from the provided model.
+Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Fix the model so that the proof can be discharged.
 
 For each variable v in machine, include an invariant `v ∈|⊆|⊂ ...` to specify its type.
 For each constant c in context, include an axiom `c ∈|⊆|⊂ ...` to specify its type.
@@ -11,16 +11,11 @@ If latex commands are used, make sure that only commands with a corresponding sy
 Clauses such as "if...else..." are not supported by Event-B, use two events with different guards to represent the logic.
 (x,y) is not supported and you must use x |-> y.
 
-The new concrete model must be different from the abstract model.
-The new concrete model must only contain new information that's not already in the abstract model, and gluing invariants that link the abstract and concrete models.
-The new context must extends the original context. The new machine must sees the new context, and refines the original machine.
-The machines in the new model should refine those in the abstract model whenever possible.
-
-Previous System Description:
-{{prev_system_desc}}
-
 Model:
 {{model}}
 
-Refined System Description:
-{{system_desc}}
+Proof Obligation:
+{{po_name}}
+
+Proof Tree:
+{{proof_tree}}

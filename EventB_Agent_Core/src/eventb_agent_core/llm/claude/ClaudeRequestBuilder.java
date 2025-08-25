@@ -24,11 +24,10 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 	protected String getSchemaFileNameFromType(LLMRequestTypes requestType) {
 		switch (requestType) {
 		// TODO: case REFINE_STRATEGY
+		// TODO: case FIX_PROOF_NO_STRATEGY
 		case SYNTHESIS:
 		case REFINE_MODEL:
 			return "claude_eventb_schema.json";
-//		case FIX_PROOF:
-//			return "claude_proof_schema.json";
 		default:
 			return "claude_eventb_schema.json";
 		}

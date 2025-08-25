@@ -1,11 +1,17 @@
 package eventb_agent_core.utils.proof;
 
+import java.util.Optional;
+import java.util.stream.StreamSupport;
+
 import org.eventb.core.IEventBRoot;
 import org.eventb.core.ast.Formula;
+import org.eventb.core.ast.FormulaFactory;
 import org.eventb.core.ast.IParseResult;
+import org.eventb.core.ast.ISealedTypeEnvironment;
 import org.eventb.core.ast.Predicate;
 import org.eventb.core.ast.QuantifiedPredicate;
 import org.eventb.core.seqprover.IProofTreeNode;
+import org.eventb.core.seqprover.IProverSequent;
 
 public class PredicateUtils {
 
@@ -18,14 +24,27 @@ public class PredicateUtils {
 
 		return parseRes.getParsedPredicate();
 	}
-	
-	public static Predicate getEquivalentPredicate(IProofTreeNode node, Predicate targetPred) {
-		for (Predicate pred : node.getSequent().selectedHypIterable()) {
-			if (pred.toString().equals(targetPred.toString())) {
-				return pred;
-			}
+
+	public static Predicate getPredicate(IProofTreeNode node, Predicate targetPred) {
+		IProverSequent sequent = node.getSequent();
+
+		Optional<Predicate> inHyps = StreamSupport.stream(sequent.hypIterable().spliterator(), false)
+				.filter(pred -> pred.equals(targetPred) || pred.toString().equals(targetPred.toString())).findFirst();
+		if (inHyps.isPresent()) {
+			return inHyps.get();
 		}
+
 		return null;
+	}
+
+	public static Predicate getPredicate(IProofTreeNode node, String predicate) {
+		IProverSequent sequent = node.getSequent();
+		FormulaFactory formulaFactory = sequent.getFormulaFactory();
+		ISealedTypeEnvironment typeEnv = sequent.typeEnvironment();
+
+		Predicate targetPred = formulaFactory.parsePredicate(predicate, typeEnv).getParsedPredicate();
+
+		return getPredicate(node, targetPred);
 	}
 
 	public static boolean isForAllPredicate(Predicate predicate) {

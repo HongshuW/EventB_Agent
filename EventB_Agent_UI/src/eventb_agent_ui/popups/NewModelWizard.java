@@ -13,6 +13,8 @@ import org.eventb.internal.ui.UIUtils;
 import org.eventb.internal.ui.utils.Messages;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMInstanceFactory;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMModels;
@@ -45,6 +47,10 @@ public class NewModelWizard extends Wizard implements INewWizard {
 	private RefinementStrategyPlanner refinementStrategyPlanner;
 	private ModelWorkspaceInteractor modelWorkspaceInteractor;
 
+	private boolean enableFixStrategy;
+	private int maxAttemptsSynth;
+	private int maxAttemptsProof;
+
 	/**
 	 * Constructor: This wizard needs a progress monitor.
 	 */
@@ -55,11 +61,16 @@ public class NewModelWizard extends Wizard implements INewWizard {
 		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
 		LLMModels modelType = LLMModels
 				.getLLMModel(prefs.get(AgentPreferenceInitializer.PREF_LLM_MODEL, Constants.DEFAULT_MODEL));
+		enableFixStrategy = prefs.getBoolean(AgentPreferenceInitializer.PREF_ENABLE_FIX, false);
+		maxAttemptsSynth = Integer.valueOf(prefs.get(AgentPreferenceInitializer.PREF_MAX_ATTEMPTS_SYNTH, "5"));
+		maxAttemptsProof = Integer.valueOf(prefs.get(AgentPreferenceInitializer.PREF_MAX_ATTEMPTS_PROOF, "1"));
+
 		llmRequestSender = LLMInstanceFactory.getRequestSender(modelType);
 		llmResponseParser = LLMInstanceFactory.getResponseParser(modelType);
 
 		refinementStrategyPlanner = new RefinementStrategyPlanner(llmRequestSender, llmResponseParser);
-		modelWorkspaceInteractor = new ModelWorkspaceInteractor(llmRequestSender, llmResponseParser, getContainer(), getShell());
+		modelWorkspaceInteractor = new ModelWorkspaceInteractor(llmRequestSender, llmResponseParser, enableFixStrategy,
+				maxAttemptsSynth, maxAttemptsProof, getContainer(), getShell());
 	}
 
 	/*
@@ -85,7 +96,12 @@ public class NewModelWizard extends Wizard implements INewWizard {
 		final String sysDesc = page.getSystemDesc();
 
 		// refinement steps
-		JSONArray refinementSteps = refinementStrategyPlanner.getRefinementSteps(sysDesc);
+		JSONArray refinementSteps = new JSONArray();
+		try {
+			refinementSteps = refinementStrategyPlanner.getRefinementSteps(sysDesc);
+		} catch (ReachMaxAttemptException e) {
+			System.out.println(e.getMessage());
+		}
 
 		// create models
 		ModelInfo previousModel = null;
@@ -103,6 +119,9 @@ public class NewModelWizard extends Wizard implements INewWizard {
 				UIUtils.showError(Messages.title_error, realException.getMessage());
 				return false;
 			} catch (CoreException e) {
+				return false;
+			} catch (ReachMaxAttemptException e) {
+				System.out.println(e);
 				return false;
 			}
 		}

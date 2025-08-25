@@ -13,35 +13,72 @@ import org.eventb.core.IPSRoot;
 import org.eventb.core.IPSStatus;
 import org.eventb.core.pm.IProofComponent;
 import org.eventb.internal.core.pm.ProofManager;
+import org.rodinp.core.RodinDBException;
 
+import eventb_agent_core.utils.proof.ProofUtils;
+
+/**
+ * This class is responsible for querying the PO list, and run auto provers on
+ * all POs.
+ */
 public class POManager {
 
 	public POManager() {
 	}
 
-	public List<IPOSequent> getOpenPOs(IMachineRoot machineRoot) throws Exception {
-		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
-		IPORoot poRoot = pc.getPORoot();
-		IPSRoot psRoot = pc.getPSRoot();
+	public IPOSequent[] getAllPOs(IMachineRoot machineRoot) throws RodinDBException {
+		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
+		IPORoot poRoot = proofComponent.getPORoot();
+		return poRoot.getSequents();
+	}
 
-		Map<String, IPSStatus> statusByPO = new HashMap<>();
-		for (IPSStatus st : psRoot.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
-			statusByPO.put(st.getPOSequent().getElementName(), st);
-		}
+	public List<IPOSequent> getOpenPOs(IMachineRoot machineRoot) throws CoreException {
+		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
+		IPORoot poRoot = proofComponent.getPORoot();
+		IPSRoot psRoot = proofComponent.getPSRoot();
 
+		Map<String, IPSStatus> statusByPO = getStatusByPOMap(psRoot);
+
+		statusByPO = getStatusByPOMap(psRoot);
+
+		// collect undischarged POs
 		List<IPOSequent> open = new ArrayList<>();
-		for (IPOSequent seq : poRoot.getSequents()) {
-			IPSStatus st = statusByPO.get(seq.getElementName());
-			if (!isDischarged(st)) {
-				open.add(seq);
+		for (IPOSequent poSequent : poRoot.getSequents()) {
+			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
+			if (!ProofUtils.isDischarged(machineRoot, psStatus.getElementName())) {
+				open.add(poSequent);
 			}
 		}
 
 		return open;
 	}
 
-	private boolean isDischarged(IPSStatus poStatus) throws CoreException {
-		return poStatus.getProof().getProofTree(null).isClosed();
+	public void runAutoProvers(IMachineRoot machineRoot) throws Exception {
+		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
+		IPORoot poRoot = proofComponent.getPORoot();
+		IPSRoot psRoot = proofComponent.getPSRoot();
+
+		Map<String, IPSStatus> statusByPO = getStatusByPOMap(psRoot);
+
+		// try to discharge POs by running auto provers, PP, and SMT solvers
+		for (IPOSequent poSequent : poRoot.getSequents()) {
+			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
+			if (!ProofUtils.isDischarged(machineRoot, psStatus.getElementName())) {
+				FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent, machineRoot);
+				fixer.applyLasoo();
+				fixer.runAutoProvers();
+			}
+		}
+
+		System.out.println(getOpenPOs(machineRoot).size());
+	}
+
+	private Map<String, IPSStatus> getStatusByPOMap(IPSRoot psRoot) throws RodinDBException {
+		Map<String, IPSStatus> statusByPO = new HashMap<>();
+		for (IPSStatus st : psRoot.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
+			statusByPO.put(st.getPOSequent().getElementName(), st);
+		}
+		return statusByPO;
 	}
 
 }

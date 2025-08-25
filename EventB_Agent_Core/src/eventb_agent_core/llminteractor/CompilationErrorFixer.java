@@ -20,11 +20,13 @@ import org.rodinp.core.IRodinProject;
 import org.rodinp.core.RodinDBException;
 
 import eventb_agent_core.errorinfo.CompilationErrorInfoExtractor;
+import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.RodinUtils;
+import eventb_agent_core.utils.llm.ParserUtils;
 
 public class CompilationErrorFixer extends AbstractLLMInteractor {
 
@@ -33,7 +35,7 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 	}
 
 	public JSONObject solveCompilationErrors(String projectName, final String machineFileName,
-			final String contextFileName, IProgressMonitor monitor) throws CoreException {
+			final String contextFileName, IProgressMonitor monitor) throws CoreException, ReachMaxAttemptException {
 
 		monitor.beginTask("Fixing compilation errors in " + machineFileName, 2);
 		IRodinProject rodinProject = RodinUtils.getRodinProject(projectName);
@@ -74,17 +76,8 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 			int severity = marker.getAttribute(IMarker.SEVERITY, -1);
 			if (severity == IMarker.SEVERITY_ERROR || severity == IMarker.SEVERITY_WARNING) {
 				String message = (String) marker.getAttribute(IMarker.MESSAGE);
-				int charStart = marker.getAttribute(IMarker.CHAR_START, -1);
-				int charEnd = marker.getAttribute(IMarker.CHAR_END, -1);
-				int lineNo = marker.getAttribute(IMarker.LINE_NUMBER, -1);
-
-				System.out.println("Error: " + message);
-				System.out.println("Char Start: " + charStart);
-				System.out.println("Char End: " + charEnd);
-				System.out.println("Line Number: " + lineNo);
 
 				String handle = (String) marker.getAttribute("element", null);
-				System.out.println(handle);
 				if (handle != null) {
 					CompilationErrorInfoExtractor infoExtractor = new CompilationErrorInfoExtractor(handle);
 					List<IInternalElement> erroneousElements = new ArrayList<>();
@@ -102,12 +95,15 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 						IInternalElement element = erroneousElements.get(0);
 						String type = element.getElementType().getName();
 
-						String jsonStr = RetrieveModelUtils.getComponentJSON(element);
+						int markerStart = (int) marker.getAttribute(IMarker.CHAR_START, -1);
+						int markerEnd = (int) marker.getAttribute(IMarker.CHAR_END, -1);
+						String jsonStr = RetrieveModelUtils.getComponentJSON(element, markerStart, markerEnd);
 
 						StringBuilder messageBuilder = new StringBuilder();
 						messageBuilder.append(type + ": ");
 						messageBuilder.append(jsonStr + " has the issue:\n");
 						messageBuilder.append(message);
+						messageBuilder.append("\n");
 
 						messages.add(messageBuilder.toString());
 					} else if (erroneousElements.size() == 2) {
@@ -118,13 +114,16 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 						IInternalElement element = erroneousElements.get(1);
 						String type = element.getElementType().getName();
 
-						String jsonStr = RetrieveModelUtils.getComponentJSON(element);
+						int markerStart = (int) marker.getAttribute(IMarker.CHAR_START, -1);
+						int markerEnd = (int) marker.getAttribute(IMarker.CHAR_END, -1);
+						String jsonStr = RetrieveModelUtils.getComponentJSON(element, markerStart, markerEnd);
 
 						StringBuilder messageBuilder = new StringBuilder();
 						messageBuilder.append(type + ": ");
 						messageBuilder.append(jsonStr + " from event `");
 						messageBuilder.append(eventName + "` has the issue:\n");
 						messageBuilder.append(message);
+						messageBuilder.append("\n");
 
 						messages.add(messageBuilder.toString());
 					}
@@ -138,7 +137,7 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 	}
 
 	private JSONObject fixCompilationError(IMachineRoot machineRoot, IContextRoot contextRoot,
-			List<String> errorMessages, IResource resource) throws CoreException {
+			List<String> errorMessages, IResource resource) throws CoreException, ReachMaxAttemptException {
 
 		String modelJSON = null;
 		try {
@@ -147,10 +146,10 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 			e.printStackTrace();
 		}
 
-		JSONObject response = getLLMResponse(new String[] { modelJSON, getErrorsPlaceHolderContent(errorMessages) },
+		JSONObject response = getLLMResponse(
+				new String[] { ParserUtils.reverseLex(modelJSON),
+						ParserUtils.reverseLex(getErrorsPlaceHolderContent(errorMessages)) },
 				LLMRequestTypes.FIX_COMPILATION_ERRS);
-
-		System.out.println(response.toString(2));
 
 		return response;
 	}

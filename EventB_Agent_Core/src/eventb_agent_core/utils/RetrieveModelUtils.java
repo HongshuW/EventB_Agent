@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 
 import org.eventb.core.IAction;
 import org.eventb.core.IAssignmentElement;
+import org.eventb.core.IAxiom;
 import org.eventb.core.IContextRoot;
 import org.eventb.core.IEvent;
 import org.eventb.core.IExpressionElement;
@@ -34,6 +35,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eventb_agent_core.llm.schemas.SchemaKeys;
+import eventb_agent_core.utils.llm.ParserUtils;
 
 public class RetrieveModelUtils {
 
@@ -89,19 +91,32 @@ public class RetrieveModelUtils {
 		}
 	}
 
-	public static String getComponentJSON(IInternalElement element) throws RodinDBException {
+	public static String getComponentJSON(IInternalElement element, int markerStart, int markerEnd)
+			throws RodinDBException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		LinkedHashMap<String, Object> json = new LinkedHashMap<>();
 		IInternalElementType<? extends IInternalElement> type = element.getElementType();
 
 		if (type.equals(IInvariant.ELEMENT_TYPE) || type.equals(IGuard.ELEMENT_TYPE)
-				|| type.equals(IWitness.ELEMENT_TYPE)) {
+				|| type.equals(IWitness.ELEMENT_TYPE) || type.equals(IAxiom.ELEMENT_TYPE)) {
 			json = getLabeledPredicate(element);
+			if (markerStart >= 0 && markerEnd >= 0) {
+				String newPred = ParserUtils.addMarker((String) json.get(SchemaKeys.PRED), markerStart, markerEnd);
+				json.put(SchemaKeys.PRED, newPred);
+			}
 		} else if (type.equals(IVariant.ELEMENT_TYPE)) {
 			json = getLabeledExpression(element);
+			if (markerStart >= 0 && markerEnd >= 0) {
+				String newExpr = ParserUtils.addMarker((String) json.get(SchemaKeys.EXPR), markerStart, markerEnd);
+				json.put(SchemaKeys.EXPR, newExpr);
+			}
 		} else if (type.equals(IAction.ELEMENT_TYPE)) {
 			json = getLabeledAssignment(element);
+			if (markerStart >= 0 && markerEnd >= 0) {
+				String newAction = ParserUtils.addMarker((String) json.get(SchemaKeys.ASSIGN), markerStart, markerEnd);
+				json.put(SchemaKeys.ASSIGN, newAction);
+			}
 		} else {
 			return "";
 		}
@@ -120,8 +135,7 @@ public class RetrieveModelUtils {
 		String contextName = contextRoot.getComponentName();
 		contextJSON.put(SchemaKeys.CONTEXT, contextName);
 
-		// TODO: add extends
-
+		addIdentifiers(contextRoot.getExtendsClauses(), contextJSON, SchemaKeys.EXTENDS);
 		addIdentifiers(contextRoot.getCarrierSets(), contextJSON, SchemaKeys.SETS);
 		addIdentifiers(contextRoot.getConstants(), contextJSON, SchemaKeys.CONSTANTS);
 		addLabeledPredicates(contextRoot.getAxioms(), contextJSON, SchemaKeys.AXIOMS);
@@ -135,8 +149,7 @@ public class RetrieveModelUtils {
 		String machineName = machineRoot.getComponentName();
 		machineJSON.put(SchemaKeys.MACHINE, machineName);
 
-		// TODO: add refines
-
+		addIdentifiers(machineRoot.getRefinesClauses(), machineJSON, SchemaKeys.REFINES);
 		addIdentifiers(machineRoot.getSeesClauses(), machineJSON, SchemaKeys.SEES);
 		addIdentifiers(machineRoot.getVariables(), machineJSON, SchemaKeys.VARIABLES);
 		addLabeledPredicates(machineRoot.getInvariants(), machineJSON, SchemaKeys.INVARIANTS);
@@ -216,6 +229,7 @@ public class RetrieveModelUtils {
 	private static LinkedHashMap<String, Object> getEvent(IEvent event) throws RodinDBException {
 		LinkedHashMap<String, Object> eventJSON = new LinkedHashMap<>();
 		eventJSON.put(SchemaKeys.EVENT_NAME, event.getLabel());
+		addIdentifiers(event.getRefinesClauses(), eventJSON, SchemaKeys.REFINES);
 		addIdentifiers(event.getParameters(), eventJSON, SchemaKeys.ANY);
 		addLabeledPredicates(event.getGuards(), eventJSON, SchemaKeys.WHERE);
 		addLabeledPredicates(event.getWitnesses(), eventJSON, SchemaKeys.WITH);

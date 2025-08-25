@@ -9,7 +9,9 @@ Require-Bundle: org.eclipse.core.resources;bundle-version="3.20.0",
  org.rodinp.core;bundle-version="1.10.0",
  org.eventb.core;bundle-version="3.7.0",
  org.eventb.core.seqprover;bundle-version="3.7.0",
- org.eventb.core.ast;bundle-version="3.8.0"
+ org.eventb.core.ast;bundle-version="3.8.0",
+ de.prob.core;bundle-version="9.6.1",
+ org.eventb.smt.core;bundle-version="1.4.0"
 Bundle-ClassPath: 
  .,
  lib/json-20220924.jar,
@@ -22,6 +24,8 @@ Bundle-ActivationPolicy: lazy
 Export-Package: com.fasterxml.jackson.core,
  com.fasterxml.jackson.databind,
  eventb_agent_core,
+ eventb_agent_core.evaluation,
+ eventb_agent_core.exception,
  eventb_agent_core.llm,
  eventb_agent_core.llm.schemas,
  eventb_agent_core.llminteractor,

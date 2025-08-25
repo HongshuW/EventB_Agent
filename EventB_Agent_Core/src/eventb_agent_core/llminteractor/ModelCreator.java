@@ -9,12 +9,14 @@ import org.json.JSONObject;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
 
+import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.RodinUtils;
+import eventb_agent_core.utils.llm.ParserUtils;
 
 /**
  * This class interacts with the llm to create an Event-B model.
@@ -33,9 +35,10 @@ public class ModelCreator extends AbstractLLMInteractor {
 	 * @return the created model in JSON.
 	 * @throws InvocationTargetException
 	 * @throws InterruptedException
+	 * @throws ReachMaxAttemptException 
 	 */
 	public JSONObject synthesizeModel(RefinementStep refinementStep)
-			throws InvocationTargetException, InterruptedException {
+			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
 		String systemDesc = refinementStep.getModelDesc();
 		JSONObject response = getLLMResponse(new String[] { systemDesc }, LLMRequestTypes.SYNTHESIS);
 
@@ -53,9 +56,10 @@ public class ModelCreator extends AbstractLLMInteractor {
 	 * @throws CoreException
 	 * @throws InvocationTargetException
 	 * @throws InterruptedException
+	 * @throws ReachMaxAttemptException
 	 */
 	public JSONObject refineModel(final String projectName, String[] fileNames, String previousSysDesc,
-			RefinementStep refinementStep) throws CoreException, InvocationTargetException, InterruptedException {
+			RefinementStep refinementStep) throws CoreException, InvocationTargetException, InterruptedException, ReachMaxAttemptException {
 
 		// retrieve model in JSON form
 		IRodinProject rodinProject = RodinUtils.getRodinProject(projectName);
@@ -67,7 +71,7 @@ public class ModelCreator extends AbstractLLMInteractor {
 
 		String refineSysDesc = refinementStep.getModelDesc();
 
-		JSONObject response = getLLMResponse(new String[] { previousSysDesc, modelJSON, refineSysDesc },
+		JSONObject response = getLLMResponse(new String[] { previousSysDesc, ParserUtils.reverseLex(modelJSON), refineSysDesc },
 				LLMRequestTypes.REFINE_MODEL);
 
 		return response;

@@ -17,28 +17,45 @@ import org.json.JSONObject;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.RodinDBException;
 
+import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
+import eventb_agent_core.llm.schemas.SchemaKeys;
+import eventb_agent_core.proof.FixProofStrategyRunner;
 import eventb_agent_core.proof.Hypothesis;
+import eventb_agent_core.proof.ProofFixingStrategies;
+import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.llm.ParserUtils;
-import eventb_agent_core.utils.proof.ProofTreeUtils;
+import eventb_agent_core.utils.proof.ProofUtils;
 
 public class POFixer extends AbstractLLMInteractor {
+
+	private static final String PO_OWNER_NAME = "POFixer";
 
 	public POFixer(LLMRequestSender llmRequestSender, LLMResponseParser llmResponseParser) {
 		super(llmRequestSender, llmResponseParser);
 	}
 
-	public void autoFixPO(IMachineRoot machineRoot, IPOSequent poSequent) throws RodinDBException {
-
+	/**
+	 * Fix model without pre-defined fix strategies.
+	 * 
+	 * @param machineRoot
+	 * @param poSequent
+	 * @return
+	 * @throws RodinDBException
+	 * @throws IOException
+	 * @throws ReachMaxAttemptException
+	 */
+	public JSONObject autoFixPOWithoutStrategy(IMachineRoot machineRoot, IPOSequent poSequent)
+			throws RodinDBException, IOException, ReachMaxAttemptException {
+		String poName = poSequent.getElementName();
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
-		IProofAttempt proofAttempt = pc.createProofAttempt(poSequent.getElementName(), "POFixer", null);
+		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, PO_OWNER_NAME);
 
 		// retrieve information from workspace
 		IProofTree tree = proofAttempt.getProofTree();
-		IProofTreeNode node = ProofTreeUtils.getLastNodeFromTree(proofAttempt);
 		IContextRoot contextRoot = null;
 		try {
 			contextRoot = RetrieveModelUtils.getContextRoot(tree);
@@ -46,7 +63,45 @@ public class POFixer extends AbstractLLMInteractor {
 			e.printStackTrace();
 		}
 
-		String poName = proofAttempt.getName();
+		String modelJSON = null;
+		try {
+			modelJSON = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
+		} catch (RodinDBException e) {
+			e.printStackTrace();
+		}
+
+		if (tree != null) {
+			String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName,
+					ParserUtils.reverseLex(ProofUtils.getProofTreeString(tree), 1) };
+			return getLLMResponse(placeHolderContents, LLMRequestTypes.FIX_PROOF_NO_STRATEGY);
+		} else {
+			System.out.println("Proof tree is null.");
+			return null;
+		}
+
+	}
+
+	/**
+	 * Fix the model based on fix strategy.
+	 * 
+	 * @param machineRoot
+	 * @param poSequent
+	 * @throws CoreException
+	 */
+	public void autoFixPO(IMachineRoot machineRoot, IPOSequent poSequent) throws CoreException {
+
+		String poName = poSequent.getElementName();
+		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
+		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, PO_OWNER_NAME);
+
+		// retrieve information from workspace
+		IProofTree tree = proofAttempt.getProofTree();
+		IContextRoot contextRoot = null;
+		try {
+			contextRoot = RetrieveModelUtils.getContextRoot(tree);
+		} catch (RodinDBException e) {
+			e.printStackTrace();
+		}
 
 		String modelJSON = null;
 		try {
@@ -57,13 +112,15 @@ public class POFixer extends AbstractLLMInteractor {
 
 		if (tree != null) {
 			try {
-				JSONObject answer = selectFixStrategy(modelJSON, tree);
-				modifyModel(answer, machineRoot, contextRoot, proofAttempt, node, poName);
-			} catch (IOException e) {
-				e.printStackTrace();
+				System.out.println();
+				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName,
+						ParserUtils.reverseLex(ProofUtils.getProofTreeString(tree), 1) };
+				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF);
+				modifyModel(answer, machineRoot, contextRoot, poSequent, tree);
 			} catch (CoreException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (ReachMaxAttemptException e) {
+				System.out.println(e.getMessage());
 			}
 		} else {
 			System.out.println("Proof tree is null.");
@@ -71,25 +128,34 @@ public class POFixer extends AbstractLLMInteractor {
 
 	}
 
-	private JSONObject selectFixStrategy(String modelJSON, IProofTree tree) throws IOException {
-		String[] placeHolderContents = new String[] { modelJSON, tree.toString() };
-
-		// TODO: get LLMRequestType from fix strategy
-		String response = llmRequestSender.sendRequest(placeHolderContents, LLMRequestTypes.FIX_PROOF);
-		return llmResponseParser.getResponseWithTools(response);
-	}
-
 	private void modifyModel(JSONObject answer, IMachineRoot machineRoot, IContextRoot contextRoot,
-			IProofAttempt proofAttempt, IProofTreeNode node, String poName) throws CoreException {
-		// TODO: modify model based on fix strategy
-		List<Hypothesis> hypotheses = llmResponseParser.getHypotheses(answer);
-		addHypothesesToContext(contextRoot, hypotheses);
-		for (Hypothesis hypothesis : hypotheses) {
-			String predicate = ParserUtils.lex(hypothesis.getPredicate());
-			String[] instantiations = hypothesis.getInstantiations();
-			ProofTreeUtils.addHypothesis(proofAttempt, node, poName, machineRoot, predicate, instantiations);
-			ProofTreeUtils.applyPostTacticAndSave(proofAttempt, node, poName, machineRoot);
+			IPOSequent poSequent, IProofTree tree) throws CoreException {
+		String function = answer.getString(Constants.FUNCTION_NAME);
+		JSONObject args = answer.getJSONObject(Constants.FUNCTION_ARGS);
+
+		ProofFixingStrategies strategy = ProofFixingStrategies.valueOf(function);
+		int nodeID = args.getInt(SchemaKeys.NODE_ID);
+		FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent, machineRoot);
+
+		switch (strategy) {
+		case removeMembership:
+			String predicate = ParserUtils.lex(args.getString(SchemaKeys.PRED));
+			fixer.removeMembership(predicate, nodeID);
+		default:
+			fixer.applyPostTactic();
 		}
+
+		// TODO: modify model based on fix strategy
+//		List<Hypothesis> hypotheses = llmResponseParser.getHypotheses(answer);
+//		addHypothesesToContext(contextRoot, hypotheses);
+//		for (Hypothesis hypothesis : hypotheses) {
+//			String predicate = ParserUtils.lex(hypothesis.getPredicate());
+//			String[] instantiations = hypothesis.getInstantiations();
+//
+//			FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent, machineRoot, PO_OWNER_NAME);
+//			fixer.addHypothesis(predicate, instantiations);
+//			fixer.applyPostTactic();
+//		}
 	}
 
 	private void addHypothesesToContext(IContextRoot contextRoot, List<Hypothesis> hypotheses) throws CoreException {

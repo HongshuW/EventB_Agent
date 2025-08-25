@@ -17,6 +17,8 @@ import eventb_agent_core.utils.llm.ParserUtils;
 
 public abstract class LLMResponseParser {
 
+	public abstract long getTokens(String response);
+
 	public abstract String getResponseString(String response);
 
 	public abstract JSONObject getResponseWithTools(String response);

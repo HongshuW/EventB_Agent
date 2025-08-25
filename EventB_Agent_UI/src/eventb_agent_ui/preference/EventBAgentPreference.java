@@ -33,8 +33,11 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 	public static final String CLAUDE_KEY = AgentPreferenceInitializer.PREF_CLAUDE_KEY;
 	public static final String GEMINI_KEY = AgentPreferenceInitializer.PREF_GEMINI_KEY;
 	public static final String DATASET_LOCATION = AgentPreferenceInitializer.PREF_DATASET_LOC;
+	public static final String RESULTS_LOCATION = AgentPreferenceInitializer.PREF_RESULTS_LOC;
 	public static final String ENABLE_REFINEMENT = AgentPreferenceInitializer.PREF_ENABLE_REF;
 	public static final String ENABLE_FIX_STRATEGY = AgentPreferenceInitializer.PREF_ENABLE_FIX;
+	public static final String MAX_ATTEMPTS_SYNTH = AgentPreferenceInitializer.PREF_MAX_ATTEMPTS_SYNTH;
+	public static final String MAX_ATTEMPTS_PROOF = AgentPreferenceInitializer.PREF_MAX_ATTEMPTS_PROOF;
 
 	/* llm config */
 	private Combo llmModelCombo;
@@ -44,8 +47,11 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 
 	/* experiment config */
 	private Text datasetLocationText;
+	private Text resultsLocationText;
 	private Button enableRefinementButton;
 	private Button enableFixStrategyButton;
+	private Text maxAttemptsSynthText;
+	private Text maxAttemptsProofText;
 
 	private String defaultLLMModel = LLMModels.GPT4_1.toString();
 
@@ -71,8 +77,11 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		this.geminiKeyText = null;
 
 		this.datasetLocationText = null;
+		this.resultsLocationText = null;
 		this.enableRefinementButton = null;
 		this.enableFixStrategyButton = null;
+		this.maxAttemptsSynthText = null;
+		this.maxAttemptsProofText = null;
 
 		setDescription("Preference Page for Event-B Agent Plug-in.");
 		setTitle("Event-B Agent");
@@ -122,6 +131,10 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		this.datasetLocationText = createText(experimentSettingGroup, datasetLocationLabel,
 				getPreferenceStore().getString(DATASET_LOCATION));
 
+		String resultsLocationLabel = "Log Location";
+		this.resultsLocationText = createText(experimentSettingGroup, resultsLocationLabel,
+				getPreferenceStore().getString(RESULTS_LOCATION));
+
 		String enableRefinementLabel = "Enable Refinement";
 		this.enableRefinementButton = createButton(experimentSettingGroup, enableRefinementLabel,
 				getPreferenceStore().getBoolean(ENABLE_REFINEMENT));
@@ -129,6 +142,14 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		String enableProofFixingLabel = "Enable Proof Fixing";
 		this.enableFixStrategyButton = createButton(experimentSettingGroup, enableProofFixingLabel,
 				getPreferenceStore().getBoolean(ENABLE_FIX_STRATEGY));
+
+		String maxAttemptsSynthLabel = "Max Number of Attempts for Synthesis";
+		this.maxAttemptsSynthText = createText(experimentSettingGroup, maxAttemptsSynthLabel,
+				getPreferenceStore().getString(MAX_ATTEMPTS_SYNTH));
+
+		String maxAttemptsProofLabel = "Max Number of Attempts for Proof Fixing";
+		this.maxAttemptsProofText = createText(experimentSettingGroup, maxAttemptsProofLabel,
+				getPreferenceStore().getString(MAX_ATTEMPTS_PROOF));
 	}
 
 	private Group initGroup(final Composite parent, String title) {
@@ -191,8 +212,11 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		getPreferenceStore().setValue(CLAUDE_KEY, claudeKeyText.getText());
 		getPreferenceStore().setValue(GEMINI_KEY, geminiKeyText.getText());
 		getPreferenceStore().setValue(DATASET_LOCATION, datasetLocationText.getText());
+		getPreferenceStore().setValue(RESULTS_LOCATION, resultsLocationText.getText());
 		getPreferenceStore().setValue(ENABLE_REFINEMENT, enableRefinementButton.getSelection());
 		getPreferenceStore().setValue(ENABLE_FIX_STRATEGY, enableFixStrategyButton.getSelection());
+		getPreferenceStore().setValue(MAX_ATTEMPTS_SYNTH, maxAttemptsSynthText.getText());
+		getPreferenceStore().setValue(MAX_ATTEMPTS_PROOF, maxAttemptsProofText.getText());
 
 		try {
 			((ScopedPreferenceStore) getPreferenceStore()).save();
@@ -220,11 +244,20 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		getPreferenceStore().setToDefault(DATASET_LOCATION);
 		datasetLocationText.setText(getPreferenceStore().getString(DATASET_LOCATION));
 
+		getPreferenceStore().setToDefault(RESULTS_LOCATION);
+		resultsLocationText.setText(getPreferenceStore().getString(RESULTS_LOCATION));
+
 		getPreferenceStore().setToDefault(ENABLE_REFINEMENT);
 		enableRefinementButton.setSelection(getPreferenceStore().getBoolean(ENABLE_REFINEMENT));
 
 		getPreferenceStore().setToDefault(ENABLE_FIX_STRATEGY);
 		enableFixStrategyButton.setSelection(getPreferenceStore().getBoolean(ENABLE_FIX_STRATEGY));
+
+		getPreferenceStore().setToDefault(MAX_ATTEMPTS_SYNTH);
+		maxAttemptsSynthText.setText(getPreferenceStore().getString(MAX_ATTEMPTS_SYNTH));
+
+		getPreferenceStore().setToDefault(MAX_ATTEMPTS_PROOF);
+		maxAttemptsProofText.setText(getPreferenceStore().getString(MAX_ATTEMPTS_PROOF));
 
 		super.performDefaults();
 	}

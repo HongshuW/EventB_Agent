@@ -1,7 +1,7 @@
 {
 	"type": "function",
-	"name": "addHypothesesAsGuard",
-	"description": "Add hypothesis as a guard of an existing event in the machine.",
+	"name": "strengthenInvariant",
+	"description": "Strengthen an invariant in the machine.",
 	"strict": true,
 	"parameters": {
 		"type": "object",
@@ -31,17 +31,17 @@
 			}
 		},
 		"properties": {
-			"hypothesis": {
+			"invariant": {
 				"$ref": "#/$defs/labeled_predicate"
 			},
 			"event_name": {
 				"type": "string",
-				"description": "Name of the event to be modified. The name must refer to an existing event in the machine, not PO name or invariant name."
+				"description": "Name of the event to be modified."
 			}
 		},
 		"additionalProperties": false,
 		"required": [
-			"hypothesis",
+			"invariant",
 			"event_name"
 		]
 	}

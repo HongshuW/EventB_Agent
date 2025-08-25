@@ -2,21 +2,27 @@ package eventb_agent_ui.handlers;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
-import org.eventb.internal.ui.UIUtils;
-import org.eventb.internal.ui.utils.Messages;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import eventb_agent_core.evaluation.ComponentType;
+import eventb_agent_core.evaluation.EvaluationManager;
+import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMInstanceFactory;
 import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.LLMRequestSender;
@@ -38,8 +44,13 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 	private LLMResponseParser llmResponseParser;
 
 	private String datasetPath;
+	private String resultsPath;
 	private boolean enableRefinement;
 	private boolean enableFixStrategy;
+	private int maxAttemptsSynth;
+	private int maxAttemptsProof;
+
+	private List<String> visitedProjects;
 
 	public EvaluationHandler() {
 		super();
@@ -52,38 +63,76 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 		llmResponseParser = LLMInstanceFactory.getResponseParser(modelType);
 
 		datasetPath = prefs.get(AgentPreferenceInitializer.PREF_DATASET_LOC, "");
+		resultsPath = prefs.get(AgentPreferenceInitializer.PREF_RESULTS_LOC, "");
 		enableRefinement = prefs.getBoolean(AgentPreferenceInitializer.PREF_ENABLE_REF, false);
 		enableFixStrategy = prefs.getBoolean(AgentPreferenceInitializer.PREF_ENABLE_FIX, false);
+		maxAttemptsSynth = Integer.valueOf(prefs.get(AgentPreferenceInitializer.PREF_MAX_ATTEMPTS_SYNTH, "5"));
+		maxAttemptsProof = Integer.valueOf(prefs.get(AgentPreferenceInitializer.PREF_MAX_ATTEMPTS_PROOF, "1"));
+
+		visitedProjects = new ArrayList<>();
+	}
+
+	private void getVisitedProjects() {
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+
+		IProject[] projects = root.getProjects();
+		for (IProject project : projects) {
+			visitedProjects.add(project.getName());
+		}
 	}
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		System.out.println("==========\nEvaluating Event-B Agent\nDataset Path:" + datasetPath + "\nEnable Refinement:"
 				+ String.valueOf(enableRefinement) + "\nEnable Fix Strategy:" + String.valueOf(enableFixStrategy)
-				+ "\n==========");
+				+ "\nMaximum Allowed Attempts for Synthesis:" + String.valueOf(maxAttemptsSynth)
+				+ "\nMaximum Allowed Attempts for Proof:" + String.valueOf(maxAttemptsProof) + "\n==========");
 
 		File datasetFolder = new File(datasetPath);
-
 		if (!datasetFolder.exists() || !datasetFolder.isDirectory()) {
 			System.out.println("Invalid dataset folder path: " + datasetPath + "\nPlease specify a valid folder.");
 			return null;
 		}
 
-		RefinementStrategyPlanner refinementStrategyPlanner = new RefinementStrategyPlanner(llmRequestSender,
-				llmResponseParser);
-		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
-		ModelWorkspaceInteractor modelWorkspaceInteractor = new ModelWorkspaceInteractor(llmRequestSender,
-				llmResponseParser, window, null);
+		getVisitedProjects();
 
 		File[] files = datasetFolder.listFiles();
 		if (files != null) {
 			for (File file : files) {
-				final String projectName = file.getName().split(".json")[0];
-				// refinement steps
-				SystemRequirements systemReqs = new SystemRequirements(file.toPath());
-				JSONArray refinementSteps = refinementStrategyPlanner.getRefinementSteps(systemReqs.toString());
 
-				// create models
+				EvaluationManager.resetDefaultInstance();
+				EvaluationManager.startTimer();
+
+				IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+				ModelWorkspaceInteractor modelWorkspaceInteractor = new ModelWorkspaceInteractor(llmRequestSender,
+						llmResponseParser, enableFixStrategy, maxAttemptsSynth, maxAttemptsProof, window);
+
+				final String projectName = file.getName().split(".json")[0];
+				if (visitedProjects.contains(projectName)) {
+					continue;
+				}
+				System.out.println("==========\nEvaluating `" + projectName + "`\n==========\n");
+
+				/* refinement */
+				EvaluationManager.addAndStartNewAction(ComponentType.REFINE, 0);
+
+				RefinementStrategyPlanner refinementStrategyPlanner = new RefinementStrategyPlanner(llmRequestSender,
+						llmResponseParser);
+				SystemRequirements systemReqs = new SystemRequirements(file.toPath());
+				JSONArray refinementSteps = new JSONArray();
+				try {
+					if (enableRefinement) {
+						refinementSteps = refinementStrategyPlanner.getRefinementSteps(systemReqs.toString());
+					} else {
+						refinementSteps = refinementStrategyPlanner.getSingleRefinementStep(systemReqs.toString());
+					}
+				} catch (ReachMaxAttemptException e) {
+					EvaluationManager.setErrorToLatestAction(e.getMessage());
+				}
+
+				EvaluationManager.endLatestAction();
+
+				/* synthesis and repair loop */
 				ModelInfo previousModel = null;
 				for (int i = 0; i < refinementSteps.length(); i++) {
 					JSONObject refStepJSON = refinementSteps.getJSONObject(i);
@@ -92,16 +141,16 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 					try {
 						previousModel = modelWorkspaceInteractor.createModel(projectName, refinementStep,
 								previousModel);
-					} catch (InterruptedException e) {
-						return null;
-					} catch (InvocationTargetException e) {
-						Throwable realException = e.getTargetException();
-						UIUtils.showError(Messages.title_error, realException.getMessage());
-						return null;
-					} catch (CoreException e) {
-						return null;
+					} catch (InterruptedException | InvocationTargetException | CoreException
+							| ReachMaxAttemptException e) {
+						e.printStackTrace();
+						EvaluationManager
+								.setErrorToLatestAction(e.getMessage() == null ? e.toString() : e.getMessage());
 					}
 				}
+
+				EvaluationManager.endTimer();
+				EvaluationManager.write(resultsPath, projectName);
 			}
 		}
 

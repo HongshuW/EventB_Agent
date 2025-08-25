@@ -26,7 +26,11 @@ public class FileUtils {
 		try {
 			List<String> lines = Files.readAllLines(path);
 			for (String line : lines) {
-				stringBuilder.append(line);
+				if (line.isEmpty() || line.isBlank() || line.equals("") || line == "") {
+					stringBuilder.append("\n");
+				} else {
+					stringBuilder.append(line + "\n");
+				}
 			}
 
 		} catch (IOException e) {
