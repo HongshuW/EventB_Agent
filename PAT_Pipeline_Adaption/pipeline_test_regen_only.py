@@ -653,124 +653,7 @@ def gen_code(structured_data):
 
     raise FileNotFoundError(f"No .bcm/.mch (or .bum) files found in {model_path}")
 
-def _load_mc_tool_schema(path: str = "./gpt_model_checking.json"):
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-def _sanitize_param(s: str) -> str | None:
-    if not isinstance(s, str):
-        return None
-    # strip inline comments
-    s = s.split("//", 1)[0].split("#", 1)[0].strip()
-    if not s:
-        return None
-
-    # NEW: require one of <, >, =
-    m = re.match(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*([<>=])\s*(.+?)\s*$", s)
-    if not m:
-        return None
-
-    name, op, value = m.group(1), m.group(2), m.group(3).strip()
-
-    # value allowed: int, float, identifier, or a simple quoted atom (no spaces inside)
-    is_int    = re.fullmatch(r"-?\d+", value)
-    is_float  = re.fullmatch(r"-?\d+\.\d+", value)
-    is_ident  = re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", value)
-    is_quoted = (len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"') and " " not in value[1:-1])
-
-    if not (is_int or is_float or is_ident or is_quoted):
-        return None
-    if is_quoted:
-        value = value[1:-1]
-
-    # return normalized “NAME<VAL / NAME=VAL / NAME>VAL”
-    return f"{name}{op}{value}"
-
-# NEW —— call OpenAI responses API with tools to get `arguments.parameters`
-def _infer_prob_parameters_from_model(model_text: str) -> list[str]:
-    """
-    Returns a list like ["MAXINT=5","MAXSEQ=5"] (may be empty on failure).
-    """
-    _MC_PROMPT_TMPL = (
-        "Given the Event-B model below, analyze the "
-        "suitable parameters to set up bound for model checking. "
-        "Each parameter must be one of the forms 'NAME=VALUE', 'NAME<VALUE', or 'NAME>VALUE'. "
-        "NAME must be a constant name or set."
-        "The parameters array should be specific to the model.\n\n"
-        "Model:\n{model}\n"
-    )
-    try:
-        tool_schema = _load_mc_tool_schema("./gpt_model_checking.json")
-    except Exception as e:
-        print(f"[bounds] Could not load gpt_model_checking.json: {e}")
-        return []
-
-    prompt = _MC_PROMPT_TMPL.format(model=model_text)
-
-    resp = client.responses.create(
-        model="o3-mini-2025-01-31",
-        reasoning={"effort": "high"},
-        input=[
-            {
-                "role": "system",
-                "content": (
-                    "You are an Event-B assistant. Respond ONLY with JSON that "
-                    "validates against the provided schema."
-                ),
-            },
-            {"role": "user", "content": prompt},
-        ],
-        text={
-            "format": tool_schema
-        },
-    )
-
-    try:
-        obj = json.loads(resp.output_text)
-    except Exception as e:
-        print(f"[bounds] Failed to parse output_text as JSON: {e}")
-        return []
-
-    params = None
-    if isinstance(obj, dict):
-        # Preferred (your printout): {"parameters": [...]}
-        if isinstance(obj.get("parameters"), list):
-            params = obj["parameters"]
-        # Fallback (older shape): {"arguments": {"parameters": [...]}}
-        elif isinstance(obj.get("arguments"), dict) and isinstance(obj["arguments"].get("parameters"), list):
-            params = obj["arguments"]["parameters"]
-
-    if not isinstance(params, list):
-        return []
-
-    print("params:", params)
-
-    # strict sanitize + de-dup
-    ordered, seen = [], set()
-    for raw in params:
-        cleaned = _sanitize_param(raw)
-        if cleaned and cleaned not in seen:
-            seen.add(cleaned)
-            ordered.append(cleaned)
-
-    print("cleaned params:", ordered)
-    return ordered
-
-# NEW —— convert ["A=1","B=2"] → ["-p","A","1","-p","B","2"]
-def _params_to_probcli_flags(pairs: list[str]) -> list[str]:
-    flags = []
-    for item in pairs:
-        # match NAME<VAL | NAME=VAL | NAME>VAL
-        m = re.match(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*([<>=])\s*(.+?)\s*$", item)
-        if not m:
-            continue
-        name, op, value = m.group(1), m.group(2), m.group(3).strip()
-        # inequality → pass as a scope constraint (your current pattern)
-        # results in: -scope "NAME<VAL" or -scope "NAME>VAL"
-        flags.extend(["-scope", f"{name}{op}{value}"])
-    return flags
-
-def verify_code(model_file, prob_params: list[str] | None = None):
+def verify_code(model_file):
     p = Path(model_file)
     if not p.exists():
         raise FileNotFoundError(f"Model file not found: {model_file}")
@@ -780,8 +663,6 @@ def verify_code(model_file, prob_params: list[str] | None = None):
     target = p.name
 
     cmd = ["probcli", target, "--model_check"]
-    if prob_params:
-        cmd.extend(prob_params)   # <- inject our -p flags here
 
     try:
         result = subprocess.run(
@@ -796,7 +677,7 @@ def verify_code(model_file, prob_params: list[str] | None = None):
     failed_markers = (
         "INVARIANT VIOLATION",
         "invariant violated",
-        "deadlock",
+        "deadlock found",
         "Loading Specification Failed",
         "parse_error",
         "*** error occurred ***",
@@ -1045,18 +926,7 @@ if __name__ == '__main__':
 
             # Stage 4: Converting Schema to Code
             model_file = gen_code(current_structured_data)
-
-            try:
-                model_text = Path(model_file).read_text(encoding="utf-8", errors="ignore")
-            except Exception:
-                model_text = ""
-            print("has model text: ", model_text != "")
-            bounds_pairs = _infer_prob_parameters_from_model(model_text)    # e.g., ["MAXINT=5","MAXSEQ=5"]
-            print(f"[{model_name}] Inferred bounds: {bounds_pairs}")
-            prob_flags   = _params_to_probcli_flags(bounds_pairs)           # -> ["-p","MAXINT","5","-p","MAXSEQ","5"]
-            print(f"[{model_name}] ProbCLI flags: {prob_flags}")
-
-            verification_result = verify_code(model_file, prob_flags)
+            verification_result = verify_code(model_file)
             print(f"Verification result for entry {i}: {verification_result}")
 
             if _verification_ok(verification_result):
@@ -1080,18 +950,7 @@ if __name__ == '__main__':
                 print(f"Repaired schema for entry {i}, attempt {attempt}.")
 
                 code = gen_code(current_structured_data)
-
-                try:
-                    model_text = Path(code).read_text(encoding="utf-8", errors="ignore")
-                except Exception:
-                    model_text = ""
-                print("has model text: ", model_text != "")
-                bounds_pairs = _infer_prob_parameters_from_model(model_text)
-                print(f"[{model_name}] Inferred bounds: {bounds_pairs}")
-                prob_flags   = _params_to_probcli_flags(bounds_pairs)
-                print(f"[{model_name}] ProbCLI flags: {prob_flags}")
-
-                verification_result = verify_code(code, prob_flags)
+                verification_result = verify_code(code)
                 print(f"[{model_name}] Post-repair verification status: {verification_result.get('status')}")
 
                 if _verification_ok(verification_result):
