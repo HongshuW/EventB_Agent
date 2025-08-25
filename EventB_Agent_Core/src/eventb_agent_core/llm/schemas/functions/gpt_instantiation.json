@@ -1,7 +1,7 @@
 {
 	"type": "function",
 	"name": "instantiation",
-	"description": "For instantiations of existential predicates, you must use existing constants defined in the context. e.g. To instantiate `\\exists x \\cdot x \\in TYPE`, you need to inspect the constants and axioms, and make sure to choose a constant with `TYPE`. For example, axioms `t \\in TYPE` and `partition(TYPE, {t1, t2})` indicate that t, t1, t2 are in TYPE set. You instantiation could be either t, t1, or t2.",
+	"description": "For instantiations of existential predicates, you must use existing constants defined in the context. e.g. To instantiate `\\exists x \\cdot x \\in TYPE`, you need to inspect the constants and axioms, and make sure to choose an existing ***constant from the context*** with the correct type `TYPE`, not variables from the machine or symbol defined in the proof tree. For example, axioms `t \\in TYPE` and `partition(TYPE, {t1, t2})` indicate that t, t1, t2 are in TYPE set. You instantiation could be either t, t1, or t2.",
 	"strict": true,
 	"parameters": {
 		"type": "object",
@@ -28,6 +28,22 @@
 					}
 				},
 				"additionalProperties": false
+			},
+			"constant": {
+				"type": "object",
+				"required": [
+					"constant_name",
+					"constant_type"
+				],
+				"properties": {
+					"constant_name": {
+						"$ref": "#/$defs/identifier"
+					},
+					"constant_type": {
+						"$ref": "#/$defs/identifier"
+					}
+				},
+				"additionalProperties": false
 			}
 		},
 		"properties": {
@@ -37,7 +53,7 @@
 			"instantiations": {
 				"type": "array",
 				"items": {
-					"$ref": "#/$defs/identifier"
+					"$ref": "#/$defs/constant"
 				},
 				"description": "If the predicate is from the selected hypotheses, suggest instantiations for universal predicate. If the predicate is from the goal, suggest instantiations for existential predicate, which must be constant(s) defined in the context with matching type."
 			}

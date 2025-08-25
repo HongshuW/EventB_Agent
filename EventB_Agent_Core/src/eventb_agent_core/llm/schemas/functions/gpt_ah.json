@@ -1,7 +1,7 @@
 {
 	"type": "function",
 	"name": "addHypothesesToContext",
-	"description": "Add hypothesis to the context. Use this function when a standard fact that is not recognized by Event-B should be added. The hypothesis will be added as an axiom in the context, so the predicate should only use constants and sets from the context, not variables from the machine. If this is not possible, don't call this function.",
+	"description": "Add hypothesis to the context. Use this function when a standard fact that is not recognized by Event-B should be added. The hypothesis will be added as an axiom in the context, so the predicate should only use ***constants and sets from the context***, not variables from the machine or symbols defined in the proof tree.",
 	"strict": true,
 	"parameters": {
 		"type": "object",
@@ -33,19 +33,11 @@
 		"properties": {
 			"hypothesis": {
 				"$ref": "#/$defs/labeled_predicate"
-			},
-			"instantiations": {
-				"type": "array",
-				"items": {
-					"$ref": "#/$defs/identifier"
-				},
-				"description": "If the added hypothesis is a universal predicate or an existential predicate, specify the instantiations."
 			}
 		},
 		"additionalProperties": false,
 		"required": [
-			"hypothesis",
-			"instantiations"
+			"hypothesis"
 		]
 	}
 }

@@ -29,6 +29,7 @@ import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.llminteractor.POFixer;
 import eventb_agent_core.preference.AgentPreferenceInitializer;
+import eventb_agent_core.proof.FixProofStrategyRunner;
 import eventb_agent_core.proof.POManager;
 import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.RetrieveModelUtils;
@@ -87,6 +88,13 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 					e.printStackTrace();
 				}
 				IPOSequent undischargedPO = getPO(pos, poName);
+				
+				FixProofStrategyRunner fixer = new FixProofStrategyRunner(undischargedPO, machineRoot);
+				try {
+					fixer.runAutoProvers();
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
 
 				if (undischargedPO != null) {
 					try {

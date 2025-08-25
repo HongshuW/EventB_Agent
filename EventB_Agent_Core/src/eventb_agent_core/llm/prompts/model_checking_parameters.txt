@@ -1,7 +1,7 @@
-Given the Event-B model below, call the model_checking function with suitable parameters to set up bound for model checking.\n
-Each parameter must be one of the forms 'NAME=VALUE', 'NAME<VALUE', or 'NAME>VALUE'.\n
-NAME must be a constant name or set.\n
-The parameters array should be specific to the model.\n
-\n
-Model:\n
+Given the Event-B model below, call the model_checking function with suitable parameters to set up bound for model checking.
+Each parameter must be one of the forms 'NAME=VALUE', 'NAME<VALUE', or 'NAME>VALUE'.
+NAME must be a constant name or set.
+The parameters array should be specific to the model.
+
+Model:
 {{model}}

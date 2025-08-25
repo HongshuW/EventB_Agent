@@ -23,8 +23,6 @@ import eventb_agent_core.utils.proof.ProofUtils;
  */
 public class POManager {
 
-	private static final String PO_OWNER_NAME = "POManager";
-
 	public POManager() {
 	}
 
@@ -66,7 +64,7 @@ public class POManager {
 		for (IPOSequent poSequent : poRoot.getSequents()) {
 			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
 			if (!ProofUtils.isDischarged(machineRoot, psStatus.getElementName())) {
-				FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent, machineRoot, PO_OWNER_NAME);
+				FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent, machineRoot);
 				fixer.applyLasoo();
 				fixer.runAutoProvers();
 			}

@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 
 public class ParserUtils {
 
-	private static char INT = '\u2124';
+	public static char INT = '\u2124';
 	private static char NAT = '\u2115';
 	private static char POW = '\u2119';
 	private static char EMPTY_SET = '\u2205';
@@ -48,7 +48,7 @@ public class ParserUtils {
 	private static char BIJECTION = '\u2916'; // >->>
 	private static char MAP_LET = '\u21A6'; // |->
 
-	private static char ELEMENT_OF = '\u2208';
+	public static char ELEMENT_OF = '\u2208';
 	private static char SUBSET = '\u2286';
 	private static char STRICT_SUBSET = '\u2282';
 	private static char NOT_ELEMENT_OF = '\u2209';
@@ -455,14 +455,24 @@ public class ParserUtils {
 	}
 
 	public static String reverseLex(String originalString) {
+		return reverseLex(originalString, 0);
+	}
+
+	public static String reverseLex(String originalString, int spaceCount) {
 		if (reverseLexMap == null) {
 			initMap();
 		}
+		String space = "";
+		for (int i = 0; i < spaceCount; i++) {
+			space += " ";
+		}
+
 		StringBuilder newString = new StringBuilder();
 		char[] characters = originalString.toCharArray();
-		for (char c : characters) {
-			if (reverseLexMap.containsKey(c)) {
-				newString.append(reverseLexMap.get(c));
+		for (int i = 0; i < characters.length; i++) {
+			char c = characters[i];
+			if (reverseLexMap.containsKey(c) && c != POW && c != NAT && c != INT) {
+				newString.append(space + reverseLexMap.get(c) + space);
 			} else {
 				newString.append(String.valueOf(c));
 			}

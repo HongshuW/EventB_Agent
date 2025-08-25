@@ -19,6 +19,7 @@ import org.rodinp.core.IRodinFile;
 import org.rodinp.core.RodinDBException;
 
 import eventb_agent_core.proof.ProofAttemptWrapper;
+import eventb_agent_core.proof.ProofNodeWrapper;
 
 public class ProofUtils {
 
@@ -117,6 +118,59 @@ public class ProofUtils {
 		}
 
 		return found;
+	}
+
+	/**
+	 * Node ID starts from 0.
+	 * 
+	 * @param tree
+	 * @return
+	 */
+	public static String getProofTreeString(IProofTree tree) {
+		StringBuilder treeInfo = new StringBuilder();
+		String treeString = tree.toString();
+		String[] nodes = treeString.split("\n");
+		for (int i = 0; i < nodes.length; i++) {
+			String node = nodes[i];
+			if (i == nodes.length - 1) {
+				treeInfo.append(node);
+			} else {
+				treeInfo.append("NODE_" + String.valueOf(i) + ": ");
+				treeInfo.append(node + "\nNODE_" + String.valueOf(i) + "\n\n");
+			}
+		}
+		return treeInfo.toString();
+	}
+
+	/**
+	 * Node ID starts from 0.
+	 * 
+	 * @param tree
+	 * @param nodeID
+	 * @return
+	 */
+	public static IProofTreeNode getProofTreeNode(IProofTree tree, int nodeID) {
+		ProofNodeWrapper targetNode = getNodeHelper(tree.getRoot(), 0, nodeID);
+		return targetNode.node;
+	}
+
+	private static ProofNodeWrapper getNodeHelper(IProofTreeNode node, int currentID, int targetID) {
+		if (currentID == targetID) {
+			return new ProofNodeWrapper(node, currentID);
+		}
+
+		IProofTreeNode lastNode = null;
+		for (IProofTreeNode childNode : node.getChildNodes()) {
+			currentID++;
+			ProofNodeWrapper nodeWrapper = getNodeHelper(childNode, currentID, targetID);
+			if (nodeWrapper.id == targetID) {
+				return nodeWrapper;
+			}
+			currentID = nodeWrapper.id;
+			lastNode = nodeWrapper.node;
+		}
+
+		return new ProofNodeWrapper(lastNode, currentID);
 	}
 
 }
