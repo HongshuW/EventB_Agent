@@ -2,6 +2,7 @@ package eventb_agent_core.llminteractor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
@@ -15,8 +16,8 @@ import org.eventb.core.IPOSequent;
 import org.eventb.core.pm.IProofAttempt;
 import org.eventb.core.pm.IProofComponent;
 import org.eventb.core.seqprover.IProofTree;
-import org.eventb.core.seqprover.IProofTreeNode;
 import org.eventb.internal.core.pm.ProofManager;
+import org.eventb.internal.core.seqprover.ReasonerFailure;
 import org.json.JSONObject;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.RodinDBException;
@@ -27,6 +28,7 @@ import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.llm.schemas.SchemaKeys;
+import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.proof.FixProofStrategyRunner;
 import eventb_agent_core.proof.Hypothesis;
 import eventb_agent_core.proof.ProofFixingStrategies;
@@ -38,6 +40,7 @@ import eventb_agent_core.utils.proof.ProofUtils;
 public class POFixer extends AbstractLLMInteractor {
 
 	private static final String PO_OWNER_NAME = "POFixer";
+	private static String reasonerMessage = null;
 
 	public POFixer(LLMRequestSender llmRequestSender, LLMResponseParser llmResponseParser) {
 		super(llmRequestSender, llmResponseParser);
@@ -91,9 +94,12 @@ public class POFixer extends AbstractLLMInteractor {
 	 * 
 	 * @param machineRoot
 	 * @param poSequent
+	 * @param requestHistory TODO
 	 * @throws CoreException
+	 * @throws ReachMaxAttemptException
 	 */
-	public void autoFixPO(IMachineRoot machineRoot, IPOSequent poSequent) throws CoreException {
+	public void autoFixPO(IMachineRoot machineRoot, IPOSequent poSequent,
+			List<LinkedHashMap<String, Object>> requestHistory) throws CoreException {
 
 		String poName = poSequent.getElementName();
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
@@ -117,14 +123,22 @@ public class POFixer extends AbstractLLMInteractor {
 
 		if (tree != null) {
 			try {
-				System.out.println();
+				reasonerMessage = null;
 				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName,
 						ParserUtils.reverseLex(ProofUtils.getProofTreeString(tree), 1) };
-				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF);
+				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF,
+						requestHistory);
 				modifyModel(answer, machineRoot, contextRoot, poSequent, tree);
-			} catch (CoreException e) {
-				e.printStackTrace();
-			} catch (ReachMaxAttemptException e) {
+				if (!ProofUtils.isDischarged(machineRoot, poName)) {
+					EvaluationManager.endLatestAction();
+					EvaluationManager.repeatAndStartPrevoiusAction(maxAttemptsProof);
+					EvaluationManager.setLastPOActionIndex();
+					llmRequestSender.getRequestBuilder().addRequestHistory(
+							"The PO is not discharged. The Event-B model and proof tree are updated. What to do next?",
+							reasonerMessage, requestHistory, answer);
+					autoFixPO(machineRoot, poSequent, requestHistory);
+				}
+			} catch (CoreException | ReachMaxAttemptException e) {
 				System.out.println(e.getMessage());
 			}
 		} else {
@@ -136,9 +150,9 @@ public class POFixer extends AbstractLLMInteractor {
 	private void modifyModel(JSONObject answer, IMachineRoot machineRoot, IContextRoot contextRoot,
 			IPOSequent poSequent, IProofTree tree) throws CoreException {
 		String function = answer.getString(Constants.FUNCTION_NAME);
-		JSONObject args = answer.getJSONObject(Constants.FUNCTION_ARGS);
+		JSONObject args = new JSONObject(answer.getString(Constants.FUNCTION_ARGS));
 
-		EvaluationManager.setErrorToLatestAction(args.toString());
+		EvaluationManager.setErrorToLatestAction(function + ":" + args.toString());
 
 		ProofFixingStrategies strategy = ProofFixingStrategies.valueOf(function);
 		int nodeID = args.getInt(SchemaKeys.NODE_ID);
@@ -151,8 +165,13 @@ public class POFixer extends AbstractLLMInteractor {
 			String tacticString = args.getString(SchemaKeys.PROOF_TACTIC);
 			ProofFixingStrategies tactic = ProofFixingStrategies.valueOf(tacticString);
 			String predicate = ParserUtils.lex(args.getString(SchemaKeys.PRED));
-			fixer.applyProofTactic(predicate, nodeID, tactic);
-			fixer.applyPostTactic();
+			Object result = fixer.applyProofTactic(predicate, nodeID, tactic);
+			if (result instanceof ReasonerFailure) {
+				ReasonerFailure fail = (ReasonerFailure) result;
+				reasonerMessage = fail.getReason();
+			} else {
+				fixer.applyPostTactic();
+			}
 			break;
 		case addHypothesesToContext:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.HYP);

@@ -233,7 +233,7 @@ public class RetrieveModelUtils {
 		addIdentifiers(event.getParameters(), eventJSON, SchemaKeys.ANY);
 		addLabeledPredicates(event.getGuards(), eventJSON, SchemaKeys.WHERE);
 		addLabeledPredicates(event.getWitnesses(), eventJSON, SchemaKeys.WITH);
-		addLabeledAssignments(event.getActions(), eventJSON, SchemaKeys.ASSIGN);
+		addLabeledAssignments(event.getActions(), eventJSON, SchemaKeys.THEN);
 		return eventJSON;
 	}
 

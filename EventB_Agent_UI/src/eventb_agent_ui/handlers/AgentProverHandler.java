@@ -23,6 +23,7 @@ import org.eventb.core.seqprover.IProofTree;
 import org.eventb.core.seqprover.IProofTreeNode;
 import org.rodinp.core.RodinDBException;
 
+import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMInstanceFactory;
 import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.LLMRequestSender;
@@ -88,7 +89,7 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 					e.printStackTrace();
 				}
 				IPOSequent undischargedPO = getPO(pos, poName);
-				
+
 				FixProofStrategyRunner fixer = new FixProofStrategyRunner(undischargedPO, machineRoot);
 				try {
 					fixer.runAutoProvers();
@@ -98,12 +99,11 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 
 				if (undischargedPO != null) {
 					try {
-						poFixer.autoFixPO(machineRoot, undischargedPO);
+						poFixer.autoFixPO(machineRoot, undischargedPO, new ArrayList<>());
 					} catch (CoreException e) {
 						e.printStackTrace();
 					}
 				}
-
 			} else {
 				MessageDialog dialog = new MessageDialog(shell, "Agent Prover", null,
 						"The Agent Prover is designed to fix a proof tree.\n"

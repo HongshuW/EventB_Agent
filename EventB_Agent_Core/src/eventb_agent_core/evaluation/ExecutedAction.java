@@ -12,10 +12,12 @@ public class ExecutedAction {
 	private long time;
 	private long tokens;
 	private String error;
+	private boolean isEnded;
 
 	public ExecutedAction(ComponentType type, int attemptID) {
 		this.type = type;
 		this.attemptID = attemptID;
+		this.isEnded = false;
 	}
 
 	public void start() {
@@ -25,8 +27,11 @@ public class ExecutedAction {
 	}
 
 	public void finish() {
-		long endTime = System.currentTimeMillis();
-		time = endTime - time;
+		if (!isEnded) {
+			long endTime = System.currentTimeMillis();
+			time = endTime - time;
+			isEnded = true;
+		}
 	}
 
 	public void addTokens(long tokens) {

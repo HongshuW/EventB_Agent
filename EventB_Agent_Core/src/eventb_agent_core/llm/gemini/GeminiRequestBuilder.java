@@ -5,7 +5,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+
+import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -64,7 +67,8 @@ public class GeminiRequestBuilder extends RequestBuilder {
 	}
 
 	@Override
-	public String getRequestWithTools(String prompt, LLMRequestTypes requestType) throws IOException {
+	public String getRequestWithTools(String prompt, LLMRequestTypes requestType,
+			List<LinkedHashMap<String, Object>> history) throws IOException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -83,6 +87,13 @@ public class GeminiRequestBuilder extends RequestBuilder {
 		conn.setRequestProperty("Content-Type", "application/json");
 		conn.setDoOutput(true);
 		return conn;
+	}
+
+	@Override
+	public void addRequestHistory(String prompt, String message, List<LinkedHashMap<String, Object>> history,
+			JSONObject functionCall) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

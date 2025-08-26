@@ -5,8 +5,11 @@ import java.net.HttpURLConnection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.json.JSONObject;
 
 import eventb_agent_core.utils.FileUtils;
 
@@ -48,7 +51,11 @@ public abstract class RequestBuilder {
 
 	public abstract String getRequestWithSchema(String prompt, LLMRequestTypes requestType) throws IOException;
 
-	public abstract String getRequestWithTools(String prompt, LLMRequestTypes requestType) throws IOException;
+	public abstract String getRequestWithTools(String prompt, LLMRequestTypes requestType,
+			List<LinkedHashMap<String, Object>> history) throws IOException;
+
+	public abstract void addRequestHistory(String prompt, String message, List<LinkedHashMap<String, Object>> history,
+			JSONObject functionCall);
 
 	public abstract String getRequestPlain(String prompt) throws IOException;
 

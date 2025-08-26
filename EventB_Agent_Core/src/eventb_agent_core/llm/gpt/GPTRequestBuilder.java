@@ -3,10 +3,15 @@ package eventb_agent_core.llm.gpt;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eventb_agent_core.llm.LLMModels;
@@ -83,7 +88,8 @@ public class GPTRequestBuilder extends RequestBuilder {
 	}
 
 	@Override
-	public String getRequestWithTools(String prompt, LLMRequestTypes requestType) throws IOException {
+	public String getRequestWithTools(String prompt, LLMRequestTypes requestType,
+			List<LinkedHashMap<String, Object>> history) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
@@ -96,7 +102,11 @@ public class GPTRequestBuilder extends RequestBuilder {
 		content.put("type", "input_text");
 		content.put("text", prompt);
 		requestMessage.put("content", Arrays.asList(content));
-		request.put("input", Arrays.asList(requestMessage));
+
+		List<LinkedHashMap<String, Object>> inputs = new ArrayList<>();
+		inputs.addAll(history);
+		inputs.add(requestMessage);
+		request.put("input", inputs);
 
 		request.put("tools", getFunctionSchemas(requestType));
 
@@ -141,6 +151,40 @@ public class GPTRequestBuilder extends RequestBuilder {
 		conn.setRequestProperty("Content-Type", "application/json");
 		conn.setDoOutput(true);
 		return conn;
+	}
+
+	@Override
+	public void addRequestHistory(String prompt, String message, List<LinkedHashMap<String, Object>> history,
+			JSONObject functionCall) {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			LinkedHashMap<String, Object> functionCallMap = mapper.readValue(functionCall.toString(),
+					LinkedHashMap.class);
+			history.add(functionCallMap);
+
+			LinkedHashMap<String, Object> functionCallOutputMap = new LinkedHashMap<>();
+			functionCallOutputMap.put("type", "function_call_output");
+			functionCallOutputMap.put("call_id", functionCall.get("call_id"));
+			LinkedHashMap<String, Object> functionCallOutput = new LinkedHashMap<>();
+			if (message == null) {
+				functionCallOutput.put("status", "success");
+			} else {
+				functionCallOutput.put("status", "failure");
+				functionCallOutput.put("message", message);
+			}
+			functionCallOutputMap.put("output", mapper.writeValueAsString(functionCallOutput));
+			history.add(functionCallOutputMap);
+
+			LinkedHashMap<String, Object> nextMessageMap = new LinkedHashMap();
+			nextMessageMap.put("role", "user");
+			LinkedHashMap<String, Object> nextMessage = new LinkedHashMap();
+			nextMessage.put("type", "input_text");
+			nextMessage.put("text", prompt);
+			nextMessageMap.put("content", Arrays.asList(nextMessage));
+			history.add(nextMessageMap);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

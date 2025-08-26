@@ -12,7 +12,7 @@ public class GPTResponseParser extends LLMResponseParser {
 		JSONObject obj = new JSONObject(response);
 		return (long) obj.getJSONObject("usage").getInt("total_tokens");
 	}
-	
+
 	@Override
 	public String getResponseString(String response) {
 		JSONObject obj = new JSONObject(response);
@@ -21,11 +21,7 @@ public class GPTResponseParser extends LLMResponseParser {
 
 	@Override
 	public JSONObject getResponseWithTools(String response) {
-		JSONObject json = new JSONObject(response).getJSONArray("output").getJSONObject(0);
-		JSONObject output = new JSONObject();
-		output.put(Constants.FUNCTION_NAME, json.getString(Constants.FUNCTION_NAME));
-		output.put(Constants.FUNCTION_ARGS, new JSONObject(json.getString(Constants.FUNCTION_ARGS)));
-		return output;
+		return new JSONObject(response).getJSONArray("output").getJSONObject(0);
 	}
 
 }

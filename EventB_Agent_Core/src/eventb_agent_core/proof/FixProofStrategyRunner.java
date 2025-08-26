@@ -50,6 +50,7 @@ public class FixProofStrategyRunner {
 		IProofTreeNode node = ProofUtils.getLastNodeFromTree(proofAttempt);
 
 		// auto provers
+		applyLasoo();
 		applyPostTactic();
 		if (ProofUtils.isDischarged(machineRoot, poOwnerName)) {
 			ProofUtils.saveProofAttempt(machineRoot, proofAttempt);
@@ -58,11 +59,13 @@ public class FixProofStrategyRunner {
 
 		// SMT solvers
 		node = ProofUtils.getLastNodeFromTree(proofAttempt);
+		applyLasoo();
 		ITactic smt = new SMTAutoTactic();
 		smt.apply(node, null);
 
 		IProofTreeNode lastNode = ProofUtils.getLastNodeFromTree(proofAttempt);
 		while (lastNode != node) {
+			applyLasoo();
 			smt.apply(lastNode, null);
 			node = lastNode;
 			lastNode = ProofUtils.getLastNodeFromTree(proofAttempt);
@@ -88,7 +91,7 @@ public class FixProofStrategyRunner {
 		insertLemmaTactic.apply(node, null);
 	}
 
-	public void applyProofTactic(String predicate, int nodeID, ProofFixingStrategies strategy) throws RodinDBException {
+	public Object applyProofTactic(String predicate, int nodeID, ProofFixingStrategies strategy) throws RodinDBException {
 		String reasonerID = "org.eventb.core.seqprover";
 		switch (strategy) {
 		case cardinalityDefinition:
@@ -137,7 +140,7 @@ public class FixProofStrategyRunner {
 			reasonerID += ".sir";
 			break;
 		}
-		applyProofTactic(predicate, nodeID, reasonerID);
+		return applyProofTactic(predicate, nodeID, reasonerID);
 	}
 
 	private String getReasonerIDforInclusion(String predicate, int nodeID) throws RodinDBException {
@@ -155,7 +158,7 @@ public class FixProofStrategyRunner {
 		}
 	}
 
-	private void applyProofTactic(String predicate, int nodeID, String reasonerID) throws RodinDBException {
+	private Object applyProofTactic(String predicate, int nodeID, String reasonerID) throws RodinDBException {
 		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
 		IProofTreeNode node = ProofUtils.getProofTreeNode(proofAttempt.getProofTree(), nodeID);
 
@@ -165,7 +168,7 @@ public class FixProofStrategyRunner {
 		AbstractManualRewrites.Input input = new AbstractManualRewrites.Input(predInNode, pos);
 		IReasoner reasoner = SequentProver.getReasonerRegistry().getReasonerDesc(reasonerID).getInstance();
 		ITactic tac = BasicTactics.reasonerTac(reasoner, input);
-		Object result = tac.apply(node, null);
+		return tac.apply(node, null);
 	}
 
 	public void applyPostTactic() throws CoreException {

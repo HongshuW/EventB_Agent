@@ -3,6 +3,7 @@ package eventb_agent_ui.workspaceinteractor;
 import static org.eventb.core.IConfigurationElement.DEFAULT_CONFIGURATION;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -54,12 +56,14 @@ import eventb_agent_core.evaluation.EvaluationManager;
 import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMResponseParser;
+import eventb_agent_core.llm.schemas.SchemaKeys;
 import eventb_agent_core.llminteractor.CompilationErrorFixer;
 import eventb_agent_core.llminteractor.ModelCheckingFixer;
 import eventb_agent_core.llminteractor.ModelCreator;
 import eventb_agent_core.llminteractor.POFixer;
 import eventb_agent_core.proof.POManager;
 import eventb_agent_core.refinement.RefinementStep;
+import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.RodinUtils;
 import eventb_agent_core.utils.proof.ProofUtils;
 import eventb_agent_ui.utils.CreateModelUtils;
@@ -84,6 +88,8 @@ public class ModelWorkspaceInteractor {
 	private int maxAttemptsProof;
 
 	private Set<String> visitedPOs;
+
+	private String previousModel;
 
 	public ModelWorkspaceInteractor(LLMRequestSender llmRequestSender, LLMResponseParser llmResponseParser,
 			boolean enableFixStrategy, int maxAttemptsSynth, int maxAttemptsProof, IRunnableContext runnableContext) {
@@ -147,10 +153,13 @@ public class ModelWorkspaceInteractor {
 			EvaluationManager.endLatestAction();
 
 			fixCompilationErrors(projectName, fileNames);
+			countCompilationErrors(projectName, fileNames);
+
 			fixBasedOnModelCheckingResults(projectName, fileNames);
 
 			runAutoProvers(projectName, fileNames);
 			fixPOs(projectName, fileNames, null);
+			countPOs(projectName, fileNames);
 			sysDesc = newSysDesc;
 		} else {
 			// refine the previous model
@@ -165,22 +174,31 @@ public class ModelWorkspaceInteractor {
 			EvaluationManager.endLatestAction();
 
 			fixCompilationErrors(projectName, fileNames);
+			countCompilationErrors(projectName, fileNames);
+
 			fixBasedOnModelCheckingResults(projectName, fileNames);
 
 			runAutoProvers(projectName, fileNames);
 			fixPOs(projectName, fileNames, null);
+			countPOs(projectName, fileNames);
 			sysDesc += "\n" + newSysDesc;
 		}
 
 		return new ModelInfo(fileNames[0], fileNames[1], sysDesc);
 	}
 
-	public String[] saveModel(String projectName, JSONObject response)
+	public void backtrackToPreviousModel(String projectName) throws InvocationTargetException, InterruptedException {
+		JSONObject previousModelJSON = new JSONObject(previousModel);
+		JSONObject contextJSON = previousModelJSON.getJSONObject(SchemaKeys.CONTEXT_OBJ_KEY);
+		JSONObject machineJSON = previousModelJSON.getJSONObject(SchemaKeys.MACHINE_OBJ_KEY);
+		saveModel(projectName, contextJSON, machineJSON);
+	}
+
+	public String[] saveModel(String projectName, JSONObject contextJSON, JSONObject machineJSON)
 			throws InvocationTargetException, InterruptedException {
-		final String contextFileName = llmResponseParser.getContextName(response) + "." + contextFileType;
-		final String machineFileName = llmResponseParser.getMachineName(response) + "." + machineFileType;
-		JSONObject contextJSON = llmResponseParser.getContextJSON(response);
-		JSONObject machineJSON = llmResponseParser.getMachineJSON(response);
+
+		String contextFileName = contextJSON.getString(SchemaKeys.CONTEXT) + "." + contextFileType;
+		String machineFileName = machineJSON.getString(SchemaKeys.MACHINE) + "." + machineFileType;
 
 		// save model
 		IRunnableWithProgress saveModelOperation = new IRunnableWithProgress() {
@@ -232,6 +250,14 @@ public class ModelWorkspaceInteractor {
 		runnableContext.run(false, false, saveModelOperation);
 
 		return new String[] { contextFileName, machineFileName };
+	}
+
+	public String[] saveModel(String projectName, JSONObject response)
+			throws InvocationTargetException, InterruptedException {
+		JSONObject contextJSON = llmResponseParser.getContextJSON(response);
+		JSONObject machineJSON = llmResponseParser.getMachineJSON(response);
+
+		return saveModel(projectName, contextJSON, machineJSON);
 	}
 
 	private void buildAndWaitForMarkers(IFile rodinFile, IProgressMonitor mon)
@@ -352,7 +378,8 @@ public class ModelWorkspaceInteractor {
 		return attempt + 1;
 	}
 
-	private int getNextAttemptIDForFixProof(String poName) throws ReachMaxAttemptException {
+	private int getNextAttemptIDForFixProof(String projectName, String poName)
+			throws ReachMaxAttemptException, InvocationTargetException, InterruptedException {
 		if (EvaluationManager.getLastPOActionIndex() == -1) {
 			// no proof action before
 			return 0;
@@ -421,6 +448,70 @@ public class ModelWorkspaceInteractor {
 		return new String[] { contextFileName, machineFileName };
 	}
 
+	private void countCompilationErrors(String projectName, String[] fileNames)
+			throws InvocationTargetException, InterruptedException, CoreException {
+		EvaluationManager.addAndStartNewAction(ComponentType.COMPILATION_CHECKER, maxAttemptsSynth);
+
+		final String contextFileName = fileNames[0];
+		final String machineFileName = fileNames[1];
+
+		IRunnableWithProgress countCompilationErrorsOperation = new IRunnableWithProgress() {
+			@Override
+			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				try {
+					IRodinProject rodinProject = RodinUtils.getRodinProject(projectName);
+
+					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+					final IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
+					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
+					IContextRoot contextRoot = (IContextRoot) contextFile.getRoot();
+
+					((IConfigurationElement) machineRoot).setConfiguration(DEFAULT_CONFIGURATION, null);
+					((IConfigurationElement) contextRoot).setConfiguration(DEFAULT_CONFIGURATION, null);
+
+					IResource machineResource = machineRoot.getResource();
+					IResource contextResource = contextRoot.getResource();
+					IMarker[] machineMarkers = machineResource.findMarkers("org.rodinp.core.problem", true,
+							IResource.DEPTH_INFINITE);
+					IMarker[] contextMarkers = contextResource.findMarkers("org.rodinp.core.problem", true,
+							IResource.DEPTH_INFINITE);
+
+					int compilationErrorCount = getCompilationErrorCount(machineMarkers, contextMarkers,
+							IMarker.SEVERITY_ERROR);
+					int compilationWarningCount = getCompilationErrorCount(machineMarkers, contextMarkers,
+							IMarker.SEVERITY_WARNING);
+					System.out.println("Compilation Errors:" + String.valueOf(compilationErrorCount));
+					System.out.println("Compilation Warnings:" + String.valueOf(compilationWarningCount));
+
+					EvaluationManager.setErrorToLatestAction(
+							String.valueOf(compilationErrorCount) + "/" + String.valueOf(compilationWarningCount));
+					EvaluationManager.endLatestAction();
+				} catch (CoreException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		runnableContext.run(false, false, countCompilationErrorsOperation);
+	}
+
+	private int getCompilationErrorCount(IMarker[] machineMarkers, IMarker[] contextMarkers, int severity)
+			throws CoreException {
+		int count = 0;
+		for (IMarker marker : machineMarkers) {
+			int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
+			if (markerSeverity == severity) {
+				count++;
+			}
+		}
+		for (IMarker marker : contextMarkers) {
+			int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
+			if (markerSeverity == severity) {
+				count++;
+			}
+		}
+		return count;
+	}
+
 	private void fixBasedOnModelCheckingResults(String projectName, String[] fileNames)
 			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
 
@@ -447,7 +538,6 @@ public class ModelWorkspaceInteractor {
 					EvaluationManager.endLatestAction();
 
 					if (newModel != null) {
-//						System.out.println(newModel.toString(2));
 						String[] newFileNames = saveModel(projectName, newModel);
 						fixBasedOnModelCheckingResults(projectName, newFileNames);
 					}
@@ -509,12 +599,21 @@ public class ModelWorkspaceInteractor {
 					POManager poManager = new POManager();
 					POFixer poFixer = new POFixer(llmRequestSender, llmResponseParser);
 
+					EvaluationManager.addAndStartNewAction(ComponentType.PO_CHECKER, 0);
+
 					int totalPOCount = poManager.getAllPOs(machineRoot).length;
 					int undischargedPOCount = poManager.getOpenPOs(machineRoot).size();
 					System.out.println(totalPOCount);
 					System.out.println(undischargedPOCount);
 
 					poManager.runAutoProvers(machineRoot);
+
+					int updatedUndischargedPOCount = poManager.getOpenPOs(machineRoot).size();
+					System.out.println(updatedUndischargedPOCount);
+
+					EvaluationManager.setErrorToLatestAction(String.valueOf(totalPOCount) + "/"
+							+ String.valueOf(undischargedPOCount) + "/" + String.valueOf(updatedUndischargedPOCount));
+					EvaluationManager.endLatestAction();
 				} catch (Exception e) {
 					throw new InvocationTargetException(e);
 				} finally {
@@ -529,7 +628,7 @@ public class ModelWorkspaceInteractor {
 			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
 
 		// throw exception and stop if exceeds limit
-		int newAttemptID = getNextAttemptIDForFixProof(poName);
+		int newAttemptID = getNextAttemptIDForFixProof(projectName, poName);
 
 		final String contextFileName = fileNames[0];
 		final String machineFileName = fileNames[1];
@@ -540,7 +639,9 @@ public class ModelWorkspaceInteractor {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 				try {
 					IRodinProject rodinProject = getRodinProject(projectName);
+					final IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
 					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+					IContextRoot contextRoot = (IContextRoot) contextFile.getRoot();
 					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
 
 					// wait for bps file to be generated
@@ -557,7 +658,7 @@ public class ModelWorkspaceInteractor {
 
 					if (pos.isEmpty()) {
 						EvaluationManager.addAndStartNewAction(ComponentType.FIX_PROOF, newAttemptID);
-						EvaluationManager.setErrorToLatestAction("All POs discharged.");
+						EvaluationManager.setErrorToLatestAction("All POs checked.");
 						EvaluationManager.endLatestAction();
 					}
 
@@ -570,13 +671,16 @@ public class ModelWorkspaceInteractor {
 						EvaluationManager.setPONameToLatestAction(undischargedPOName);
 						EvaluationManager.setLastPOActionIndex();
 
+						// record model before fixing
+						previousModel = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
+
 						if (enableFixStrategy) {
-							poFixer.autoFixPO(machineRoot, undischargedPO);
+							poFixer.autoFixPO(machineRoot, undischargedPO, new ArrayList<>());
 							EvaluationManager.endLatestAction();
 
 							if (ProofUtils.isDischarged(machineRoot, undischargedPOName)) {
 								visitedPOs.add(undischargedPOName);
-								EvaluationManager.setErrorToLatestAction("PO discharged");
+								EvaluationManager.copyActionForInfoRecording("PO discharged");
 								fixPOs(projectName, fileNames, null);
 							} else {
 								fixPOs(projectName, fileNames, undischargedPOName);
@@ -587,10 +691,9 @@ public class ModelWorkspaceInteractor {
 								saveModel(projectName, newModel);
 								EvaluationManager.endLatestAction();
 
-//								fixCompilationErrors(projectName, fileNames);
 								if (ProofUtils.isDischarged(machineRoot, undischargedPOName)) {
 									visitedPOs.add(undischargedPOName);
-									EvaluationManager.setErrorToLatestAction("PO discharged");
+									EvaluationManager.copyActionForInfoRecording("PO discharged");
 									fixPOs(projectName, fileNames, null);
 								} else {
 									fixPOs(projectName, fileNames, undischargedPOName);
@@ -601,9 +704,11 @@ public class ModelWorkspaceInteractor {
 
 				} catch (ReachMaxAttemptException e) {
 					System.out.println(e.getMessage());
-					EvaluationManager.setErrorToLatestAction(e.getMessage());
+					EvaluationManager.endLatestAction();
+					EvaluationManager.copyActionForInfoRecording(e.getMessage());
 					visitedPOs.add(e.poName == null ? poName : e.poName);
 					try {
+						backtrackToPreviousModel(projectName);
 						fixPOs(projectName, fileNames, null);
 					} catch (InvocationTargetException | InterruptedException | ReachMaxAttemptException e1) {
 						e1.printStackTrace();
@@ -619,7 +724,47 @@ public class ModelWorkspaceInteractor {
 		runnableContext.run(false, false, fixPOsOperation);
 
 		return new String[] { contextFileName, machineFileName };
+	}
 
+	private void countPOs(String projectName, String[] fileNames)
+			throws InvocationTargetException, InterruptedException {
+		final String machineFileName = fileNames[1];
+
+		IRunnableWithProgress countPOsOperation = new IRunnableWithProgress() {
+			@Override
+			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				try {
+					IRodinProject rodinProject = getRodinProject(projectName);
+					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
+
+					// wait for bps file to be generated
+					try {
+						buildAndWaitForPOs(machineFile, monitor);
+					} finally {
+						monitor.done();
+					}
+
+					POManager poManager = new POManager();
+
+					EvaluationManager.addAndStartNewAction(ComponentType.PO_CHECKER, 0);
+
+					int totalPOCount = poManager.getAllPOs(machineRoot).length;
+					int undischargedPOCount = poManager.getOpenPOs(machineRoot).size();
+					System.out.println(totalPOCount);
+					System.out.println(undischargedPOCount);
+
+					EvaluationManager.setErrorToLatestAction(
+							String.valueOf(totalPOCount) + "/" + String.valueOf(undischargedPOCount));
+					EvaluationManager.endLatestAction();
+				} catch (Exception e) {
+					throw new InvocationTargetException(e);
+				} finally {
+					monitor.done();
+				}
+			}
+		};
+		runnableContext.run(false, false, countPOsOperation);
 	}
 
 	/**

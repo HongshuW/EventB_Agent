@@ -65,12 +65,9 @@ public class POManager {
 			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
 			if (!ProofUtils.isDischarged(machineRoot, psStatus.getElementName())) {
 				FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent, machineRoot);
-				fixer.applyLasoo();
 				fixer.runAutoProvers();
 			}
 		}
-
-		System.out.println(getOpenPOs(machineRoot).size());
 	}
 
 	private Map<String, IPSStatus> getStatusByPOMap(IPSRoot psRoot) throws RodinDBException {

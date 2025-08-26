@@ -1,6 +1,8 @@
 package eventb_agent_core.llminteractor;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
@@ -23,8 +25,8 @@ public abstract class AbstractLLMInteractor {
 	protected LLMRequestSender llmRequestSender;
 	protected LLMResponseParser llmResponseParser;
 
-	private int maxAttemptsSynth;
-	private int maxAttemptsProof;
+	protected int maxAttemptsSynth;
+	protected int maxAttemptsProof;
 
 	public AbstractLLMInteractor(LLMRequestSender llmRequestSender, LLMResponseParser llmResponseParser) {
 		this.llmRequestSender = llmRequestSender;
@@ -37,25 +39,25 @@ public abstract class AbstractLLMInteractor {
 
 	public JSONObject getLLMResponse(String[] placeHolderContents, LLMRequestTypes requestType)
 			throws ReachMaxAttemptException {
-		return getLLMResponse(placeHolderContents, requestType, false);
+		return getLLMResponse(placeHolderContents, requestType, false, null);
 	}
 
-	public JSONObject getLLMResponseWithTools(String[] placeHolderContents, LLMRequestTypes requestType)
-			throws ReachMaxAttemptException {
-		return getLLMResponse(placeHolderContents, requestType, true);
+	public JSONObject getLLMResponseWithTools(String[] placeHolderContents, LLMRequestTypes requestType,
+			List<LinkedHashMap<String, Object>> history) throws ReachMaxAttemptException {
+		return getLLMResponse(placeHolderContents, requestType, true, history);
 	}
 
-	private JSONObject getLLMResponse(String[] placeHolderContents, LLMRequestTypes requestType, boolean useTools)
-			throws ReachMaxAttemptException {
+	private JSONObject getLLMResponse(String[] placeHolderContents, LLMRequestTypes requestType, boolean useTools,
+			List<LinkedHashMap<String, Object>> history) throws ReachMaxAttemptException {
 		String response;
 		try {
-			response = llmRequestSender.sendRequest(placeHolderContents, requestType);
+			response = llmRequestSender.sendRequest(placeHolderContents, requestType, history);
 			try {
 				response = decodeUnicodeEscapes(response);
 			} catch (InvalidCharacterException e) {
 				System.out.println(e.getMessage());
 				EvaluationManager.setErrorToLatestAction(e.getMessage());
-				return reattemptDueToInvalidChars(response, placeHolderContents, requestType, useTools);
+				return reattemptDueToInvalidChars(response, placeHolderContents, requestType, useTools, history);
 			}
 
 			System.out.println(response);
@@ -64,7 +66,7 @@ public abstract class AbstractLLMInteractor {
 				String message = "LLM response contains invalid xml character";
 				System.out.println(message);
 				EvaluationManager.setErrorToLatestAction(message);
-				return reattemptDueToInvalidChars(response, placeHolderContents, requestType, useTools);
+				return reattemptDueToInvalidChars(response, placeHolderContents, requestType, useTools, history);
 			}
 			updateTokenCount(response);
 			if (useTools) {
@@ -81,18 +83,18 @@ public abstract class AbstractLLMInteractor {
 			// token count updated in try block
 			EvaluationManager.setErrorToLatestAction(message);
 			reattemptAction();
-			return getLLMResponse(placeHolderContents, requestType, useTools);
+			return getLLMResponse(placeHolderContents, requestType, useTools, history);
 		}
 
 		return null;
 	}
 
 	private JSONObject reattemptDueToInvalidChars(String response, String[] placeHolderContents,
-			LLMRequestTypes requestType, boolean useTools) throws ReachMaxAttemptException {
-//		System.out.println(response);
+			LLMRequestTypes requestType, boolean useTools, List<LinkedHashMap<String, Object>> history)
+			throws ReachMaxAttemptException {
 		updateTokenCount(response);
 		reattemptAction();
-		return getLLMResponse(placeHolderContents, requestType, useTools);
+		return getLLMResponse(placeHolderContents, requestType, useTools, history);
 	}
 
 	private void updateTokenCount(String response) {

@@ -154,7 +154,17 @@ public class EvaluationManager {
 		} else {
 			throw new ReachMaxAttemptException(type.name());
 		}
-
+	}
+	
+	public static void copyActionForInfoRecording(String message) {
+		ExecutedAction prevAction = getLatestAction();
+		ComponentType type = prevAction.getType();
+		int attempt = prevAction.getAttemptID();
+		String poName = getLatestAction().getPoName();
+		addAndStartNewAction(type, attempt + 1);
+		setPONameToLatestAction(poName);
+		setErrorToLatestAction(message);
+		endLatestAction();
 	}
 
 	public static void endLatestAction() {

@@ -6,7 +6,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
-import eventb_agent_core.utils.llm.PromptUtils;
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import eventb_agent_core.utils.llm.ParserUtils;
 
 /**
  * This interface contains necessary method declarations for calling LLMs.
@@ -23,7 +26,7 @@ public abstract class LLMRequestSender {
 
 	protected abstract String getAPIEndpoint();
 
-	private RequestBuilder getRequestBuilder() {
+	public RequestBuilder getRequestBuilder() {
 		return LLMInstanceFactory.getRequestBuilder(modelType);
 	}
 
@@ -57,25 +60,23 @@ public abstract class LLMRequestSender {
 		}
 	}
 
-	public String sendRequest(String[] contentInPlaceHolders, LLMRequestTypes requestType) throws IOException {
+	public String sendRequest(String[] contentInPlaceHolders, LLMRequestTypes requestType,
+			List<LinkedHashMap<String, Object>> history) throws IOException {
 		String[] placeHolders = requestType.getPlaceHolders();
 		int length = Math.min(contentInPlaceHolders.length, placeHolders.length);
 		RequestBuilder requestBuilder = getRequestBuilder();
 		String prompt = requestType.getPrompt();
 
 		for (int i = 0; i < length; i++) {
-			String contentInPlaceHolder = PromptUtils.removeSpecialChars(contentInPlaceHolders[i]);
+			String contentInPlaceHolder = ParserUtils.reverseLex(contentInPlaceHolders[i]);
 			prompt = prompt.replace(placeHolders[i], contentInPlaceHolder);
 		}
-
-//		System.out.println(prompt);
-//		System.out.println();
 
 		String request = "";
 		if (requestType.isStructuredRequest()) {
 			request = requestBuilder.getRequestWithSchema(prompt, requestType);
 		} else if (requestType.areToolsEnabled()) {
-			request = requestBuilder.getRequestWithTools(prompt, requestType);
+			request = requestBuilder.getRequestWithTools(prompt, requestType, history);
 		} else {
 			request = requestBuilder.getRequestPlain(prompt);
 		}
