@@ -1,7 +1,7 @@
 {
 	"type": "function",
 	"name": "strengthenGuard",
-	"description": "Strengthen guard of an event.",
+	"description": "If the proof obligation about an event cannot be discharged because a hypothesis is missing, add the hypothesis as a guard in the event.",
 	"strict": true,
 	"parameters": {
 		"type": "object",
@@ -31,18 +31,22 @@
 			}
 		},
 		"properties": {
-			"guard": {
-				"$ref": "#/$defs/labeled_predicate"
+			"node_id": {
+				"type": "integer",
+				"description": "ID of the node in the proof tree to apply this function on."
 			},
 			"event_name": {
-				"type": "string",
-				"description": "Name of the event to be modified."
+				"$ref": "#/$defs/identifier"
+			},
+			"new_guard": {
+				"$ref": "#/$defs/labeled_predicate"
 			}
 		},
 		"additionalProperties": false,
 		"required": [
-			"guard",
-			"event_name"
+			"node_id",
+			"event_name",
+			"new_guard"
 		]
 	}
 }

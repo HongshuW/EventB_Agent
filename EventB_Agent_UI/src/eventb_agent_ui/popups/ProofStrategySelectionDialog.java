@@ -10,12 +10,12 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
-import eventb_agent_core.proof.FixStrategy;
+import eventb_agent_core.proof.ProofFixingStrategies;
 
 public class ProofStrategySelectionDialog extends Dialog {
 
 	private Combo strategyCombo;
-	private FixStrategy fixStrategy;
+	private ProofFixingStrategies fixStrategy;
 
 	public ProofStrategySelectionDialog(Shell parentShell) {
 		super(parentShell);
@@ -32,7 +32,7 @@ public class ProofStrategySelectionDialog extends Dialog {
 		strategyCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		strategyCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
-		for (FixStrategy strategy : FixStrategy.values()) {
+		for (ProofFixingStrategies strategy : ProofFixingStrategies.values()) {
 			strategyCombo.add(strategy.toString());
 		}
 
@@ -45,12 +45,12 @@ public class ProofStrategySelectionDialog extends Dialog {
 	protected void okPressed() {
 		int selectedIndex = strategyCombo.getSelectionIndex();
 		if (selectedIndex >= 0) {
-			fixStrategy = FixStrategy.values()[selectedIndex];
+			fixStrategy = ProofFixingStrategies.values()[selectedIndex];
 		}
 		super.okPressed();
 	}
 
-	public FixStrategy getSelectedStrategy() {
+	public ProofFixingStrategies getSelectedStrategy() {
 		return fixStrategy;
 	}
 

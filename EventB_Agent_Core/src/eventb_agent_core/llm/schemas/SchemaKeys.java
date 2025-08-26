@@ -45,12 +45,15 @@ public class SchemaKeys {
 	public static final String MODEL_DESC = "model_description";
 
 	/* keys for proof fixing */
+	public static final String PROOF_TACTIC = "proof_tactic";
 	public static final String NODE_ID = "node_id";
 	public static final String EXPLANATION = "explanation";
 	public static final String MODIFICATION = "modification";
 	public static final String HYP = "hypothesis";
+	public static final String INV = "invariant";
+	public static final String GRD = "guard";
 	public static final String INSTANTIATIONS = "instantiations";
-	
+
 	/* keys for model checking */
 	public static final String MODEL_CHECKING_PARAMS = "parameters";
 

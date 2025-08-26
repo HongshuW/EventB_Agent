@@ -1,7 +1,7 @@
 {
 	"type": "function",
-	"name": "weakenGuard",
-	"description": "Weaken guard of an event.",
+	"name": "strengthenInvariant",
+	"description": "Add an invariant to accomplish the missing hypothesis revealed in proofs.",
 	"strict": true,
 	"parameters": {
 		"type": "object",
@@ -31,18 +31,18 @@
 			}
 		},
 		"properties": {
-			"guard": {
-				"$ref": "#/$defs/labeled_predicate"
+			"node_id": {
+				"type": "integer",
+				"description": "ID of the node in the proof tree to apply this function on."
 			},
-			"event_name": {
-				"type": "string",
-				"description": "Name of the event to be modified."
+			"invariant": {
+				"$ref": "#/$defs/labeled_predicate"
 			}
 		},
 		"additionalProperties": false,
 		"required": [
-			"guard",
-			"event_name"
+			"node_id",
+			"invariant"
 		]
 	}
 }

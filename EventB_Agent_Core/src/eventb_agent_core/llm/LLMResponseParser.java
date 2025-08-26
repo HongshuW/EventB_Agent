@@ -48,16 +48,6 @@ public abstract class LLMResponseParser {
 		return machine.getString(SchemaKeys.MACHINE);
 	}
 
-	/* Proof Fixing */
-
-	public JSONArray getModificationJSONArray(JSONObject json) {
-		return json.getJSONArray(SchemaKeys.MODIFICATION);
-	}
-
-	public String getExplanation(JSONObject json) {
-		return json.getString(SchemaKeys.EXPLANATION);
-	}
-
 	/* Refinement Strategy */
 
 	public JSONArray getRefinementStepsJSONArray(JSONObject json) {
@@ -172,41 +162,15 @@ public abstract class LLMResponseParser {
 
 	/* proof fixing methods */
 
-	public List<Hypothesis> getHypotheses(JSONArray modificationJSONArray) {
-		List<Hypothesis> hypotheses = new ArrayList<>();
-		for (int i = 0; i < modificationJSONArray.length(); i++) {
-			JSONObject entry = modificationJSONArray.getJSONObject(i);
-			JSONObject hypothesisJSON = entry.getJSONObject(SchemaKeys.HYP);
-			JSONArray instantiationsJSONArray = entry.getJSONArray(SchemaKeys.INSTANTIATIONS);
-
-			String label = hypothesisJSON.getString(SchemaKeys.LABEL);
-			String predicate = hypothesisJSON.getString(SchemaKeys.PRED);
-			String[] instantiations = new String[instantiationsJSONArray.length()];
-			for (int j = 0; j < instantiationsJSONArray.length(); j++) {
-				instantiations[j] = instantiationsJSONArray.getString(j);
-			}
-
-			Hypothesis hypothesis = new Hypothesis(label, predicate, instantiations);
-			hypotheses.add(hypothesis);
-		}
-		return hypotheses;
-	}
-
-	public List<Hypothesis> getHypotheses(JSONObject modificationJSON) {
+	public List<Hypothesis> getHypotheses(JSONObject argumentsJSON, String key) {
 		List<Hypothesis> hypotheses = new ArrayList<>();
 
-		JSONObject argumentsJSON = modificationJSON.getJSONObject(Constants.FUNCTION_ARGS);
-		JSONObject hypothesisJSON = argumentsJSON.getJSONObject(SchemaKeys.HYP);
-		JSONArray instantiationsJSONArray = argumentsJSON.getJSONArray(SchemaKeys.INSTANTIATIONS);
+		JSONObject hypothesisJSON = argumentsJSON.getJSONObject(key);
 
 		String label = hypothesisJSON.getString(SchemaKeys.LABEL);
 		String predicate = hypothesisJSON.getString(SchemaKeys.PRED);
-		String[] instantiations = new String[instantiationsJSONArray.length()];
-		for (int j = 0; j < instantiationsJSONArray.length(); j++) {
-			instantiations[j] = instantiationsJSONArray.getString(j);
-		}
 
-		Hypothesis hypothesis = new Hypothesis(label, predicate, instantiations);
+		Hypothesis hypothesis = new Hypothesis(label, predicate);
 		hypotheses.add(hypothesis);
 
 		return hypotheses;

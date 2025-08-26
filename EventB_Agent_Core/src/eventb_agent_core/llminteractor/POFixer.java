@@ -1,11 +1,15 @@
 package eventb_agent_core.llminteractor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eventb.core.IAxiom;
 import org.eventb.core.IContextRoot;
+import org.eventb.core.IEvent;
+import org.eventb.core.IGuard;
+import org.eventb.core.IInvariant;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPOSequent;
 import org.eventb.core.pm.IProofAttempt;
@@ -17,6 +21,7 @@ import org.json.JSONObject;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.RodinDBException;
 
+import eventb_agent_core.evaluation.EvaluationManager;
 import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
@@ -133,29 +138,46 @@ public class POFixer extends AbstractLLMInteractor {
 		String function = answer.getString(Constants.FUNCTION_NAME);
 		JSONObject args = answer.getJSONObject(Constants.FUNCTION_ARGS);
 
+		EvaluationManager.setErrorToLatestAction(args.toString());
+
 		ProofFixingStrategies strategy = ProofFixingStrategies.valueOf(function);
 		int nodeID = args.getInt(SchemaKeys.NODE_ID);
 		FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent, machineRoot);
 
+		List<Hypothesis> hypotheses = new ArrayList<>();
+
 		switch (strategy) {
-		case removeMembership:
+		case applyProofTactic:
+			String tacticString = args.getString(SchemaKeys.PROOF_TACTIC);
+			ProofFixingStrategies tactic = ProofFixingStrategies.valueOf(tacticString);
 			String predicate = ParserUtils.lex(args.getString(SchemaKeys.PRED));
-			fixer.removeMembership(predicate, nodeID);
+			fixer.applyProofTactic(predicate, nodeID, tactic);
+			fixer.applyPostTactic();
+			break;
+		case addHypothesesToContext:
+			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.HYP);
+			addHypothesesToContext(contextRoot, hypotheses);
+			for (Hypothesis hypothesis : hypotheses) {
+				String pred = ParserUtils.lex(hypothesis.getPredicate());
+				fixer.addHypothesis(pred);
+			}
+			fixer.applyPostTactic();
+			break;
+		case strengthenInvariant:
+			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.INV);
+			strengthenInvariants(machineRoot, hypotheses);
+			fixer.applyPostTactic();
+			break;
+		case strengthenGuard:
+			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.GRD);
+			String eventName = args.getString(SchemaKeys.EVENT_NAME);
+			strengthenGuard(machineRoot, hypotheses, eventName);
+			fixer.applyPostTactic();
+			break;
 		default:
 			fixer.applyPostTactic();
 		}
 
-		// TODO: modify model based on fix strategy
-//		List<Hypothesis> hypotheses = llmResponseParser.getHypotheses(answer);
-//		addHypothesesToContext(contextRoot, hypotheses);
-//		for (Hypothesis hypothesis : hypotheses) {
-//			String predicate = ParserUtils.lex(hypothesis.getPredicate());
-//			String[] instantiations = hypothesis.getInstantiations();
-//
-//			FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent, machineRoot, PO_OWNER_NAME);
-//			fixer.addHypothesis(predicate, instantiations);
-//			fixer.applyPostTactic();
-//		}
 	}
 
 	private void addHypothesesToContext(IContextRoot contextRoot, List<Hypothesis> hypotheses) throws CoreException {
@@ -181,6 +203,83 @@ public class POFixer extends AbstractLLMInteractor {
 					IAxiom newAxiom = contextRoot.createChild(IAxiom.ELEMENT_TYPE, null, null);
 					newAxiom.setLabel(label, null);
 					newAxiom.setPredicateString(predicate, null);
+				}
+
+				rodinFile.save(null, false);
+			} catch (RodinDBException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void strengthenInvariants(IMachineRoot machineRoot, List<Hypothesis> hypotheses) {
+		IRodinFile rodinFile = machineRoot.getRodinFile();
+
+		for (int i = 0; i < hypotheses.size(); i++) {
+			Hypothesis hyp = hypotheses.get(i);
+			String label = hyp.getLabel();
+			String predicate = ParserUtils.lex(hyp.getPredicate());
+			try {
+				IInvariant[] invariants = machineRoot.getChildrenOfType(IInvariant.ELEMENT_TYPE);
+				boolean invExists = false;
+				for (IInvariant inv : invariants) {
+					if (inv.getLabel().equals(label)) {
+						// modify the existing invariant
+						inv.setPredicateString(predicate, null);
+						invExists = true;
+						break;
+					}
+				}
+				if (!invExists) {
+					// add new invariant
+					IInvariant newInv = machineRoot.createChild(IInvariant.ELEMENT_TYPE, null, null);
+					newInv.setLabel(label, null);
+					newInv.setPredicateString(predicate, null);
+				}
+
+				rodinFile.save(null, false);
+			} catch (RodinDBException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void strengthenGuard(IMachineRoot machineRoot, List<Hypothesis> hypotheses, String eventName)
+			throws RodinDBException {
+		IRodinFile rodinFile = machineRoot.getRodinFile();
+
+		IEvent targetEvent = null;
+		IEvent[] events = machineRoot.getChildrenOfType(IEvent.ELEMENT_TYPE);
+		for (IEvent event : events) {
+			if (event.getLabel().equals(eventName) || event.getLabel() == eventName) {
+				targetEvent = event;
+				break;
+			}
+		}
+		if (targetEvent == null) {
+			return;
+		}
+
+		for (int i = 0; i < hypotheses.size(); i++) {
+			Hypothesis hyp = hypotheses.get(i);
+			String label = hyp.getLabel();
+			String predicate = ParserUtils.lex(hyp.getPredicate());
+			try {
+				IGuard[] guards = targetEvent.getChildrenOfType(IGuard.ELEMENT_TYPE);
+				boolean grdExists = false;
+				for (IGuard grd : guards) {
+					if (grd.getLabel().equals(label)) {
+						// modify the existing guard
+						grd.setPredicateString(predicate, null);
+						grdExists = true;
+						break;
+					}
+				}
+				if (!grdExists) {
+					// add new invariant
+					IGuard newGrd = targetEvent.createChild(IGuard.ELEMENT_TYPE, null, null);
+					newGrd.setLabel(label, null);
+					newGrd.setPredicateString(predicate, null);
 				}
 
 				rodinFile.save(null, false);

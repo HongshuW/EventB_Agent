@@ -1,0 +1,50 @@
+{
+	"type": "function",
+	"name": "applyProofTactic",
+	"description": "Select a proof tactic to apply to the proof tree. Specify the node ID and predicate to apply to. The proof tactic must be suitable to apply for the selected predicate.",
+	"strict": true,
+	"parameters": {
+		"type": "object",
+		"$defs": {
+			"predicate": {
+				"type": "string"
+			}
+		},
+		"properties": {
+			"proof_tactic": {
+				"type": "string",
+				"description": "For each of the following definitions Rewrite X to Y, choose the enum if the predicate contains X. cardinalityDefinition: Rewrites `card(S) = k` to `\\exists f \\cdot f \\in (1..k >->> S)`. conjunctionToImplicationRewrite: Rewrite `P \\lor Q` to `\\neg P \\implies Q`. doubleImplication: Rewrite `P \\implies (Q \\implies R)` to `(P \\land Q) \\implies R`. equalCardinality: Rewrite `card(S) = card(T)` to `\\exists f \\cdot f \\in (S >->> T)`. equivalence: Rewrite `P \\leftrightarrow Q` to `(P \\implies Q) \\land (Q \\implies P)`. finiteDefinition: Rewrite `finite(S)` to `\\exists n \\in NAT \\cdot (\\exists f \\in (1..n \\leftrightarrow S))`. functionalImageDefinition: Rewrite `f(x) = y` to `(x \\mapto y) \\in f`. implicationAnd: Rewrite `P \\implies (Q \\land R)` to `(P \\implies Q) \\land (P \\implies R)`. implicationOr: Rewrite `P \\implies (Q \\lor R)` to `(P \\implies Q) \\lor (P \\implies R)`. inclusionSetMinus: Rewrite `A \\subseteq (B \\setminus C)` to `(A \\subseteq B) \\land (A \\union C = {})`. removeInclusion: For sets A, B, rewrite `A \\subseteq B` to `\\forall x \\cdot (x \\in A \\implies x \\in B)`; For element x and set S, rewrite `x \\in S` based on the definition of S. removeNegation: Rewrite predicate to remove negation. setEqual: Rewrite `A = B` to `(A \\subseteq B) \\land (B \\subseteq A)`. setMinus: Rewrite `x \\in (A \\setminus B)` to `(x \\in A) \\land (x \\notin B)`. strictInclusion: Rewrite `A \\subset B` to `(A \\subseteq B) \\land (A \\neq B)`.",
+				"enum": [
+					"cardinalityDefinition",
+					"disjunctionToImplication",
+					"doubleImplication",
+					"equalCardinality",
+					"equivalence",
+					"finiteDefinition",
+					"functionalImageDefinition",
+					"implicationAnd",
+					"implicationOr",
+					"inclusionSetMinus",
+					"removeInclusion",
+					"removeNegation",
+					"setEqual",
+					"setMinus",
+					"strictInclusion"
+				]
+			},
+			"node_id": {
+				"type": "integer",
+				"description": "ID of the node in the proof tree to apply this function on."
+			},
+			"predicate": {
+				"$ref": "#/$defs/predicate"
+			}
+		},
+		"additionalProperties": false,
+		"required": [
+			"proof_tactic",
+			"node_id",
+			"predicate"
+		]
+	}
+}

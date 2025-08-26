@@ -197,6 +197,7 @@ public class ParserUtils {
 		specialCharsMap.put("\nat", String.valueOf(NAT));
 		specialCharsMap.put("\setminus", String.valueOf(SET_MINUS));
 		specialCharsMap.put("\triangleright", String.valueOf(RANGE_RESTRICTION));
+		specialCharsMap.put("\triangleleft", String.valueOf(DOMAIN_RESTRICTION));
 		specialCharsMap.put("\rhd", String.valueOf(RANGE_RESTRICTION));
 		specialCharsMap.put("\tfun", String.valueOf(TOTAL_FUNCTION));
 		specialCharsMap.put("\fun", String.valueOf(TOTAL_FUNCTION));
@@ -471,7 +472,9 @@ public class ParserUtils {
 		char[] characters = originalString.toCharArray();
 		for (int i = 0; i < characters.length; i++) {
 			char c = characters[i];
-			if (reverseLexMap.containsKey(c) && c != POW && c != NAT && c != INT) {
+			if (c == POW || c == NAT || c == INT) {
+				newString.append(reverseLexMap.get(c));
+			} else if (reverseLexMap.containsKey(c)) {
 				newString.append(space + reverseLexMap.get(c) + space);
 			} else {
 				newString.append(String.valueOf(c));

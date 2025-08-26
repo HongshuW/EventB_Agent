@@ -96,12 +96,9 @@ public class ProofUtils {
 
 		IPSRoot psRoot = pc.getPSRoot();
 
-		boolean found = false;
-
 		for (IPSStatus st : psRoot.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
 			String stPOName = st.getPOSequent().getElementName();
 			if (poName.equals(stPOName)) {
-				found = true;
 
 				// Treat broken/missing proofs as NOT discharged
 				if (st.isBroken()) {
@@ -113,11 +110,13 @@ public class ProofUtils {
 				// Consider discharged only at/above the discharged threshold
 				if (conf < IConfidence.DISCHARGED_MAX) {
 					return false;
+				} else if (conf == IConfidence.DISCHARGED_MAX) {
+					return true;
 				}
 			}
 		}
 
-		return found;
+		return false;
 	}
 
 	/**
