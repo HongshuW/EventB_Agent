@@ -2,6 +2,8 @@ Given the proof tree in Event-B that is incomplete, and that the proof is not di
 
 For Well-Definedness (WD) proof obligations, applyProofTactic has a lower priority because it is very likely that the model needs to be improved.
 
+If there is no suitable function, call `others` and suggest the suitable fix as a parameter.
+
 Respond using only code-points 0x20-0x7E. Do not emit \\u0000 to \\u001F. For Event-B use: \in for '∈', \subseteq for '⊆', not for '¬', etc.
 If latex commands are used, make sure that only commands with a corresponding symbol in Event-B is included, e.g. exclude commands like \bcmin, \quad, etc.
 

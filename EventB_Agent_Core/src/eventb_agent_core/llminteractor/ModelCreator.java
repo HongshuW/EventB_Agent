@@ -76,9 +76,11 @@ public class ModelCreator extends AbstractLLMInteractor {
 		String refinementID = String.valueOf(refinementStep.getRefinementNo());
 		String refineSysDesc = refinementStep.getModelDesc();
 		String refineSysReq = refinementStep.getSysReqString();
+		String gluingInvs = refinementStep.getGluingInvariantsString();
 
 		JSONObject response = getLLMResponse(new String[] { refinementID, previousSysDesc, previousSysReq,
-				ParserUtils.reverseLex(modelJSON), refineSysDesc, refineSysReq }, LLMRequestTypes.REFINE_MODEL);
+				ParserUtils.reverseLex(modelJSON), refineSysDesc, refineSysReq, gluingInvs },
+				LLMRequestTypes.REFINE_MODEL);
 
 		return response;
 	}

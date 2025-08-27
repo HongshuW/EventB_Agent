@@ -15,6 +15,7 @@ The context name should be <ContextName>_<ID>, and the machine name should be <M
 
 For each FUN, SAF requirement, there should be one or more invariants with the same name of the requirement appended by invariant name, e.g. FUN_1_inv_1, FUN_1_inv_2, FUN_2_inv_1, ...
 For each EQP, ENV requirement, there should be one or more axioms with the same name of the requirement appended by axiom name, e.g. EQP_1_axm_1, EQP_1_axm_2, EQP_2_axm_1, ...
+Include all the gluing invariants listed below.
 
 The new concrete context must be different from the abstract context.
 The new concrete context must only contain new information that's not already in the abstract context.
@@ -39,3 +40,6 @@ Refined System Description:
 
 Refined System Requirements:
 {{system_req}}
+
+Gluing Invariants:
+{{gluing_invs}}

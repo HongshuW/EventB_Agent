@@ -6,6 +6,7 @@ public enum ProofFixingStrategies {
 	instantiation, strengthenGuard, strengthenInvariant, // strategies with parameters
 	cardinalityDefinition, disjunctionToImplication, doubleImplication, equalCardinality, equivalence, finiteDefinition,
 	functionalImageDefinition, implicationAnd, implicationOr, inclusionSetMinus, removeInclusion, removeNegation,
-	setEqual, setMinus, strictInclusion
+	setEqual, setMinus, strictInclusion, //
+	others
 
 }

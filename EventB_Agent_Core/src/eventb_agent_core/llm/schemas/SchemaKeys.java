@@ -43,6 +43,7 @@ public class SchemaKeys {
 	public static final String REF_NO = "refinement_no";
 	public static final String REQUIREMENT_IDS = "requirement_ids";
 	public static final String MODEL_DESC = "model_description";
+	public static final String GLUING_INVS = "gluing_invariants";
 
 	/* keys for proof fixing */
 	public static final String PROOF_TACTIC = "proof_tactic";

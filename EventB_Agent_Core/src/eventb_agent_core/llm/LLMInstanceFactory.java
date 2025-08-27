@@ -14,8 +14,10 @@ public class LLMInstanceFactory {
 
 	public static LLMRequestSender getRequestSender(LLMModels model) {
 		switch (model) {
+		case GPT5:
+		case GPT5_MINI:
+		case GPT5_NANO:
 		case GPT4_1:
-			return new GPTRequestSender(model);
 		case GPT4_1_MINI:
 			return new GPTRequestSender(model);
 		case CLAUDE3_OPUS:
@@ -26,11 +28,13 @@ public class LLMInstanceFactory {
 			throw new IllegalArgumentException("Unhandled model: " + model);
 		}
 	}
-	
+
 	public static RequestBuilder getRequestBuilder(LLMModels model) {
 		switch (model) {
+		case GPT5:
+		case GPT5_MINI:
+		case GPT5_NANO:
 		case GPT4_1:
-			return new GPTRequestBuilder(model);
 		case GPT4_1_MINI:
 			return new GPTRequestBuilder(model);
 		case CLAUDE3_OPUS:
@@ -41,17 +45,19 @@ public class LLMInstanceFactory {
 			throw new IllegalArgumentException("Unhandled model: " + model);
 		}
 	}
-	
+
 	public static LLMResponseParser getResponseParser(LLMModels model) {
 		switch (model) {
+		case GPT5:
+		case GPT5_MINI:
+		case GPT5_NANO:
 		case GPT4_1:
-			return new GPTResponseParser();
 		case GPT4_1_MINI:
-			return new GPTResponseParser();
+			return new GPTResponseParser(model);
 		case CLAUDE3_OPUS:
-			return new ClaudeResponseParser();
+			return new ClaudeResponseParser(model);
 		case GEMINI2_5_FLASH:
-			return new GeminiResponseParser();
+			return new GeminiResponseParser(model);
 		default:
 			throw new IllegalArgumentException("Unhandled model: " + model);
 		}

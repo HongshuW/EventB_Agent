@@ -52,7 +52,8 @@ public class GPTRequestBuilder extends RequestBuilder {
 		switch (requestType) {
 		case FIX_PROOF:
 			return new String[] { "gpt_ae.json", "gpt_ah.json", "gpt_apply_proof_tactic.json", "gpt_dc.json",
-					"gpt_instantiation.json", "gpt_strengthen_guard.json", "gpt_strengthen_invariant.json" };
+					"gpt_instantiation.json", "gpt_strengthen_guard.json", "gpt_strengthen_invariant.json",
+					"gpt_others.json" };
 		default:
 			return new String[] {};
 		}
@@ -77,14 +78,27 @@ public class GPTRequestBuilder extends RequestBuilder {
 		Map<String, Object> jsonSchema = getSchema(requestType);
 		LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
 		textFormat.put("format", jsonSchema);
+		if (!isGPT4()) {
+			textFormat.put("verbosity", Constants.VERBOSITY);
+		}
 		request.put("text", textFormat);
 
-		request.put("temperature", Constants.TEMPERATURE);
-		request.put("top_p", Constants.TOP_P);
-		request.put("max_output_tokens", Constants.TOKEN_LIMIT);
+		if (isGPT4()) {
+			request.put("temperature", Constants.TEMPERATURE);
+			request.put("top_p", Constants.TOP_P);
+			request.put("max_output_tokens", Constants.TOKEN_LIMIT);
+		} else {
+			LinkedHashMap<String, Object> reasoningEffort = new LinkedHashMap<>();
+			reasoningEffort.put("effort", Constants.REASONING);
+			request.put("reasoning", reasoningEffort);
+		}
 
 		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
 		return jsonStr;
+	}
+
+	private boolean isGPT4() {
+		return llmModel == LLMModels.GPT4_1 || llmModel == LLMModels.GPT4_1_MINI;
 	}
 
 	@Override

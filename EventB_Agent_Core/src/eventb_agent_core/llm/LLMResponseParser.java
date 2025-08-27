@@ -17,6 +17,12 @@ import eventb_agent_core.utils.llm.ParserUtils;
 
 public abstract class LLMResponseParser {
 
+	protected LLMModels llmModel;
+
+	public LLMResponseParser(LLMModels llmModel) {
+		this.llmModel = llmModel;
+	}
+
 	public abstract long getTokens(String response);
 
 	public abstract String getResponseString(String response);
@@ -186,13 +192,22 @@ public abstract class LLMResponseParser {
 		int refNo = refStepJSON.getInt(SchemaKeys.REF_NO);
 		JSONArray reqIDs = refStepJSON.getJSONArray(SchemaKeys.REQUIREMENT_IDS);
 		String modelDesc = refStepJSON.getString(SchemaKeys.MODEL_DESC);
+		JSONArray gluingInvs = refStepJSON.getJSONArray(SchemaKeys.GLUING_INVS);
 
 		List<String> reqIDList = new ArrayList<>();
 		for (int i = 0; i < reqIDs.length(); i++) {
 			reqIDList.add(reqIDs.getString(i));
 		}
 
-		return new RefinementStep(refNo, reqIDList, modelDesc, systemReqs);
+		Map<String, String> gluingInvsMap = new HashMap<>();
+		for (int i = 0; i < gluingInvs.length(); i++) {
+			JSONObject inv = gluingInvs.getJSONObject(i);
+			String key = inv.getString(SchemaKeys.LABEL);
+			String val = inv.getString(SchemaKeys.INV);
+			gluingInvsMap.put(key, val);
+		}
+
+		return new RefinementStep(refNo, reqIDList, modelDesc, gluingInvsMap, systemReqs);
 	}
 
 }

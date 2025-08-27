@@ -11,6 +11,9 @@ public class Constants {
 	public static final String GPT_ENDPOINT = "https://api.openai.com/v1/responses";
 	public static final String GPT_MODEL = "gpt-4.1";
 	public static final String GPT_MINI_MODEL = "gpt-4.1-mini";
+	public static final String GPT_5_MODEL = "gpt-5";
+	public static final String GPT_5_MINI_MODEL = "gpt-5-mini";
+	public static final String GPT_5_NANO_MODEL = "gpt-5-nano";
 
 	/* Claude parameters */
 
@@ -28,6 +31,9 @@ public class Constants {
 	public static final double TEMPERATURE = 0;
 	public static final double TOP_P = 1;
 	public static final int TOKEN_LIMIT = 4096;
+	
+	public static final String VERBOSITY = "low";
+	public static final String REASONING = "minimal";
 
 	public static final String DEFAULT_PLACE_HOLDER = "{{default}}";
 	public static final String REFINEMENT_ID_PLACE_HOLDER = "{{refinement_id}}";
@@ -38,6 +44,7 @@ public class Constants {
 	public static final String PROOF_TREE_PLACE_HOLDER = "{{proof_tree}}";
 	public static final String PREV_SYS_DESC_PLACE_HOLDER = "{{prev_system_desc}}";
 	public static final String PREV_SYS_REQ_PLACE_HOLDER = "{{prev_system_req}}";
+	public static final String GLUING_INVS_PLACE_HOLDER = "{{gluing_invs}}";
 	public static final String ERRORS_PLACE_HOLDER = "{{errors}}";
 	public static final String MODEL_CHECK_RESULT_PLACE_HOLDER = "{{model_checking_results}}";
 

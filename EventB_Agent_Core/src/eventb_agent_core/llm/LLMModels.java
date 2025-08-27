@@ -8,10 +8,8 @@ import java.util.stream.Collectors;
 import eventb_agent_core.utils.Constants;
 
 public enum LLMModels {
-	GPT4_1("GPT 4.1"),
-	GPT4_1_MINI("GPT 4.1 mini"),
-	CLAUDE3_OPUS("Claude 3 opus"),
-	GEMINI2_5_FLASH("Gemini 2.5 flash");
+	GPT5("GPT 5"), GPT5_MINI("GPT 5 mini"), GPT5_NANO("GPT 5 nano"), GPT4_1("GPT 4.1"), GPT4_1_MINI("GPT 4.1 mini"),
+	CLAUDE3_OPUS("Claude 3 opus"), GEMINI2_5_FLASH("Gemini 2.5 flash");
 
 	private final String stringValue;
 
@@ -32,6 +30,12 @@ public enum LLMModels {
 
 	public String getModelTypeAPI() {
 		switch (this) {
+		case GPT5:
+			return Constants.GPT_5_MODEL;
+		case GPT5_MINI:
+			return Constants.GPT_5_MINI_MODEL;
+		case GPT5_NANO:
+			return Constants.GPT_5_NANO_MODEL;
 		case GPT4_1:
 			return Constants.GPT_MODEL;
 		case GPT4_1_MINI:

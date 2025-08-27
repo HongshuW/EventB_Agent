@@ -2,6 +2,7 @@ package eventb_agent_core.refinement;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class RefinementStep {
 
@@ -9,13 +10,15 @@ public class RefinementStep {
 	private List<String> requirementIDs;
 	private List<String> requirementList;
 	private String modelDesc;
+	private Map<String, String> gluingInvariants;
 
 	public RefinementStep(int refinementNo, List<String> requirementIDs, String modelDesc,
-			SystemRequirements requirements) {
+			Map<String, String> gluingInvariants, SystemRequirements requirements) {
 		this.refinementNo = refinementNo;
 		this.requirementIDs = requirementIDs;
 		this.requirementList = initRequirementList(requirements);
 		this.modelDesc = modelDesc;
+		this.gluingInvariants = gluingInvariants;
 	}
 
 	private List<String> initRequirementList(SystemRequirements systemReqs) {
@@ -54,6 +57,15 @@ public class RefinementStep {
 			systemRequirements.append(req + "\n");
 		}
 		return systemRequirements.toString();
+	}
+	
+	public String getGluingInvariantsString() {
+		StringBuilder gluingInvs = new StringBuilder();
+		for (String key : gluingInvariants.keySet()) {
+			gluingInvs.append(key + ": ");
+			gluingInvs.append(gluingInvariants.get(key) + "\n");
+		}
+		return gluingInvs.toString();
 	}
 
 }

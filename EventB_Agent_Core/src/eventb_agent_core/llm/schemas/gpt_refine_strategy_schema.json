@@ -15,7 +15,8 @@
 					"required": [
 						"refinement_no",
 						"requirement_ids",
-						"model_description"
+						"model_description",
+						"gluing_invariants"
 					],
 					"properties": {
 						"refinement_no": {
@@ -29,6 +30,25 @@
 						},
 						"model_description": {
 							"type": "string"
+						},
+						"gluing_invariants": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"required": [
+									"label_name",
+									"invariant"
+								],
+								"properties": {
+									"label_name": {
+										"type": "string"
+									},
+									"invariant": {
+										"type": "string"
+									}
+								},
+								"additionalProperties": false
+							}
 						}
 					},
 					"additionalProperties": false

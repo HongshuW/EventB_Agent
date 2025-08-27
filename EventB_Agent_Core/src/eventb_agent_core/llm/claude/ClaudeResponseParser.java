@@ -2,10 +2,15 @@ package eventb_agent_core.llm.claude;
 
 import org.json.JSONObject;
 
+import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.utils.llm.ParserUtils;
 
 public class ClaudeResponseParser extends LLMResponseParser {
+
+	public ClaudeResponseParser(LLMModels llmModel) {
+		super(llmModel);
+	}
 
 	@Override
 	public String getResponseString(String response) {

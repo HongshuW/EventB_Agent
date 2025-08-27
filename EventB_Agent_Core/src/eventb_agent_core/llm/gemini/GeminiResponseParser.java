@@ -2,9 +2,14 @@ package eventb_agent_core.llm.gemini;
 
 import org.json.JSONObject;
 
+import eventb_agent_core.llm.LLMModels;
 import eventb_agent_core.llm.LLMResponseParser;
 
 public class GeminiResponseParser extends LLMResponseParser {
+
+	public GeminiResponseParser(LLMModels llmModel) {
+		super(llmModel);
+	}
 
 	@Override
 	public String getResponseString(String response) {

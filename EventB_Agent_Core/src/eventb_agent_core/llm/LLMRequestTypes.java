@@ -60,7 +60,7 @@ public enum LLMRequestTypes {
 		case REFINE_MODEL:
 			return new String[] { Constants.REFINEMENT_ID_PLACE_HOLDER, Constants.PREV_SYS_DESC_PLACE_HOLDER,
 					Constants.PREV_SYS_REQ_PLACE_HOLDER, Constants.MODEL_PLACE_HOLDER, Constants.SYS_DESC_PLACE_HOLDER,
-					Constants.SYS_REQ_PLACE_HOLDER };
+					Constants.SYS_REQ_PLACE_HOLDER, Constants.GLUING_INVS_PLACE_HOLDER };
 		case MODEL_CHECKING_PARAMS:
 			return new String[] { Constants.MODEL_PLACE_HOLDER };
 		case FIX_MODEL_CHECKING:
