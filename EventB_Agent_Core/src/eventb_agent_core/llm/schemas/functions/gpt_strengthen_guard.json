@@ -38,7 +38,7 @@
 			"event_name": {
 				"$ref": "#/$defs/identifier"
 			},
-			"new_guard": {
+			"guard": {
 				"$ref": "#/$defs/labeled_predicate"
 			}
 		},
@@ -46,7 +46,7 @@
 		"required": [
 			"node_id",
 			"event_name",
-			"new_guard"
+			"guard"
 		]
 	}
 }

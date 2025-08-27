@@ -421,7 +421,6 @@ public class ModelWorkspaceInteractor {
 					EvaluationManager.endLatestAction();
 
 					if (newModel != null) {
-//						System.out.println(newModel.toString(2));
 						String[] newFileNames = saveModel(projectName, newModel);
 						fixCompilationErrors(projectName, newFileNames);
 					}
@@ -672,7 +671,9 @@ public class ModelWorkspaceInteractor {
 						EvaluationManager.setLastPOActionIndex();
 
 						// record model before fixing
-						previousModel = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
+						if (newAttemptID == 0) {
+							previousModel = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
+						}
 
 						if (enableFixStrategy) {
 							poFixer.autoFixPO(machineRoot, undischargedPO, new ArrayList<>());
@@ -799,6 +800,7 @@ public class ModelWorkspaceInteractor {
 					CreateModelUtils.initiateContext(rodinRoot, pMonitor, llmResponseParser, json);
 				}
 				rodinFile.save(pMonitor, true);
+				ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
 			}
 
 		}, monitor);

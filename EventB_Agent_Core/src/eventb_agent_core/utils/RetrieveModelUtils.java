@@ -164,8 +164,11 @@ public class RetrieveModelUtils {
 		if (elements == null || elements.length == 0) {
 			json.put(schemaKey, new ArrayList<>());
 		} else {
-			IAttributeValue[] values = elements[0].getAttributeValues();
-			List<String> stringVals = Stream.of(values).map(v -> v.getValue().toString()).collect(Collectors.toList());
+			List<String> stringVals = new ArrayList<>();
+			for (IInternalElement element : elements) {
+				IAttributeValue value = element.getAttributeValues()[0];
+				stringVals.add(value.getValue().toString());
+			}
 			json.put(schemaKey, stringVals);
 		}
 	}
