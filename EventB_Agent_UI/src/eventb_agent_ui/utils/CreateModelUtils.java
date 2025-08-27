@@ -81,10 +81,12 @@ public class CreateModelUtils {
 	/* machine methods */
 
 	public static void initiateMachine(IInternalElement rodinRoot, IProgressMonitor pMonitor, LLMResponseParser parser,
-			JSONObject json) throws RodinDBException {
+			JSONObject json, List<String> sees) throws RodinDBException {
 		// parse response
 		List<String> refines = parser.getRefines(json);
-		List<String> sees = parser.getSees(json);
+		if (sees == null) {
+			sees = parser.getSees(json);
+		}
 		List<String> variables = parser.getVariables(json);
 		List<String[]> invariants = parser.getInvariants(json);
 		List<String[]> variants = parser.getVariants(json);

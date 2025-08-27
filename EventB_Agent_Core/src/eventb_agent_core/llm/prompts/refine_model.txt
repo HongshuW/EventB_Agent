@@ -11,16 +11,31 @@ If latex commands are used, make sure that only commands with a corresponding sy
 Clauses such as "if...else..." are not supported by Event-B, use two events with different guards to represent the logic.
 (x,y) is not supported and you must use x |-> y.
 
-The new concrete model must be different from the abstract model.
-The new concrete model must only contain new information that's not already in the abstract model, and gluing invariants that link the abstract and concrete models.
-The new context must extends the original context. The new machine must sees the new context, and refines the original machine.
-The machines in the new model should refine those in the abstract model whenever possible.
+The context name should be <ContextName>_<ID>, and the machine name should be <MachineName>_<ID>.
+
+For each FUN, SAF requirement, there should be one or more invariants with the same name of the requirement appended by invariant name, e.g. FUN_1_inv_1, FUN_1_inv_2, FUN_2_inv_1, ...
+For each EQP, ENV requirement, there should be one or more axioms with the same name of the requirement appended by axiom name, e.g. EQP_1_axm_1, EQP_1_axm_2, EQP_2_axm_1, ...
+
+The new concrete context must be different from the abstract context.
+The new concrete context must only contain new information that's not already in the abstract context.
+***If the new context is the same as the original context, use context name `EMPTY_CONTEXT`.*** In this case, the new machine must see the original context.
+If the new context has additional information conpared to the original context, the new context must extend the original context, the new machine must see the new context, and refine the original machine.
+The events in the new model should refine those in the abstract model whenever possible.
+
+ID:
+{{refinement_id}}
 
 Previous System Description:
 {{prev_system_desc}}
+
+Previous System Requirements:
+{{prev_system_req}}
 
 Model:
 {{model}}
 
 Refined System Description:
 {{system_desc}}
+
+Refined System Requirements:
+{{system_req}}

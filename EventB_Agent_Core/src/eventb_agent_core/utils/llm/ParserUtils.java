@@ -153,8 +153,6 @@ public class ParserUtils {
 
 	public static String lex(String originalString) {
 
-//		System.out.println("Before processing: " + originalString);
-
 		Map<String, String> prioritizedMap = new HashMap<>();
 		prioritizedMap.put("||", String.valueOf(PARALLEL_PRODUCT));
 		prioritizedMap.put("..", String.valueOf(UPTO));
@@ -212,6 +210,7 @@ public class ParserUtils {
 		specialCharsMap.put("\succ", String.valueOf(LEQ));
 		specialCharsMap.put("\top", String.valueOf(TRUE));
 		specialCharsMap.put("\bot", String.valueOf(FALSE));
+		specialCharsMap.put("\bcmeq", String.valueOf(ASSIGN));
 		specialCharsMap.put("{}", String.valueOf(EMPTY_SET));
 		specialCharsMap.put("|", String.valueOf(SUCH_THAT));
 		specialCharsMap.put("!=", String.valueOf(NOT_EQ));
@@ -262,10 +261,10 @@ public class ParserUtils {
 		regexMap.put("\\|->(?![>])", String.valueOf(MAP_LET)); // replace "|->" with "↦"
 		regexMap.put("\\\\+pfun", String.valueOf(PARTIAL_FUNCTION));
 		regexMap.put("\\\\+subseteq", String.valueOf(SUBSET));
-		regexMap.put("\\\\+subset ", String.valueOf(STRICT_SUBSET) + " ");
-		regexMap.put("\\\\+nsubset ", String.valueOf(NOT_STRICT_SUBSET) + " ");
+		regexMap.put("\\\\+subset(?!e)", String.valueOf(STRICT_SUBSET));
+		regexMap.put("\\\\+nsubset(?!e)", String.valueOf(NOT_STRICT_SUBSET));
 		regexMap.put("\\\\+nsubseteq", String.valueOf(NOT_SUBSET));
-		regexMap.put("\\\\+in ", String.valueOf(ELEMENT_OF) + " ");
+		regexMap.put("\\\\+in", String.valueOf(ELEMENT_OF));
 		regexMap.put("\\\\+mapsto", String.valueOf(MAP_LET));
 		regexMap.put("\\\\+notin", String.valueOf(NOT_ELEMENT_OF));
 		regexMap.put("\\\\+rightarrow", String.valueOf(TOTAL_FUNCTION));
@@ -282,10 +281,10 @@ public class ParserUtils {
 		regexMap.put("\\\\+emptyset", String.valueOf(EMPTY_SET));
 		regexMap.put("\\\\+setminus", String.valueOf(SET_MINUS));
 		regexMap.put("\\\\+leq", String.valueOf(LEQ));
-		regexMap.put("\\\\+le ", String.valueOf(LEQ) + " ");
+		regexMap.put("\\\\+le(?!f|q)", String.valueOf(LEQ));
 		regexMap.put("\\\\+succ", String.valueOf(LEQ));
 		regexMap.put("\\\\+geq", String.valueOf(GEQ));
-		regexMap.put("\\\\+ge ", String.valueOf(GEQ) + " ");
+		regexMap.put("\\\\+ge(?!q)", String.valueOf(GEQ));
 		regexMap.put("\\\\+prec", String.valueOf(GEQ));
 		regexMap.put("\\\\+triangleright", String.valueOf(RANGE_RESTRICTION));
 		regexMap.put("\\\\+rhd", String.valueOf(RANGE_RESTRICTION));
@@ -329,6 +328,7 @@ public class ParserUtils {
 		regexMap.put("\\\\+bot", String.valueOf(TRUE));
 		regexMap.put("\\\\+circ", String.valueOf(BACKWARD_COMPOSITION));
 		regexMap.put("\\\\+parallel", String.valueOf(PARALLEL_PRODUCT));
+		regexMap.put("\\\\+bcmeq", String.valueOf(ASSIGN));
 		regexMap.put("\\\\\\{", "{");
 		regexMap.put("\\\\\\}", "}");
 
@@ -352,8 +352,6 @@ public class ParserUtils {
 
 		originalString.replace("\\\\ ", String.valueOf(SET_MINUS) + " ");
 		originalString.replace("\\ ", String.valueOf(SET_MINUS) + " ");
-
-//		System.out.println("After processing: " + originalString);
 
 		return originalString;
 	}

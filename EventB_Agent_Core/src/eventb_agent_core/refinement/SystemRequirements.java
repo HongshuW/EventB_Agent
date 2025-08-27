@@ -27,7 +27,8 @@ public class SystemRequirements {
 			String reqText = requirementsJSON.getString(key);
 			String typeString = key.split("-")[0];
 			RequirementType reqType = RequirementType.valueOf(typeString);
-			Requirement req = new Requirement(reqType, reqText);
+			String reqID = typeString + "_" + key.split("-")[1];
+			Requirement req = new Requirement(reqType, reqText, reqID);
 			requirements.add(req);
 		}
 	}

@@ -136,7 +136,7 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 				ModelInfo previousModel = null;
 				for (int i = 0; i < refinementSteps.length(); i++) {
 					JSONObject refStepJSON = refinementSteps.getJSONObject(i);
-					RefinementStep refinementStep = llmResponseParser.getRefinementStep(refStepJSON);
+					RefinementStep refinementStep = llmResponseParser.getRefinementStep(refStepJSON, systemReqs);
 
 					try {
 						previousModel = modelWorkspaceInteractor.createModel(projectName, refinementStep,

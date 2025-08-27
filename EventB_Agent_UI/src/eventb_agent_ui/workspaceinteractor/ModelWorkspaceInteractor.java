@@ -4,6 +4,7 @@ import static org.eventb.core.IConfigurationElement.DEFAULT_CONFIGURATION;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +45,7 @@ import org.eventb.core.pm.IProofComponent;
 import org.eventb.internal.core.pm.ProofManager;
 import org.eventb.internal.ui.UIUtils;
 import org.eventb.ui.EventBUIPlugin;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.rodinp.core.IInternalElement;
 import org.rodinp.core.IRodinDB;
@@ -133,12 +135,15 @@ public class ModelWorkspaceInteractor {
 
 		String[] fileNames = new String[2];
 		String sysDesc = "";
+		String sysReq = "";
 		if (previousModel != null) {
 			sysDesc = previousModel.getSystemDescription();
+			sysReq = previousModel.getSystemRequirement();
 			fileNames[0] = previousModel.getContextFileName();
 			fileNames[1] = previousModel.getMachineFileName();
 		}
 		String newSysDesc = refinementStep.getModelDesc();
+		String newSysReq = refinementStep.getSysReqString();
 
 		if (previousModel == null) {
 			// synthesize abstract model
@@ -161,11 +166,12 @@ public class ModelWorkspaceInteractor {
 			fixPOs(projectName, fileNames, null);
 			countPOs(projectName, fileNames);
 			sysDesc = newSysDesc;
+			sysReq = newSysReq;
 		} else {
 			// refine the previous model
 			JSONObject response = new JSONObject();
 			try {
-				response = modelCreator.refineModel(projectName, fileNames, sysDesc, refinementStep);
+				response = modelCreator.refineModel(projectName, fileNames, sysDesc, sysReq, refinementStep);
 			} catch (ReachMaxAttemptException e) {
 				System.out.println(e.getMessage());
 				EvaluationManager.setErrorToLatestAction(e.getMessage());
@@ -182,9 +188,10 @@ public class ModelWorkspaceInteractor {
 			fixPOs(projectName, fileNames, null);
 			countPOs(projectName, fileNames);
 			sysDesc += "\n" + newSysDesc;
+			sysReq += newSysReq;
 		}
 
-		return new ModelInfo(fileNames[0], fileNames[1], sysDesc);
+		return new ModelInfo(fileNames[0], fileNames[1], sysDesc, sysReq);
 	}
 
 	public void backtrackToPreviousModel(String projectName) throws InvocationTargetException, InterruptedException {
@@ -197,43 +204,54 @@ public class ModelWorkspaceInteractor {
 	public String[] saveModel(String projectName, JSONObject contextJSON, JSONObject machineJSON)
 			throws InvocationTargetException, InterruptedException {
 
-		String contextFileName = contextJSON.getString(SchemaKeys.CONTEXT) + "." + contextFileType;
+		boolean isEmptyContext = isEmptyContext(contextJSON);
+		String seenContext = getPreviousContext(contextJSON);
+
+		String contextFileName = (isEmptyContext ? seenContext : contextJSON.getString(SchemaKeys.CONTEXT)) + "."
+				+ contextFileType;
 		String machineFileName = machineJSON.getString(SchemaKeys.MACHINE) + "." + machineFileType;
 
 		// save model
 		IRunnableWithProgress saveModelOperation = new IRunnableWithProgress() {
 			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
+
 				// context
-				try {
-					doFinish(projectName, contextFileName, monitor, contextJSON);
-				} catch (CoreException e) {
-					throw new InvocationTargetException(e);
-				} finally {
-					monitor.done();
+				if (!isEmptyContext) {
+					try {
+						doFinish(projectName, contextFileName, monitor, contextJSON, null);
+					} catch (CoreException e) {
+						throw new InvocationTargetException(e);
+					} finally {
+						monitor.done();
+					}
+					// save and wait for compilation error markers
+					try {
+						IRodinProject rodinProject = getRodinProject(projectName);
+						IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
+						buildAndWaitForMarkers(contextFile.getResource(), monitor);
+					} catch (CoreException e) {
+						e.printStackTrace();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} finally {
+						monitor.done();
+					}
 				}
 
 				// machine
 				try {
-					doFinish(projectName, machineFileName, monitor, machineJSON);
+					if (isEmptyContext) {
+						doFinish(projectName, machineFileName, monitor, machineJSON, Arrays.asList(seenContext));
+					} else {
+						doFinish(projectName, machineFileName, monitor, machineJSON, null);
+					}
 				} catch (CoreException e) {
 					throw new InvocationTargetException(e);
 				} finally {
 					monitor.done();
 				}
-
 				// save and wait for compilation error markers
-				try {
-					IRodinProject rodinProject = getRodinProject(projectName);
-					IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
-					buildAndWaitForMarkers(contextFile.getResource(), monitor);
-				} catch (CoreException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} finally {
-					monitor.done();
-				}
 				try {
 					IRodinProject rodinProject = getRodinProject(projectName);
 					IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
@@ -250,6 +268,27 @@ public class ModelWorkspaceInteractor {
 		runnableContext.run(false, false, saveModelOperation);
 
 		return new String[] { contextFileName, machineFileName };
+	}
+
+	private boolean isEmptyContext(JSONObject contextJSON) {
+		if (contextJSON.getString(SchemaKeys.CONTEXT).equals("EMPTY_CONTEXT")) {
+			return true;
+		}
+		JSONArray constants = contextJSON.getJSONArray(SchemaKeys.CONSTANTS);
+		JSONArray sets = contextJSON.getJSONArray(SchemaKeys.SETS);
+		JSONArray axioms = contextJSON.getJSONArray(SchemaKeys.AXIOMS);
+		return constants.isEmpty() && sets.isEmpty() && axioms.isEmpty();
+	}
+
+	private String getPreviousContext(JSONObject contextJSON) {
+		if (!contextJSON.has(SchemaKeys.EXTENDS)) {
+			return "";
+		}
+		JSONArray extendList = contextJSON.getJSONArray(SchemaKeys.EXTENDS);
+		if (extendList.isEmpty()) {
+			return "";
+		}
+		return extendList.getString(0);
 	}
 
 	public String[] saveModel(String projectName, JSONObject response)
@@ -778,8 +817,8 @@ public class ModelWorkspaceInteractor {
 	 * @param monitor     a progress monitor
 	 * @throws CoreException a core exception when creating the new file
 	 */
-	private void doFinish(String projectName, final String fileName, IProgressMonitor monitor, JSONObject json)
-			throws CoreException {
+	private void doFinish(String projectName, final String fileName, IProgressMonitor monitor, JSONObject json,
+			List<String> seenContexts) throws CoreException {
 
 		monitor.setTaskName("Creating " + fileName);
 		IRodinProject rodinProject = getRodinProject(projectName);
@@ -794,7 +833,7 @@ public class ModelWorkspaceInteractor {
 				((IConfigurationElement) rodinRoot).setConfiguration(DEFAULT_CONFIGURATION, pMonitor);
 				if (rodinRoot instanceof IMachineRoot) {
 					/* machine */
-					CreateModelUtils.initiateMachine(rodinRoot, pMonitor, llmResponseParser, json);
+					CreateModelUtils.initiateMachine(rodinRoot, pMonitor, llmResponseParser, json, seenContexts);
 				} else {
 					/* context */
 					CreateModelUtils.initiateContext(rodinRoot, pMonitor, llmResponseParser, json);

@@ -53,12 +53,14 @@ public enum LLMRequestTypes {
 		case REFINE_STRATEGY:
 			return new String[] { Constants.SYS_DESC_PLACE_HOLDER };
 		case SYNTHESIS:
-			return new String[] { Constants.SYS_DESC_PLACE_HOLDER };
+			return new String[] { Constants.REFINEMENT_ID_PLACE_HOLDER, Constants.SYS_DESC_PLACE_HOLDER,
+					Constants.SYS_REQ_PLACE_HOLDER };
 		case FIX_COMPILATION_ERRS:
 			return new String[] { Constants.MODEL_PLACE_HOLDER, Constants.ERRORS_PLACE_HOLDER };
 		case REFINE_MODEL:
-			return new String[] { Constants.PREV_SYS_DESC_PLACE_HOLDER, Constants.MODEL_PLACE_HOLDER,
-					Constants.SYS_DESC_PLACE_HOLDER };
+			return new String[] { Constants.REFINEMENT_ID_PLACE_HOLDER, Constants.PREV_SYS_DESC_PLACE_HOLDER,
+					Constants.PREV_SYS_REQ_PLACE_HOLDER, Constants.MODEL_PLACE_HOLDER, Constants.SYS_DESC_PLACE_HOLDER,
+					Constants.SYS_REQ_PLACE_HOLDER };
 		case MODEL_CHECKING_PARAMS:
 			return new String[] { Constants.MODEL_PLACE_HOLDER };
 		case FIX_MODEL_CHECKING:

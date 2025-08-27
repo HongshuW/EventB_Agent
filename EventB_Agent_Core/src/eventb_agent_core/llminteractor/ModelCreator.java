@@ -35,12 +35,15 @@ public class ModelCreator extends AbstractLLMInteractor {
 	 * @return the created model in JSON.
 	 * @throws InvocationTargetException
 	 * @throws InterruptedException
-	 * @throws ReachMaxAttemptException 
+	 * @throws ReachMaxAttemptException
 	 */
 	public JSONObject synthesizeModel(RefinementStep refinementStep)
 			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
+		String refinementID = String.valueOf(refinementStep.getRefinementNo());
 		String systemDesc = refinementStep.getModelDesc();
-		JSONObject response = getLLMResponse(new String[] { systemDesc }, LLMRequestTypes.SYNTHESIS);
+		String systemReqs = refinementStep.getSysReqString();
+		JSONObject response = getLLMResponse(new String[] { refinementID, systemDesc, systemReqs },
+				LLMRequestTypes.SYNTHESIS);
 
 		return response;
 	}
@@ -59,7 +62,8 @@ public class ModelCreator extends AbstractLLMInteractor {
 	 * @throws ReachMaxAttemptException
 	 */
 	public JSONObject refineModel(final String projectName, String[] fileNames, String previousSysDesc,
-			RefinementStep refinementStep) throws CoreException, InvocationTargetException, InterruptedException, ReachMaxAttemptException {
+			String previousSysReq, RefinementStep refinementStep)
+			throws CoreException, InvocationTargetException, InterruptedException, ReachMaxAttemptException {
 
 		// retrieve model in JSON form
 		IRodinProject rodinProject = RodinUtils.getRodinProject(projectName);
@@ -69,10 +73,12 @@ public class ModelCreator extends AbstractLLMInteractor {
 		IMachineRoot machineRoot = (IMachineRoot) mchFile.getRoot();
 		String modelJSON = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
 
+		String refinementID = String.valueOf(refinementStep.getRefinementNo());
 		String refineSysDesc = refinementStep.getModelDesc();
+		String refineSysReq = refinementStep.getSysReqString();
 
-		JSONObject response = getLLMResponse(new String[] { previousSysDesc, ParserUtils.reverseLex(modelJSON), refineSysDesc },
-				LLMRequestTypes.REFINE_MODEL);
+		JSONObject response = getLLMResponse(new String[] { refinementID, previousSysDesc, previousSysReq,
+				ParserUtils.reverseLex(modelJSON), refineSysDesc, refineSysReq }, LLMRequestTypes.REFINE_MODEL);
 
 		return response;
 	}

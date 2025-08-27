@@ -12,7 +12,7 @@ import org.json.JSONObject;
 import eventb_agent_core.llm.schemas.SchemaKeys;
 import eventb_agent_core.proof.Hypothesis;
 import eventb_agent_core.refinement.RefinementStep;
-import eventb_agent_core.utils.Constants;
+import eventb_agent_core.refinement.SystemRequirements;
 import eventb_agent_core.utils.llm.ParserUtils;
 
 public abstract class LLMResponseParser {
@@ -179,6 +179,10 @@ public abstract class LLMResponseParser {
 	/* refinement strategy methods */
 
 	public RefinementStep getRefinementStep(JSONObject refStepJSON) {
+		return getRefinementStep(refStepJSON, null);
+	}
+
+	public RefinementStep getRefinementStep(JSONObject refStepJSON, SystemRequirements systemReqs) {
 		int refNo = refStepJSON.getInt(SchemaKeys.REF_NO);
 		JSONArray reqIDs = refStepJSON.getJSONArray(SchemaKeys.REQUIREMENT_IDS);
 		String modelDesc = refStepJSON.getString(SchemaKeys.MODEL_DESC);
@@ -188,7 +192,7 @@ public abstract class LLMResponseParser {
 			reqIDList.add(reqIDs.getString(i));
 		}
 
-		return new RefinementStep(refNo, reqIDList, modelDesc);
+		return new RefinementStep(refNo, reqIDList, modelDesc, systemReqs);
 	}
 
 }

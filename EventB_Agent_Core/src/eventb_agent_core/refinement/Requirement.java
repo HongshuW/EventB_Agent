@@ -18,7 +18,7 @@ public class Requirement {
 
 	@Override
 	public String toString() {
-		return this.hasID() ? this.requirementID : this.requirementType.toString() + ": " + this.requirementText;
+		return (this.hasID() ? this.requirementID : this.requirementType.toString()) + ": " + this.requirementText;
 	}
 
 	public String toString(int id) {
@@ -35,6 +35,10 @@ public class Requirement {
 
 	public String getRequirementText() {
 		return this.requirementText;
+	}
+
+	public String getRequirementID() {
+		return this.requirementID;
 	}
 
 }

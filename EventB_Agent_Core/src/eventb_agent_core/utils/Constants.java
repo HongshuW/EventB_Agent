@@ -30,11 +30,14 @@ public class Constants {
 	public static final int TOKEN_LIMIT = 4096;
 
 	public static final String DEFAULT_PLACE_HOLDER = "{{default}}";
+	public static final String REFINEMENT_ID_PLACE_HOLDER = "{{refinement_id}}";
 	public static final String SYS_DESC_PLACE_HOLDER = "{{system_desc}}";
+	public static final String SYS_REQ_PLACE_HOLDER = "{{system_req}}";
 	public static final String MODEL_PLACE_HOLDER = "{{model}}";
 	public static final String PO_NAME_PLACE_HOLDER = "{{po_name}}";
 	public static final String PROOF_TREE_PLACE_HOLDER = "{{proof_tree}}";
 	public static final String PREV_SYS_DESC_PLACE_HOLDER = "{{prev_system_desc}}";
+	public static final String PREV_SYS_REQ_PLACE_HOLDER = "{{prev_system_req}}";
 	public static final String ERRORS_PLACE_HOLDER = "{{errors}}";
 	public static final String MODEL_CHECK_RESULT_PLACE_HOLDER = "{{model_checking_results}}";
 
