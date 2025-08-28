@@ -1,0 +1,19 @@
+{
+	"type": "function",
+	"name": "applyLasoo",
+	"description": "Select a node to apply lasoo.",
+	"strict": true,
+	"parameters": {
+		"type": "object",
+		"properties": {
+			"node_id": {
+				"type": "integer",
+				"description": "ID of the node in the proof tree to apply this function on."
+			}
+		},
+		"additionalProperties": false,
+		"required": [
+			"node_id"
+		]
+	}
+}

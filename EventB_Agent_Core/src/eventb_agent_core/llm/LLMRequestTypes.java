@@ -66,6 +66,8 @@ public enum LLMRequestTypes {
 		case FIX_MODEL_CHECKING:
 			return new String[] { Constants.MODEL_PLACE_HOLDER, Constants.MODEL_CHECK_RESULT_PLACE_HOLDER };
 		case FIX_PROOF:
+			return new String[] { Constants.MODEL_PLACE_HOLDER, Constants.PO_NAME_PLACE_HOLDER,
+					Constants.PROOF_TREE_PLACE_HOLDER, Constants.PROOF_TACTICS_PLACE_HOLDER };
 		case FIX_PROOF_NO_STRATEGY:
 			return new String[] { Constants.MODEL_PLACE_HOLDER, Constants.PO_NAME_PLACE_HOLDER,
 					Constants.PROOF_TREE_PLACE_HOLDER };

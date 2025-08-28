@@ -2,8 +2,10 @@ package eventb_agent_core.llminteractor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eventb.core.IAxiom;
@@ -13,11 +15,19 @@ import org.eventb.core.IGuard;
 import org.eventb.core.IInvariant;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPOSequent;
+import org.eventb.core.ast.IPosition;
 import org.eventb.core.pm.IProofAttempt;
 import org.eventb.core.pm.IProofComponent;
 import org.eventb.core.seqprover.IProofTree;
+import org.eventb.core.seqprover.IProofTreeNode;
+import org.eventb.core.seqprover.IReasoner;
+import org.eventb.core.seqprover.IReasonerRegistry;
+import org.eventb.core.seqprover.ITactic;
+import org.eventb.core.seqprover.SequentProver;
+import org.eventb.core.seqprover.tactics.BasicTactics;
 import org.eventb.internal.core.pm.ProofManager;
 import org.eventb.internal.core.seqprover.ReasonerFailure;
+import org.eventb.internal.core.seqprover.eventbExtensions.rewriters.AbstractManualRewrites;
 import org.json.JSONObject;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.RodinDBException;
@@ -126,7 +136,8 @@ public class POFixer extends AbstractLLMInteractor {
 			try {
 				reasonerMessage = null;
 				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName,
-						ParserUtils.reverseLex(ProofUtils.getProofTreeString(tree), 1) };
+						ParserUtils.reverseLex(ProofUtils.getProofTreeString(tree), 1),
+						getApplicableProofTactics(tree) };
 				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF,
 						requestHistory);
 				modifyModel(answer, machineRoot, contextRoot, poSequent, tree);
@@ -185,6 +196,12 @@ public class POFixer extends AbstractLLMInteractor {
 				fixer.addHypothesis(pred);
 			}
 			fixer.applyPostTactic();
+			break;
+		case applySMT:
+			fixer.applySMT();
+			break;
+		case applyLasoo:
+			fixer.applyLasoo();
 			break;
 		case strengthenInvariant:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.INV);
@@ -310,6 +327,79 @@ public class POFixer extends AbstractLLMInteractor {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public String getApplicableProofTactics(IProofTree tree) {
+		StringBuilder applicable = new StringBuilder();
+		Set<String> applicableSet = new HashSet<>();
+
+		IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(tree);
+		IReasonerRegistry registry = SequentProver.getReasonerRegistry();
+		String[] reasonerIds = registry.getRegisteredIDs();
+
+		for (String reasonerId : reasonerIds) {
+			try {
+				AbstractManualRewrites.Input input = new AbstractManualRewrites.Input(null, IPosition.ROOT);
+
+				// Create a tactic for this reasoner
+				IReasoner reasoner = SequentProver.getReasonerRegistry().getReasonerDesc(reasonerId).getInstance();
+				ITactic tactic = BasicTactics.reasonerTac(reasoner, input);
+
+				// Test if it's applicable (create a copy of the node to test)
+				Object rule = tactic.apply(node, null);
+
+				if (rule == null) {
+					applicableSet.add(getTacticName(reasonerId));
+					node.pruneChildren();
+				}
+			} catch (ClassCastException e) {
+				// skip
+			}
+		}
+
+		for (String tactic : applicableSet) {
+			applicable.append(tactic + ", ");
+		}
+		return applicable.toString();
+	}
+
+	private String getTacticName(String reasonerId) {
+
+		if (reasonerId.contains(".ri")) {
+			return ProofFixingStrategies.removeInclusion.name();
+		} else if (reasonerId.contains(".rm")) {
+			return ProofFixingStrategies.removeMembership.name();
+		} else if (reasonerId.contains(".cardDefRewrites")) {
+			return ProofFixingStrategies.cardinalityDefinition.name();
+		} else if (reasonerId.contains(".disjToImplRewrites")) {
+			return ProofFixingStrategies.disjunctionToImplication.name();
+		} else if (reasonerId.contains(".doubleImplHypRewrites")) {
+			return ProofFixingStrategies.doubleImplication.name();
+		} else if (reasonerId.contains(".equalCardRewrites")) {
+			return ProofFixingStrategies.equalCardinality.name();
+		} else if (reasonerId.contains(".eqvRewrites")) {
+			return ProofFixingStrategies.equivalence.name();
+		} else if (reasonerId.contains(".finiteDefRewrites")) {
+			return ProofFixingStrategies.finiteDefinition.name();
+		} else if (reasonerId.contains(".funImgSimplifies")) {
+			return ProofFixingStrategies.functionalImageDefinition.name();
+		} else if (reasonerId.contains(".impAndRewrites")) {
+			return ProofFixingStrategies.implicationAnd.name();
+		} else if (reasonerId.contains(".impOrRewrites")) {
+			return ProofFixingStrategies.implicationOr.name();
+		} else if (reasonerId.contains(".inclusionSetMinusLeftRewrites")) {
+			return ProofFixingStrategies.inclusionSetMinus.name();
+		} else if (reasonerId.contains(".rn")) {
+			return ProofFixingStrategies.removeNegation.name();
+		} else if (reasonerId.contains(".setEqlRewrites")) {
+			return ProofFixingStrategies.setEqual.name();
+		} else if (reasonerId.contains(".setMinusRewrites")) {
+			return ProofFixingStrategies.setMinus.name();
+		} else if (reasonerId.contains(".sir")) {
+			return ProofFixingStrategies.strictInclusion.name();
+		}
+
+		return reasonerId;
 	}
 
 }

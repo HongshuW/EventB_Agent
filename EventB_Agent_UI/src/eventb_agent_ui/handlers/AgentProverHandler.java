@@ -21,8 +21,6 @@ import org.eventb.core.IPOSequent;
 import org.eventb.core.pm.IProofAttempt;
 import org.eventb.core.seqprover.IProofTree;
 import org.eventb.core.seqprover.IProofTreeNode;
-import org.rodinp.core.RodinDBException;
-
 import eventb_agent_core.exception.ReachMaxAttemptException;
 import eventb_agent_core.llm.LLMInstanceFactory;
 import eventb_agent_core.llm.LLMModels;

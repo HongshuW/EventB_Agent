@@ -162,7 +162,7 @@ public class ModelWorkspaceInteractor {
 
 			fixBasedOnModelCheckingResults(projectName, fileNames);
 
-			runAutoProvers(projectName, fileNames);
+//			runAutoProvers(projectName, fileNames);
 			fixPOs(projectName, fileNames, null);
 			countPOs(projectName, fileNames);
 			sysDesc = newSysDesc;
@@ -184,7 +184,7 @@ public class ModelWorkspaceInteractor {
 
 			fixBasedOnModelCheckingResults(projectName, fileNames);
 
-			runAutoProvers(projectName, fileNames);
+//			runAutoProvers(projectName, fileNames);
 			fixPOs(projectName, fileNames, null);
 			countPOs(projectName, fileNames);
 			sysDesc += "\n" + newSysDesc;

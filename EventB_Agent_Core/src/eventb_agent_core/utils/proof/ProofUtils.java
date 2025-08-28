@@ -36,20 +36,43 @@ public class ProofUtils {
 		forAllTactic.apply(node, null);
 	}
 
-	public static IProofTreeNode getLastNodeFromTree(IProofAttempt attempt) {
+	public static IProofTreeNode getLastUndischargedNodeFromTree(IProofAttempt attempt) {
 		IProofTree tree = attempt.getProofTree();
 		if (tree == null || attempt.isDisposed()) {
 			return null;
 		}
 
 		IProofTreeNode node = tree.getRoot();
-		while (true) {
-			IProofTreeNode[] kids = node.getChildNodes();
-			if (kids.length == 0) {
-				return node;
-			}
-			node = kids[kids.length - 1];
+		return getChildNodeHelper(node);
+	}
+
+	private static IProofTreeNode getChildNodeHelper(IProofTreeNode node) {
+		if (node == null || node.isClosed() || node.getConfidence() == IConfidence.DISCHARGED_MAX) {
+			return null;
 		}
+
+		IProofTreeNode[] children = node.getChildNodes();
+		if (children.length == 0) {
+			return node;
+		}
+
+		for (IProofTreeNode child : children) {
+			IProofTreeNode lastNode = getChildNodeHelper(child);
+			if (lastNode != null) {
+				return lastNode;
+			}
+		}
+
+		return null;
+	}
+
+	public static IProofTreeNode getLastUndischargedNodeFromTree(IProofTree tree) {
+		if (tree == null) {
+			return null;
+		}
+
+		IProofTreeNode node = tree.getRoot();
+		return getChildNodeHelper(node);
 	}
 
 	public static IProofAttempt getProofAttempt(IProofTree tree, IEventBRoot root) {
@@ -79,9 +102,10 @@ public class ProofUtils {
 	}
 
 	public static void saveProofAttempt(IMachineRoot machineRoot, IProofAttempt proofAttempt) throws CoreException {
+		proofAttempt.commit(false, false, null);
+
 		IRodinFile bpo = proofAttempt.getComponent().getPORoot().getRodinFile();
 		IRodinFile bps = proofAttempt.getComponent().getPSRoot().getRodinFile();
-		proofAttempt.commit(false, false, null);
 		bpo.save(null, true);
 		bps.save(null, true);
 
@@ -90,32 +114,19 @@ public class ProofUtils {
 		}
 	}
 
-	public static boolean isDischarged(IMachineRoot machineRoot, String poName) throws RodinDBException, CoreException {
+	public static boolean isDischarged(IMachineRoot machineRoot, String poName) throws CoreException {
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
-		pc.save(null, true);
 
-		IPSRoot psRoot = pc.getPSRoot();
+		IPSRoot ps = pc.getPSRoot();
 
-		for (IPSStatus st : psRoot.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
-			String stPOName = st.getPOSequent().getElementName();
-			if (poName.equals(stPOName)) {
-
-				// Treat broken/missing proofs as NOT discharged
-				if (st.isBroken()) {
+		for (IPSStatus st : ps.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
+			if (poName.equals(st.getPOSequent().getElementName())) {
+				if (st.isBroken() || st.getProof() == null) {
 					return false;
 				}
-
-				int conf = st.getConfidence();
-
-				// Consider discharged only at/above the discharged threshold
-				if (conf < IConfidence.DISCHARGED_MAX) {
-					return false;
-				} else if (conf == IConfidence.DISCHARGED_MAX) {
-					return true;
-				}
+				return st.getConfidence() >= IConfidence.DISCHARGED_MAX;
 			}
 		}
-
 		return false;
 	}
 

@@ -1,6 +1,4 @@
-Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Consider the goal in the proof tree, complete the proof by calling the most suitable function. Each function will either modify the proof tree or modify the Event-B model. If the proof tree should be modified, choose a node in the proof tree to apply the function on, the node ID is labeled as NODE_n in the proof tree. Only select nodes that end with "- =>".
-
-For Well-Definedness (WD) proof obligations, applyProofTactic has a lower priority because it is very likely that the model needs to be improved.
+Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Consider the goal in the proof tree, complete the proof by calling the most suitable function. Each function will either modify the proof tree or modify the Event-B model. If the proof tree should be modified, choose a node in the proof tree to apply the function on, the node ID is labeled as NODE_n in the proof tree. Only select nodes that end with "- =>", i.e. the nodes without children.
 
 If there is no suitable function, call `others` and suggest the suitable fix as a parameter.
 
@@ -15,3 +13,6 @@ Proof Obligation:
 
 Proof Tree:
 {{proof_tree}}
+
+Available Proof Tactics:
+{{proof_tactics}}

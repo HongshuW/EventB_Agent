@@ -31,7 +31,7 @@ public class Constants {
 	public static final double TEMPERATURE = 0;
 	public static final double TOP_P = 1;
 	public static final int TOKEN_LIMIT = 4096;
-	
+
 	public static final String VERBOSITY = "low";
 	public static final String REASONING = "minimal";
 
@@ -42,6 +42,7 @@ public class Constants {
 	public static final String MODEL_PLACE_HOLDER = "{{model}}";
 	public static final String PO_NAME_PLACE_HOLDER = "{{po_name}}";
 	public static final String PROOF_TREE_PLACE_HOLDER = "{{proof_tree}}";
+	public static final String PROOF_TACTICS_PLACE_HOLDER = "{{proof_tactics}}";
 	public static final String PREV_SYS_DESC_PLACE_HOLDER = "{{prev_system_desc}}";
 	public static final String PREV_SYS_REQ_PLACE_HOLDER = "{{prev_system_req}}";
 	public static final String GLUING_INVS_PLACE_HOLDER = "{{gluing_invs}}";
