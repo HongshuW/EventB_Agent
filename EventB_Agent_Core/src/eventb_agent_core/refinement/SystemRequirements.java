@@ -49,6 +49,8 @@ public class SystemRequirements {
 		int eqpID = 1;
 		int envID = 1;
 		int safID = 1;
+		int degID = 1;
+		int delID = 1;
 
 		for (Requirement req : this.requirements) {
 			String reqString = "";
@@ -71,6 +73,14 @@ public class SystemRequirements {
 				case SAF:
 					reqString = req.toString(safID);
 					safID += 1;
+					break;
+				case DEG:
+					reqString = req.toString(degID);
+					degID += 1;
+					break;
+				case DEL:
+					reqString = req.toString(delID);
+					delID += 1;
 					break;
 				}
 			}
