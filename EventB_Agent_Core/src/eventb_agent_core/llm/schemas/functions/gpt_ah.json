@@ -1,7 +1,7 @@
 {
 	"type": "function",
 	"name": "addHypothesesToContext",
-	"description": "Add hypothesis to the context. Use this function when a standard fact that is not recognized by Event-B should be added. The hypothesis will be added as an axiom in the context, so the predicate should only use ***constants and sets from the context***, not variables from the machine.",
+	"description": "Add hypothesis as axiom in the context. Use this function when a standard fact that is not recognized by Event-B should be added. The hypothesis should use ***constants and sets from the context***, or use `\\forall` or `\\exists` if other symbols are involved.",
 	"strict": true,
 	"parameters": {
 		"type": "object",

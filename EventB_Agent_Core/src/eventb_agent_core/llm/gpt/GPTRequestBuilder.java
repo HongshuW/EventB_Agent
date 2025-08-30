@@ -52,7 +52,7 @@ public class GPTRequestBuilder extends RequestBuilder {
 		switch (requestType) {
 		case FIX_PROOF:
 			return new String[] { "gpt_ae.json", "gpt_ah.json", "gpt_apply_proof_tactic.json", "gpt_dc.json",
-					"gpt_instantiation.json", "gpt_lasoo.json", "gpt_others.json", "gpt_smt.json",
+					"gpt_instantiation.json", "gpt_others.json", "gpt_smt.json", "gpt_split_event.json",
 					"gpt_strengthen_guard.json", "gpt_strengthen_invariant.json", };
 		default:
 			return new String[] {};
@@ -121,6 +121,15 @@ public class GPTRequestBuilder extends RequestBuilder {
 		inputs.addAll(history);
 		inputs.add(requestMessage);
 		request.put("input", inputs);
+
+//		LinkedHashMap<String, Object> format = new LinkedHashMap<>();
+//		format.put("type", "json_object");
+//		LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
+//		textFormat.put("format", format);
+//		if (!isGPT4()) {
+//			textFormat.put("verbosity", Constants.VERBOSITY);
+//		}
+//		request.put("text", textFormat);
 
 		request.put("tools", getFunctionSchemas(requestType));
 

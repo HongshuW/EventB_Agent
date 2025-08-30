@@ -1,11 +1,14 @@
 Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Consider the goal in the proof tree, complete the proof by calling the most suitable function. Each function will either modify the proof tree or modify the Event-B model. If the proof tree should be modified, choose a node in the proof tree to apply the function on, the node ID is labeled as NODE_n in the proof tree. Only select nodes that end with "- =>", i.e. the nodes without children.
 
-Try `applySMT` last because it is a blackbox approach.
+Try other functions before `applySMT` because it is a blackbox approach. The resulting proof should be explainable. Only call `applySMT` when the other functions do not work.
+
+`applyProofTactic` may only be called with `proof_tactic` chosen from `Available Proof Tactics`. If `Available Proof Tactics` is empty, do not use `applyProofTactic`.
+
+If working on the proof tree doesn't discharge the proof, update the model using `addHypothesesToContext`, `strengthenGuard`, `strengthenInvariant` or `caseDistinctionBySplittingEvent`.
+
+For a well-definedness proof obligation (WD) about guard, if proof cannot proceed, try adding conditions through `strengthenGuard`.
 
 If there is no suitable function, call `others` and suggest the suitable fix as a parameter.
-
-Respond using only code-points 0x20-0x7E. Do not emit \\u0000 to \\u001F. For Event-B use: \in for '∈', \subseteq for '⊆', not for '¬', etc.
-If latex commands are used, make sure that only commands with a corresponding symbol in Event-B is included, e.g. exclude commands like \bcmin, \quad, etc.
 
 Model:
 {{model}}

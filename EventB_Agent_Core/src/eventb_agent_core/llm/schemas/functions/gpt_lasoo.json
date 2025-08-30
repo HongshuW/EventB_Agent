@@ -1,7 +1,7 @@
 {
 	"type": "function",
 	"name": "applyLasoo",
-	"description": "Select a node to apply lasoo.",
+	"description": "Select a node to apply lasoo. This function selects all the relevant hypotheses of the goal.",
 	"strict": true,
 	"parameters": {
 		"type": "object",

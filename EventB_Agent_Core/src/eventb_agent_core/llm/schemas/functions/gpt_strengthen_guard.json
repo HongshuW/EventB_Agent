@@ -1,7 +1,7 @@
 {
 	"type": "function",
 	"name": "strengthenGuard",
-	"description": "If the proof obligation about an event cannot be discharged because a hypothesis is missing, add the hypothesis as a guard in the event.",
+	"description": "If the proof obligation about an event cannot be discharged because a condition is missing, add the condition as a guard in the event. For example, to prove that a guard `y = fun(x)` is well defined, `y \\in dom(fun)` must be true. If not, add `y \\in dom(fun)` as an additional guard of the event.",
 	"strict": true,
 	"parameters": {
 		"type": "object",

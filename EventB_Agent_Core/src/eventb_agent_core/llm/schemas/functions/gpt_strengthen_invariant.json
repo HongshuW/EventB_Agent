@@ -1,7 +1,7 @@
 {
 	"type": "function",
 	"name": "strengthenInvariant",
-	"description": "Add an invariant to accomplish the missing hypothesis revealed in proofs.",
+	"description": "If the proof cannot proceed because the invariant is not strong enough, call this function to strengthen the invariant. Either update an exisitng invariant with the same name to add conditions, e.g. `inv1: x` becomes `inv1: x \\land y`; Or add a new invariant.",
 	"strict": true,
 	"parameters": {
 		"type": "object",

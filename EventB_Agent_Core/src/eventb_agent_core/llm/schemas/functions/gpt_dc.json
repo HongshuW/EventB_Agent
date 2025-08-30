@@ -1,71 +1,24 @@
 {
 	"type": "function",
 	"name": "caseDistinction",
-	"description": "Split an event by cases to assist proving.",
+	"description": "Apply case distinction in the proof tree, the goal will be attempted for both the true case and the false case, in both cases the goal should be discharged.",
 	"strict": true,
 	"parameters": {
 		"type": "object",
-		"$defs": {
-			"predicate": {
-				"type": "string"
-			},
-			"identifier": {
-				"type": "string",
-				"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
-			},
-			"labeled_predicate": {
-				"type": "object",
-				"required": [
-					"label_name",
-					"predicate"
-				],
-				"properties": {
-					"label_name": {
-						"$ref": "#/$defs/identifier"
-					},
-					"predicate": {
-						"$ref": "#/$defs/predicate"
-					}
-				},
-				"additionalProperties": false
-			},
-			"event_name_and_guards": {
-				"type": "object",
-				"description": "A simplified representation of event, only include event name and its guards.",
-				"required": [
-					"event_name",
-					"guards"
-				],
-				"properties": {
-					"event_name": {
-						"$ref": "#/$defs/identifier"
-					},
-					"guards": {
-						"type": "array",
-						"items": {
-							"$ref": "#/$defs/labeled_predicate"
-						}
-					}
-				},
-				"additionalProperties": false
-			}
-		},
 		"properties": {
-			"original_event_name": {
+			"expression": {
 				"type": "string",
-				"description": "Name of the original event to split."
+				"description": "Expression that represents the true case."
 			},
-			"new_events": {
-				"type": "array",
-				"items": {
-					"$ref": "#/$defs/event_name_and_guards"
-				}
+			"node_id": {
+				"type": "integer",
+				"description": "ID of the node in the proof tree to apply this function on."
 			}
 		},
 		"additionalProperties": false,
 		"required": [
-			"original_event_name",
-			"new_events"
+			"expression",
+			"node_id"
 		]
 	}
 }

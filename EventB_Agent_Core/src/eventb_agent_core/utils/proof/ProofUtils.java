@@ -1,5 +1,8 @@
 package eventb_agent_core.utils.proof;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eventb.core.IEventBRoot;
 import org.eventb.core.IMachineRoot;
@@ -176,6 +179,35 @@ public class ProofUtils {
 			if (nodeWrapper.id == targetID) {
 				return nodeWrapper;
 			}
+			currentID = nodeWrapper.id;
+			lastNode = nodeWrapper.node;
+		}
+
+		return new ProofNodeWrapper(lastNode, currentID);
+	}
+
+	public static List<ProofNodeWrapper> getUndischargedNodes(IProofTree tree) {
+		List<ProofNodeWrapper> nodes = new ArrayList<>();
+		getAllNodesHelper(tree.getRoot(), 0, nodes);
+		return nodes;
+	}
+
+	private static ProofNodeWrapper getAllNodesHelper(IProofTreeNode node, int currentID,
+			List<ProofNodeWrapper> nodes) {
+		if (node == null || node.isClosed() || node.getConfidence() == IConfidence.DISCHARGED_MAX) {
+			return new ProofNodeWrapper(node, currentID);
+		}
+
+		if (node.getChildNodes().length == 0) {
+			ProofNodeWrapper wrapper = new ProofNodeWrapper(node, currentID);
+			nodes.add(wrapper);
+			return wrapper;
+		}
+		
+		IProofTreeNode lastNode = null;
+		for (IProofTreeNode childNode : node.getChildNodes()) {
+			currentID++;
+			ProofNodeWrapper nodeWrapper = getAllNodesHelper(childNode, currentID, nodes);
 			currentID = nodeWrapper.id;
 			lastNode = nodeWrapper.node;
 		}

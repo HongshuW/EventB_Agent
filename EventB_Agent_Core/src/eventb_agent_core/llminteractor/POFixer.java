@@ -2,9 +2,11 @@ package eventb_agent_core.llminteractor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
@@ -16,6 +18,7 @@ import org.eventb.core.IInvariant;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPOSequent;
 import org.eventb.core.ast.IPosition;
+import org.eventb.core.ast.Predicate;
 import org.eventb.core.pm.IProofAttempt;
 import org.eventb.core.pm.IProofComponent;
 import org.eventb.core.seqprover.IProofTree;
@@ -28,6 +31,8 @@ import org.eventb.core.seqprover.tactics.BasicTactics;
 import org.eventb.internal.core.pm.ProofManager;
 import org.eventb.internal.core.seqprover.ReasonerFailure;
 import org.eventb.internal.core.seqprover.eventbExtensions.rewriters.AbstractManualRewrites;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.RodinDBException;
@@ -43,9 +48,11 @@ import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.proof.FixProofStrategyRunner;
 import eventb_agent_core.proof.Hypothesis;
 import eventb_agent_core.proof.ProofFixingStrategies;
+import eventb_agent_core.proof.ProofNodeWrapper;
 import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.llm.ParserUtils;
+import eventb_agent_core.utils.proof.PredicateUtils;
 import eventb_agent_core.utils.proof.ProofUtils;
 
 public class POFixer extends AbstractLLMInteractor {
@@ -165,7 +172,14 @@ public class POFixer extends AbstractLLMInteractor {
 	private void modifyModel(JSONObject answer, IMachineRoot machineRoot, IContextRoot contextRoot,
 			IPOSequent poSequent, IProofTree tree) throws CoreException {
 		String function = answer.getString(Constants.FUNCTION_NAME);
-		JSONObject args = new JSONObject(answer.getString(Constants.FUNCTION_ARGS));
+		JSONObject args = null;
+		try {
+			args = new JSONObject(answer.getString(Constants.FUNCTION_ARGS));
+		} catch (JSONException e) {
+			EvaluationManager.setErrorToLatestAction(e.getMessage());
+			reasonerMessage = e.getMessage();
+			return;
+		}
 
 		EvaluationManager.setErrorToLatestAction(function + ":" + args.toString());
 
@@ -175,33 +189,49 @@ public class POFixer extends AbstractLLMInteractor {
 
 		List<Hypothesis> hypotheses = new ArrayList<>();
 
+		Object result = null;
+
 		switch (strategy) {
 		case applyProofTactic:
 			String tacticString = args.getString(SchemaKeys.PROOF_TACTIC);
 			ProofFixingStrategies tactic = ProofFixingStrategies.valueOf(tacticString);
 			String predicate = ParserUtils.lex(args.getString(SchemaKeys.PRED));
-			Object result = fixer.applyProofTactic(predicate, nodeID, tactic);
-			if (result instanceof ReasonerFailure) {
-				ReasonerFailure fail = (ReasonerFailure) result;
-				reasonerMessage = fail.getReason();
-			} else {
-				fixer.applyPostTactic();
-			}
+			result = fixer.applyProofTactic(predicate, nodeID, tactic);
+			finish(result, fixer);
 			break;
 		case addHypothesesToContext:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.HYP);
 			addHypothesesToContext(contextRoot, hypotheses);
 			for (Hypothesis hypothesis : hypotheses) {
 				String pred = ParserUtils.lex(hypothesis.getPredicate());
-				fixer.addHypothesis(pred);
+				result = fixer.addHypothesis(pred);
+				finish(result, fixer);
 			}
-			fixer.applyPostTactic();
+			break;
+		case addAbstractExpression:
+			String expression = args.getString(SchemaKeys.EXPR);
+			String expr = ParserUtils.lex(expression);
+			result = fixer.addAbstractExpression(expr);
+			finish(result, fixer);
 			break;
 		case applySMT:
 			fixer.applySMT();
 			break;
 		case applyLasoo:
 			fixer.applyLasoo();
+			break;
+		case caseDistinction:
+			expression = args.getString(SchemaKeys.EXPR);
+			expr = ParserUtils.lex(expression);
+			result = fixer.caseDistinction(expr);
+			finish(result, fixer);
+			break;
+		case instantiation:
+			predicate = args.getString(SchemaKeys.PRED);
+			String pred = ParserUtils.lex(predicate);
+			JSONArray instantiations = args.getJSONArray(SchemaKeys.INSTANTIATIONS);
+			result = fixer.instantiation(pred, instantiations);
+			finish(result, fixer);
 			break;
 		case strengthenInvariant:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.INV);
@@ -218,6 +248,15 @@ public class POFixer extends AbstractLLMInteractor {
 			fixer.applyPostTactic();
 		}
 
+	}
+
+	private void finish(Object result, FixProofStrategyRunner fixer) throws CoreException {
+		if (result instanceof ReasonerFailure) {
+			ReasonerFailure fail = (ReasonerFailure) result;
+			reasonerMessage = fail.getReason();
+		} else {
+			fixer.applyPostTactic();
+		}
 	}
 
 	private void addHypothesesToContext(IContextRoot contextRoot, List<Hypothesis> hypotheses) throws CoreException {
@@ -330,37 +369,96 @@ public class POFixer extends AbstractLLMInteractor {
 	}
 
 	public String getApplicableProofTactics(IProofTree tree) {
-		StringBuilder applicable = new StringBuilder();
-		Set<String> applicableSet = new HashSet<>();
+		StringBuilder applicable = new StringBuilder("applyProofTactic: ");
+		Set<Map<String, String>> applicableSet = new HashSet<>();
 
-		IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(tree);
-		IReasonerRegistry registry = SequentProver.getReasonerRegistry();
-		String[] reasonerIds = registry.getRegisteredIDs();
+		List<ProofNodeWrapper> nodes = ProofUtils.getUndischargedNodes(tree);
+		for (ProofNodeWrapper nodeWrapper : nodes) {
+			IReasonerRegistry registry = SequentProver.getReasonerRegistry();
+			String[] reasonerIds = registry.getRegisteredIDs();
 
-		for (String reasonerId : reasonerIds) {
-			try {
-				AbstractManualRewrites.Input input = new AbstractManualRewrites.Input(null, IPosition.ROOT);
-
-				// Create a tactic for this reasoner
-				IReasoner reasoner = SequentProver.getReasonerRegistry().getReasonerDesc(reasonerId).getInstance();
-				ITactic tactic = BasicTactics.reasonerTac(reasoner, input);
-
-				// Test if it's applicable (create a copy of the node to test)
-				Object rule = tactic.apply(node, null);
-
-				if (rule == null) {
-					applicableSet.add(getTacticName(reasonerId));
-					node.pruneChildren();
+			for (String reasonerId : reasonerIds) {
+				try {
+					List<Predicate> predicates = PredicateUtils.getAllPredicates(nodeWrapper.node);
+					for (Predicate pred : predicates) {
+						addTactics(nodeWrapper, pred, reasonerId, applicableSet, IPosition.ROOT);
+					}
+					addTactics(nodeWrapper, null, reasonerId, applicableSet, IPosition.ROOT);
+				} catch (Exception e) {
+					// skip
 				}
-			} catch (ClassCastException e) {
-				// skip
 			}
 		}
 
-		for (String tactic : applicableSet) {
-			applicable.append(tactic + ", ");
+		if (applicableSet.isEmpty()) {
+			applicable.append("None");
+		}
+		for (Map<String, String> tactic : applicableSet) {
+			if (tactic != null) {
+				applicable.append("{");
+				for (String key : tactic.keySet()) {
+					applicable.append("\"" + key + "\": ");
+					applicable.append("\"" + tactic.get(key) + "\", ");
+				}
+				applicable.append("},");
+			}
+		}
+
+		applicable.append("\n");
+		String[] applicableFunctions = new String[] { "addAbstractExpression", "addHypothesesToContext",
+				"caseDistinction", "caseDistinctionBySplittingEvent", "instantiation", "strengthenGuard",
+				"strengthenInvariant", "applySMT" };
+		for (String function : applicableFunctions) {
+			applicable.append(function + ", ");
 		}
 		return applicable.toString();
+	}
+
+	private void addTactics(ProofNodeWrapper nodeWrapper, Predicate pred, String reasonerId,
+			Set<Map<String, String>> applicableSet, IPosition position) {
+		IProofTreeNode node = nodeWrapper.node;
+		int id = nodeWrapper.id;
+
+		List<IPosition> posList = new ArrayList<>();
+		posList.add(position);
+		IPosition left = position.getFirstChild();
+		IPosition right = left.getNextSibling();
+		posList.add(left);
+		posList.add(right);
+		posList.add(left.getFirstChild());
+		posList.add(left.getFirstChild().getNextSibling());
+
+		while (!posList.isEmpty()) {
+			IPosition pos = posList.remove(0);
+			AbstractManualRewrites.Input input = new AbstractManualRewrites.Input(pred, pos);
+
+			// Create a tactic for this reasoner
+			IReasoner reasoner = SequentProver.getReasonerRegistry().getReasonerDesc(reasonerId).getInstance();
+			ITactic tactic = BasicTactics.reasonerTac(reasoner, input);
+
+			// Test if it's applicable (create a copy of the node to test)
+			Object rule = tactic.apply(node, null);
+
+			if (rule == null) {
+				String tacticName = getTacticName(reasonerId);
+				if (tacticName == "") {
+					return;
+				}
+				Map<String, String> applicable = new HashMap<>();
+				applicable.put("proof_tactic", tacticName);
+				String predicate = "";
+				if (pred == null) {
+					predicate = ParserUtils.reverseLex(node.getSequent().goal().toString());
+				} else {
+					predicate = ParserUtils.reverseLex(pred.toString(), 1);
+				}
+				applicable.put("predicate", predicate);
+				applicable.put("node_id", String.valueOf(id));
+				applicableSet.add(applicable);
+				node.pruneChildren();
+				return;
+			}
+		}
 	}
 
 	private String getTacticName(String reasonerId) {
@@ -397,9 +495,11 @@ public class POFixer extends AbstractLLMInteractor {
 			return ProofFixingStrategies.setMinus.name();
 		} else if (reasonerId.contains(".sir")) {
 			return ProofFixingStrategies.strictInclusion.name();
+		} else if (reasonerId.contains(".relOvrRewrites")) {
+			return ProofFixingStrategies.relationOverwriteDefinition.name();
 		}
 
-		return reasonerId;
+		return "";
 	}
 
 }

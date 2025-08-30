@@ -264,7 +264,8 @@ public class ParserUtils {
 		regexMap.put("\\\\+subset(?!e)", String.valueOf(STRICT_SUBSET));
 		regexMap.put("\\\\+nsubset(?!e)", String.valueOf(NOT_STRICT_SUBSET));
 		regexMap.put("\\\\+nsubseteq", String.valueOf(NOT_SUBSET));
-		regexMap.put("\\\\+in", String.valueOf(ELEMENT_OF));
+		regexMap.put("\\\\+in(?!j)", String.valueOf(ELEMENT_OF));
+		regexMap.put("\\\\+inj", String.valueOf(TOTAL_INJECTION));
 		regexMap.put("\\\\+mapsto", String.valueOf(MAP_LET));
 		regexMap.put("\\\\+notin", String.valueOf(NOT_ELEMENT_OF));
 		regexMap.put("\\\\+rightarrow", String.valueOf(TOTAL_FUNCTION));

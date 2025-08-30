@@ -160,10 +160,9 @@ public class ModelWorkspaceInteractor {
 			fixCompilationErrors(projectName, fileNames);
 			countCompilationErrors(projectName, fileNames);
 
-			fixBasedOnModelCheckingResults(projectName, fileNames);
+//			fixBasedOnModelCheckingResults(projectName, fileNames);
 
-//			runAutoProvers(projectName, fileNames);
-			countPOs(projectName, fileNames);
+			runAutoProvers(projectName, fileNames);
 			fixPOs(projectName, fileNames, null);
 			countPOs(projectName, fileNames);
 			sysDesc = newSysDesc;
@@ -183,10 +182,9 @@ public class ModelWorkspaceInteractor {
 			fixCompilationErrors(projectName, fileNames);
 			countCompilationErrors(projectName, fileNames);
 
-			fixBasedOnModelCheckingResults(projectName, fileNames);
+//			fixBasedOnModelCheckingResults(projectName, fileNames);
 
-//			runAutoProvers(projectName, fileNames);
-			countPOs(projectName, fileNames);
+			runAutoProvers(projectName, fileNames);
 			fixPOs(projectName, fileNames, null);
 			countPOs(projectName, fileNames);
 			sysDesc += "\n" + newSysDesc;
@@ -196,11 +194,12 @@ public class ModelWorkspaceInteractor {
 		return new ModelInfo(fileNames[0], fileNames[1], sysDesc, sysReq);
 	}
 
-	public void backtrackToPreviousModel(String projectName) throws InvocationTargetException, InterruptedException {
+	public String[] backtrackToPreviousModel(String projectName)
+			throws InvocationTargetException, InterruptedException {
 		JSONObject previousModelJSON = new JSONObject(previousModel);
 		JSONObject contextJSON = previousModelJSON.getJSONObject(SchemaKeys.CONTEXT_OBJ_KEY);
 		JSONObject machineJSON = previousModelJSON.getJSONObject(SchemaKeys.MACHINE_OBJ_KEY);
-		saveModel(projectName, contextJSON, machineJSON);
+		return saveModel(projectName, contextJSON, machineJSON);
 	}
 
 	public String[] saveModel(String projectName, JSONObject contextJSON, JSONObject machineJSON)
@@ -694,6 +693,7 @@ public class ModelWorkspaceInteractor {
 					POManager poManager = new POManager();
 					POFixer poFixer = new POFixer(llmRequestSender, llmResponseParser);
 
+					poManager.runAutoProvers(machineRoot);
 					List<IPOSequent> pos = poManager.getOpenPOs(machineRoot);
 
 					if (pos.isEmpty()) {
@@ -745,19 +745,9 @@ public class ModelWorkspaceInteractor {
 					}
 
 				} catch (ReachMaxAttemptException e) {
-					System.out.println(e.getMessage());
-					EvaluationManager.endLatestAction();
-					EvaluationManager.copyActionForInfoRecording(e.getMessage());
-					visitedPOs.add(e.poName == null ? poName : e.poName);
-					try {
-						backtrackToPreviousModel(projectName);
-						fixPOs(projectName, fileNames, null);
-					} catch (InvocationTargetException | InterruptedException | ReachMaxAttemptException e1) {
-						e1.printStackTrace();
-						throw new InvocationTargetException(e);
-					}
+					reattemptFixPO(e, projectName, fileNames, poName);
 				} catch (Exception e) {
-					throw new InvocationTargetException(e);
+					e.printStackTrace();
 				} finally {
 					monitor.done();
 				}
@@ -766,6 +756,23 @@ public class ModelWorkspaceInteractor {
 		runnableContext.run(false, false, fixPOsOperation);
 
 		return new String[] { contextFileName, machineFileName };
+	}
+
+	private void reattemptFixPO(ReachMaxAttemptException e, String projectName, String[] fileNames, String poName)
+			throws InvocationTargetException {
+		System.out.println(e.getMessage());
+		EvaluationManager.endLatestAction();
+		EvaluationManager.copyActionForInfoRecording(e.getMessage());
+		visitedPOs.add(e.poName == null ? poName : e.poName);
+		try {
+			backtrackToPreviousModel(projectName);
+			fixPOs(projectName, fileNames, null);
+		} catch (InvocationTargetException | InterruptedException e1) {
+			e1.printStackTrace();
+			throw new InvocationTargetException(e1);
+		} catch (ReachMaxAttemptException e1) {
+			reattemptFixPO(e1, projectName, fileNames, null);
+		}
 	}
 
 	private void countPOs(String projectName, String[] fileNames)

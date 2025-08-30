@@ -1,7 +1,7 @@
 {
 	"type": "function",
 	"name": "instantiation",
-	"description": "For instantiations of existential predicates, you must use existing constants defined in the context. e.g. To instantiate `\\exists x \\cdot x \\in TYPE`, you need to inspect the constants and axioms, and make sure to choose an existing ***constant from the context*** with the correct type `TYPE`, not variables from the machine or symbol defined in the proof tree. For example, axioms `t \\in TYPE` and `partition(TYPE, {t1, t2})` indicate that t, t1, t2 are in TYPE set. You instantiation could be either t, t1, or t2.",
+	"description": "Instantiation is only enabled for universal (`\\forall`) or existential (`\\exists`) predicates. For instantiations of existential predicates, you must use existing constants defined in the context. e.g. To instantiate `\\exists x \\cdot x \\in TYPE`, you need to inspect the constants and axioms, and make sure to choose a ***constant from the context*** with the correct type `TYPE`, not variables from the machine. For example, axioms `t \\in TYPE` and `partition(TYPE, {t1, t2})` indicate that t, t1, t2 are in TYPE set. You instantiation could be either t, t1, or t2. If `TYPE` is NAT or INT, you can choose 1,2,3,... as instantiation.",
 	"strict": true,
 	"parameters": {
 		"type": "object",
@@ -47,6 +47,10 @@
 			}
 		},
 		"properties": {
+			"node_id": {
+				"type": "integer",
+				"description": "ID of the node in the proof tree to apply this function on."
+			},
 			"predicate": {
 				"$ref": "#/$defs/predicate"
 			},
@@ -60,6 +64,7 @@
 		},
 		"additionalProperties": false,
 		"required": [
+			"node_id",
 			"predicate",
 			"instantiations"
 		]

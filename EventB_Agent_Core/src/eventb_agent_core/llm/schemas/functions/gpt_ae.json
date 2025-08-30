@@ -1,7 +1,7 @@
 {
 	"type": "function",
 	"name": "addAbstractExpression",
-	"description": "Add a symbol to represent an expression to assist proving. It doesn't unfold any logical formula, only call this if the current expressions are too complicated and it's necessary to add some simplifications.",
+	"description": "Add a symbol to represent an expression to assist proving. It doesn't unfold any logical formula, it only adds an expression to introduce a symbol that represents a predicate. Only call this if the current expressions are too complicated and it's necessary to add some simplifications.",
 	"strict": true,
 	"parameters": {
 		"type": "object",
@@ -34,11 +34,16 @@
 		"properties": {
 			"expression": {
 				"$ref": "#/$defs/labeled_expression"
+			},
+			"node_id": {
+				"type": "integer",
+				"description": "ID of the node in the proof tree to apply this function on."
 			}
 		},
 		"additionalProperties": false,
 		"required": [
-			"expression"
+			"expression",
+			"node_id"
 		]
 	}
 }

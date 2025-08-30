@@ -1,5 +1,6 @@
 package eventb_agent_core.utils.proof;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
@@ -25,11 +26,22 @@ public class PredicateUtils {
 		return parseRes.getParsedPredicate();
 	}
 
-	public static Predicate getPredicate(IProofTreeNode node, Predicate targetPred) {
+	public static List<Predicate> getAllPredicates(IProofTreeNode node) {
 		IProverSequent sequent = node.getSequent();
 
-		Optional<Predicate> inHyps = StreamSupport.stream(sequent.hypIterable().spliterator(), false)
-				.filter(pred -> pred.equals(targetPred) || pred.toString().equals(targetPred.toString())).findFirst();
+		return StreamSupport.stream(sequent.selectedHypIterable().spliterator(), false).toList();
+	}
+
+	public static Predicate getPredicate(IProofTreeNode node, Predicate targetPred) {
+		if (targetPred == null) {
+			return null;
+		}
+
+		IProverSequent sequent = node.getSequent();
+
+		Optional<Predicate> inHyps = StreamSupport.stream(sequent.selectedHypIterable().spliterator(), false).filter(
+				pred -> pred != null && (pred.equals(targetPred) || pred.toString().equals(targetPred.toString())))
+				.findFirst();
 		if (inHyps.isPresent()) {
 			return inHyps.get();
 		}
