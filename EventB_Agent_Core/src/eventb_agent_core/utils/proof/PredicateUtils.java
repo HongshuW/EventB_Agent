@@ -1,5 +1,7 @@
 package eventb_agent_core.utils.proof;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
@@ -14,6 +16,8 @@ import org.eventb.core.ast.QuantifiedPredicate;
 import org.eventb.core.seqprover.IProofTreeNode;
 import org.eventb.core.seqprover.IProverSequent;
 
+import eventb_agent_core.proof.PredicateWrapper;
+
 public class PredicateUtils {
 
 	public static Predicate parsePredicate(IEventBRoot eventbRoot, String predString) {
@@ -26,10 +30,21 @@ public class PredicateUtils {
 		return parseRes.getParsedPredicate();
 	}
 
-	public static List<Predicate> getAllPredicates(IProofTreeNode node) {
+	public static List<PredicateWrapper> getAllPredicates(IProofTreeNode node) {
 		IProverSequent sequent = node.getSequent();
+		List<PredicateWrapper> result = new ArrayList<>();
 
-		return StreamSupport.stream(sequent.selectedHypIterable().spliterator(), false).toList();
+		int predicateID = 1;
+		Iterator<Predicate> selectedPredicates = sequent.selectedHypIterable().iterator();
+		while (selectedPredicates.hasNext()) {
+			Predicate predicate = selectedPredicates.next();
+			if (predicate != null) {
+				result.add(new PredicateWrapper(predicate, predicateID));
+				predicateID++;
+			}
+		}
+
+		return result;
 	}
 
 	public static Predicate getPredicate(IProofTreeNode node, Predicate targetPred) {

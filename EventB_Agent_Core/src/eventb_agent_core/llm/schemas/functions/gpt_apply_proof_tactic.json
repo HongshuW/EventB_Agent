@@ -1,7 +1,7 @@
 {
 	"type": "function",
 	"name": "applyProofTactic",
-	"description": "Among available proof tactics, select a proof tactic to apply to the proof tree. Then specify the node ID and predicate to apply to. The selected predicate must be exactly the same as the goal or a hypothesis. ***The proof tactic must match the selected predicate.***",
+	"description": "Among available proof tactics, select a proof tactic to apply to the proof tree. Then specify the node ID and predicate ID to apply to. ***The proof tactic must match the selected predicate.***",
 	"strict": true,
 	"parameters": {
 		"type": "object",
@@ -13,7 +13,7 @@
 		"properties": {
 			"proof_tactic": {
 				"type": "string",
-				"description": "For each of the following definitions Rewrite X to Y, choose the enum if the predicate contains X. cardinalityDefinition: Rewrites `card(S) = k` to `\\exists f \\cdot f \\in (1..k >->> S)`. conjunctionToImplicationRewrite: Rewrite `P \\lor Q` to `\\neg P \\implies Q`. doubleImplication: Rewrite `P \\implies (Q \\implies R)` to `(P \\land Q) \\implies R`. equalCardinality: Rewrite `card(S) = card(T)` to `\\exists f \\cdot f \\in (S >->> T)`. equivalence: Rewrite `P \\leftrightarrow Q` to `(P \\implies Q) \\land (Q \\implies P)`. finiteDefinition: Rewrite `finite(S)` to `\\exists n \\in NAT \\cdot (\\exists f \\in (1..n \\leftrightarrow S))`. functionalImageDefinition: Rewrite `f(x) = y` to `(x \\mapsto y) \\in f`. implicationAnd: Rewrite `P \\implies (Q \\land R)` to `(P \\implies Q) \\land (P \\implies R)`. implicationOr: Rewrite `P \\implies (Q \\lor R)` to `(P \\implies Q) \\lor (P \\implies R)`. inclusionSetMinus: Rewrite `A \\subseteq (B \\setminus C)` to `(A \\subseteq B) \\land (A \\bunion C = {})`. removeInclusion: Rewrite `A \\subseteq B` to `\\forall x \\cdot (x \\in A \\implies x \\in B)`. removeMembership: Rewrite `x \\in S` based on the definition of S. removeNegation: Rewrite predicate to remove negation `\\neg`. setEqual: Rewrite `A = B` to `(A \\subseteq B) \\land (B \\subseteq A)`. setMinus: Rewrite `x \\in (A \\setminus B)` to `(x \\in A) \\land (x \\notin B)`. strictInclusion: Rewrite `A \\subset B` to `(A \\subseteq B) \\land (A \\neq B)`. relationOverwriteDefinition: Rewrite `A \\oplus B` to `({(x \\mapsto y \\in A) \\mid (x \\notin dom(B))}) \\bunion B`.",
+				"description": "cardinalityDefinition: Rewrites `card(S) = k` to `\\exists f \\cdot f \\in (1..k >->> S)`. conjunctionToImplicationRewrite: Rewrite `P \\lor Q` to `\\neg P \\implies Q`. doubleImplication: Rewrite `P \\implies (Q \\implies R)` to `(P \\land Q) \\implies R`. equalCardinality: Rewrite `card(S) = card(T)` to `\\exists f \\cdot f \\in (S >->> T)`. equivalence: Rewrite `P \\leftrightarrow Q` to `(P \\implies Q) \\land (Q \\implies P)`. finiteDefinition: Rewrite `finite(S)` to `\\exists n \\in NAT \\cdot (\\exists f \\in (1..n \\leftrightarrow S))`. functionalImageDefinition: Rewrite `f(x) = y` to `(x \\mapsto y) \\in f`. implicationAnd: Rewrite `P \\implies (Q \\land R)` to `(P \\implies Q) \\land (P \\implies R)`. implicationOr: Rewrite `P \\implies (Q \\lor R)` to `(P \\implies Q) \\lor (P \\implies R)`. inclusionSetMinus: Rewrite `A \\subseteq (B \\setminus C)` to `(A \\subseteq B) \\land (A \\bunion C = {})`. removeInclusion: Rewrite `A \\subseteq B` to `\\forall x \\cdot (x \\in A \\implies x \\in B)`. removeMembership: Rewrite `x \\in S` based on the definition of S. removeNegation: Rewrite predicate to remove negation `\\neg`. setEqual: Rewrite `A = B` to `(A \\subseteq B) \\land (B \\subseteq A)`. setMinus: Rewrite `x \\in (A \\setminus B)` to `(x \\in A) \\land (x \\notin B)`. strictInclusion: Rewrite `A \\subset B` to `(A \\subseteq B) \\land (A \\neq B)`. relationOverwriteDefinition: Rewrite `A \\oplus B` to `({(x \\mapsto y \\in A) \\mid (x \\notin dom(B))}) \\bunion B`.",
 				"enum": [
 					"cardinalityDefinition",
 					"disjunctionToImplication",
@@ -38,15 +38,16 @@
 				"type": "integer",
 				"description": "ID of the node in the proof tree to apply this function on."
 			},
-			"predicate": {
-				"$ref": "#/$defs/predicate"
+			"predicate_id": {
+				"type": "integer",
+				"description": "ID of the predicate in the node to apply this function on."
 			}
 		},
 		"additionalProperties": false,
 		"required": [
 			"proof_tactic",
 			"node_id",
-			"predicate"
+			"predicate_id"
 		]
 	}
 }

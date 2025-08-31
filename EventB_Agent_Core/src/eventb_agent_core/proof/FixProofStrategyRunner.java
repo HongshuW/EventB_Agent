@@ -115,7 +115,7 @@ public class FixProofStrategyRunner {
 		return abstractExpressionTactic.apply(node, null);
 	}
 
-	public Object applyProofTactic(String predicate, int nodeID, ProofFixingStrategies strategy)
+	public Object applyProofTactic(int predicateID, int nodeID, ProofFixingStrategies strategy)
 			throws RodinDBException {
 		String reasonerID = "org.eventb.core.seqprover";
 		switch (strategy) {
@@ -169,15 +169,26 @@ public class FixProofStrategyRunner {
 			break;
 		case relationOverwriteDefinition:
 			reasonerID += ".relOvrRewrites";
+			break;
 		}
-		return applyProofTactic(predicate, nodeID, reasonerID);
+		return applyProofTactic(predicateID, nodeID, reasonerID);
 	}
 
-	private Object applyProofTactic(String predicate, int nodeID, String reasonerID) throws RodinDBException {
+	private Object applyProofTactic(int predicateID, int nodeID, String reasonerID) throws RodinDBException {
 		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
 		IProofTreeNode node = ProofUtils.getProofTreeNode(proofAttempt.getProofTree(), nodeID);
 
-		Predicate predInNode = PredicateUtils.getPredicate(node, predicate);
+		Predicate predInNode = null;
+		if (predicateID != 0) {
+			List<PredicateWrapper> predWrappers = PredicateUtils.getAllPredicates(node);
+			for (PredicateWrapper predWrapper : predWrappers) {
+				if (predWrapper.predicateID == predicateID) {
+					predInNode = predWrapper.predicate;
+					break;
+				}
+			}
+		}
+
 		List<IPosition> posList = new ArrayList<>();
 		posList.add(IPosition.ROOT);
 		IPosition left = IPosition.ROOT.getFirstChild();

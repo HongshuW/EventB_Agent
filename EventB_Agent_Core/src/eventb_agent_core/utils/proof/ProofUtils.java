@@ -3,7 +3,12 @@ package eventb_agent_core.utils.proof;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eventb.core.EventBPlugin;
 import org.eventb.core.IEventBRoot;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPOSequent;
@@ -19,12 +24,15 @@ import org.eventb.core.seqprover.ITactic;
 import org.eventb.core.seqprover.eventbExtensions.Tactics;
 import org.eventb.internal.core.pm.ProofManager;
 import org.rodinp.core.IRodinFile;
+import org.rodinp.core.RodinCore;
 import org.rodinp.core.RodinDBException;
 
 import eventb_agent_core.proof.ProofAttemptWrapper;
 import eventb_agent_core.proof.ProofNodeWrapper;
 
 public class ProofUtils {
+
+	private static final String PO_OWNER_NAME = "POFixer";
 
 	public static ProofAttemptWrapper getLatestProofAttemptWrapper(IProofAttempt proofAttempt, IProofTreeNode node,
 			String poName, IEventBRoot eventbRoot) {
@@ -119,7 +127,83 @@ public class ProofUtils {
 
 	public static boolean isDischarged(IMachineRoot machineRoot, String poName) throws CoreException {
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
+		pc.save(null, true);
 
+		IPSRoot ps = pc.getPSRoot();
+
+		for (IPSStatus st : ps.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
+			if (poName.equals(st.getPOSequent().getElementName())) {
+				if (st.isBroken() || st.getProof() == null) {
+					return isDischargedWithRefresh(machineRoot, poName);
+				}
+				return st.getConfidence() >= IConfidence.DISCHARGED_MAX;
+			}
+		}
+		return false;
+	}
+
+	private static boolean isDischargedWithRefresh(IMachineRoot machineRoot, String poName) throws RodinDBException {
+		RodinCore.run((IWorkspaceRunnable) runnable -> {
+			try {
+
+				IProject project = machineRoot.getRodinProject().getProject();
+				project.build(IncrementalProjectBuilder.FULL_BUILD, null);
+
+				// Refresh Proof Component
+				IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
+				pc.save(null, true);
+
+				// Get fresh PS root and find the PO
+				IPSRoot ps = pc.getPSRoot();
+				IPSStatus target = null;
+				for (IPSStatus st : ps.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
+					if (poName.equals(st.getPOSequent().getElementName())) {
+						target = st;
+						break;
+					}
+				}
+				if (target == null) {
+					return;
+				} // PO not found; leave as not discharged
+
+				// If status is broken, delete the obsolete proof and re-prove
+				if (target.isBroken()) {
+					if (target.getProof() != null && target.getProof().exists()) {
+						target.getProof().delete(true, null);
+					}
+
+					// Re-fetch handles after deletion
+					pc.save(null, true);
+					ps = pc.getPSRoot();
+					for (IPSStatus st : ps.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
+						if (poName.equals(st.getPOSequent().getElementName())) {
+							target = st;
+							break;
+						}
+					}
+
+					// Create a fresh attempt, apply auto post tactics, save
+					IProofAttempt pa = pc.createProofAttempt(poName, PO_OWNER_NAME, null);
+					IProofTreeNode root = pa.getProofTree().getRoot();
+
+					ITactic auto = EventBPlugin.getAutoPostTacticManager().getSelectedPostTactics(machineRoot);
+					auto.apply(root, null);
+
+					pa.commit(true, null);
+					pa.dispose();
+				}
+
+				// Final refresh after proof changes
+				project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+				pc.save(null, true);
+
+			} catch (OperationCanceledException e) {
+				// ignore
+			}
+		}, null, null);
+
+		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
+		pc.save(null, true);
 		IPSRoot ps = pc.getPSRoot();
 
 		for (IPSStatus st : ps.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
@@ -203,7 +287,7 @@ public class ProofUtils {
 			nodes.add(wrapper);
 			return wrapper;
 		}
-		
+
 		IProofTreeNode lastNode = null;
 		for (IProofTreeNode childNode : node.getChildNodes()) {
 			currentID++;

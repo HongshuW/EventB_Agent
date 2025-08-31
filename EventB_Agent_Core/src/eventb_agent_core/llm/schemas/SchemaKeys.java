@@ -48,6 +48,7 @@ public class SchemaKeys {
 	/* keys for proof fixing */
 	public static final String PROOF_TACTIC = "proof_tactic";
 	public static final String NODE_ID = "node_id";
+	public static final String PRED_ID = "predicate_id";
 	public static final String EXPLANATION = "explanation";
 	public static final String MODIFICATION = "modification";
 	public static final String HYP = "hypothesis";

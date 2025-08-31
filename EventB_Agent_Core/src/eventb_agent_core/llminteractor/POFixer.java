@@ -47,6 +47,7 @@ import eventb_agent_core.llm.schemas.SchemaKeys;
 import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.proof.FixProofStrategyRunner;
 import eventb_agent_core.proof.Hypothesis;
+import eventb_agent_core.proof.PredicateWrapper;
 import eventb_agent_core.proof.ProofFixingStrategies;
 import eventb_agent_core.proof.ProofNodeWrapper;
 import eventb_agent_core.utils.Constants;
@@ -195,8 +196,8 @@ public class POFixer extends AbstractLLMInteractor {
 		case applyProofTactic:
 			String tacticString = args.getString(SchemaKeys.PROOF_TACTIC);
 			ProofFixingStrategies tactic = ProofFixingStrategies.valueOf(tacticString);
-			String predicate = ParserUtils.lex(args.getString(SchemaKeys.PRED));
-			result = fixer.applyProofTactic(predicate, nodeID, tactic);
+			int predicateID = args.getInt(SchemaKeys.PRED_ID);
+			result = fixer.applyProofTactic(predicateID, nodeID, tactic);
 			finish(result, fixer);
 			break;
 		case addHypothesesToContext:
@@ -227,7 +228,7 @@ public class POFixer extends AbstractLLMInteractor {
 			finish(result, fixer);
 			break;
 		case instantiation:
-			predicate = args.getString(SchemaKeys.PRED);
+			String predicate = args.getString(SchemaKeys.PRED);
 			String pred = ParserUtils.lex(predicate);
 			JSONArray instantiations = args.getJSONArray(SchemaKeys.INSTANTIATIONS);
 			result = fixer.instantiation(pred, instantiations);
@@ -236,13 +237,13 @@ public class POFixer extends AbstractLLMInteractor {
 		case strengthenInvariant:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.INV);
 			strengthenInvariants(machineRoot, hypotheses);
-			fixer.applyPostTactic();
 			break;
 		case strengthenGuard:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.GRD);
 			String eventName = args.getString(SchemaKeys.EVENT_NAME);
-			strengthenGuard(machineRoot, hypotheses, eventName);
-			fixer.applyPostTactic();
+			String[] poNameElements = poSequent.getElementName().split("/");
+			String grdInPO = poNameElements.length == 3 ? poNameElements[1] : null;
+			strengthenGuard(machineRoot, hypotheses, eventName, grdInPO);
 			break;
 		default:
 			fixer.applyPostTactic();
@@ -323,8 +324,8 @@ public class POFixer extends AbstractLLMInteractor {
 		}
 	}
 
-	private void strengthenGuard(IMachineRoot machineRoot, List<Hypothesis> hypotheses, String eventName)
-			throws RodinDBException {
+	private void strengthenGuard(IMachineRoot machineRoot, List<Hypothesis> hypotheses, String eventName,
+			String poGrdLabel) throws RodinDBException {
 		IRodinFile rodinFile = machineRoot.getRodinFile();
 
 		IEvent targetEvent = null;
@@ -356,7 +357,14 @@ public class POFixer extends AbstractLLMInteractor {
 				}
 				if (!grdExists) {
 					// add new invariant
-					IGuard newGrd = targetEvent.createChild(IGuard.ELEMENT_TYPE, null, null);
+					IGuard previousGuard = null;
+					for (IGuard grd : guards) {
+						if (grd.getLabel().equals(poGrdLabel)) {
+							previousGuard = grd;
+							break;
+						}
+					}
+					IGuard newGrd = targetEvent.createChild(IGuard.ELEMENT_TYPE, previousGuard, null);
 					newGrd.setLabel(label, null);
 					newGrd.setPredicateString(predicate, null);
 				}
@@ -379,11 +387,12 @@ public class POFixer extends AbstractLLMInteractor {
 
 			for (String reasonerId : reasonerIds) {
 				try {
-					List<Predicate> predicates = PredicateUtils.getAllPredicates(nodeWrapper.node);
-					for (Predicate pred : predicates) {
+					List<PredicateWrapper> predicateWrappers = PredicateUtils.getAllPredicates(nodeWrapper.node);
+					for (PredicateWrapper pred : predicateWrappers) {
 						addTactics(nodeWrapper, pred, reasonerId, applicableSet, IPosition.ROOT);
 					}
-					addTactics(nodeWrapper, null, reasonerId, applicableSet, IPosition.ROOT);
+					addTactics(nodeWrapper, new PredicateWrapper(nodeWrapper.node.getSequent().goal(), 0, true),
+							reasonerId, applicableSet, IPosition.ROOT);
 				} catch (Exception e) {
 					// skip
 				}
@@ -414,7 +423,7 @@ public class POFixer extends AbstractLLMInteractor {
 		return applicable.toString();
 	}
 
-	private void addTactics(ProofNodeWrapper nodeWrapper, Predicate pred, String reasonerId,
+	private void addTactics(ProofNodeWrapper nodeWrapper, PredicateWrapper predWrapper, String reasonerId,
 			Set<Map<String, String>> applicableSet, IPosition position) {
 		IProofTreeNode node = nodeWrapper.node;
 		int id = nodeWrapper.id;
@@ -427,6 +436,8 @@ public class POFixer extends AbstractLLMInteractor {
 		posList.add(right);
 		posList.add(left.getFirstChild());
 		posList.add(left.getFirstChild().getNextSibling());
+
+		Predicate pred = predWrapper.isGoal ? null : predWrapper.predicate;
 
 		while (!posList.isEmpty()) {
 			IPosition pos = posList.remove(0);
@@ -446,12 +457,8 @@ public class POFixer extends AbstractLLMInteractor {
 				}
 				Map<String, String> applicable = new HashMap<>();
 				applicable.put("proof_tactic", tacticName);
-				String predicate = "";
-				if (pred == null) {
-					predicate = ParserUtils.reverseLex(node.getSequent().goal().toString());
-				} else {
-					predicate = ParserUtils.reverseLex(pred.toString(), 1);
-				}
+				String predicate = ParserUtils.reverseLex(predWrapper.predicate.toString(), 1);
+				applicable.put("predicate_id", String.valueOf(predWrapper.predicateID));
 				applicable.put("predicate", predicate);
 				applicable.put("node_id", String.valueOf(id));
 				applicableSet.add(applicable);
