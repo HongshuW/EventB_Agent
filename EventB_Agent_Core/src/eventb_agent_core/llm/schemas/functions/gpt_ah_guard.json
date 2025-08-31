@@ -1,7 +1,7 @@
 {
 	"type": "function",
-	"name": "addHypothesesToContext",
-	"description": "Add hypothesis as axiom in the context. Use this function when a standard fact that is not recognized by Event-B should be added. ***The hypothesis should be a universal (`\\forall`) or existential (`\\exists`) predicate.***",
+	"name": "addHypothesesToGuard",
+	"description": "Add hypothesis as guard to an event. Use this function when a standard fact that is not recognized by Event-B should be added. ***The hypothesis should be a universal (`\\forall`) or existential (`\\exists`) predicate.***",
 	"strict": true,
 	"parameters": {
 		"type": "object",
@@ -35,7 +35,10 @@
 				"type": "integer",
 				"description": "ID of the node in the proof tree to apply this function on."
 			},
-			"hypothesis": {
+			"event_name": {
+				"type": "string"
+			},
+			"guard": {
 				"$ref": "#/$defs/labeled_predicate"
 			},
 			"instantiations": {
@@ -48,7 +51,8 @@
 		"additionalProperties": false,
 		"required": [
 			"node_id",
-			"hypothesis",
+			"event_name",
+			"guard",
 			"instantiations"
 		]
 	}

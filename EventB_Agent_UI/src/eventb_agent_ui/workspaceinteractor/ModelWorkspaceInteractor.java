@@ -600,19 +600,25 @@ public class ModelWorkspaceInteractor {
 	}
 
 	private IPOSequent getPO(List<IPOSequent> pos, String poName) {
+		IPOSequent selectedPO = null;
 		for (IPOSequent po : pos) {
-			if (visitedPOs.contains(po.getElementName())) {
+			String otherPOName = po.getElementName();
+			if (visitedPOs.contains(otherPOName)) {
 				continue;
 			}
 			if (poName == null) {
-				return po;
+				if (selectedPO == null) {
+					selectedPO = po;
+				} else if (otherPOName.contains("WD")) {
+					selectedPO = po;
+					break;
+				}
 			}
-			String otherPOName = po.getElementName();
 			if (otherPOName.equals(poName) || otherPOName == poName) {
 				return po;
 			}
 		}
-		return null;
+		return selectedPO;
 	}
 
 	private void runAutoProvers(String projectName, String[] fileNames)
@@ -705,6 +711,7 @@ public class ModelWorkspaceInteractor {
 					IPOSequent undischargedPO = getPO(pos, poName);
 					if (undischargedPO != null) {
 						String undischargedPOName = undischargedPO.getElementName();
+
 						System.out.println(undischargedPOName);
 
 						EvaluationManager.addAndStartNewAction(ComponentType.FIX_PROOF, newAttemptID);

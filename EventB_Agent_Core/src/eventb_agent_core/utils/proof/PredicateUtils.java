@@ -74,6 +74,14 @@ public class PredicateUtils {
 		return getPredicate(node, targetPred);
 	}
 
+	public static Predicate parserPredicate(IProofTreeNode node, String predicate) {
+		IProverSequent sequent = node.getSequent();
+		FormulaFactory formulaFactory = sequent.getFormulaFactory();
+		ISealedTypeEnvironment typeEnv = sequent.typeEnvironment();
+
+		return formulaFactory.parsePredicate(predicate, typeEnv).getParsedPredicate();
+	}
+
 	public static boolean isForAllPredicate(Predicate predicate) {
 		if (!(predicate instanceof QuantifiedPredicate)) {
 			return false;

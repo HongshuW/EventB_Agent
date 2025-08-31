@@ -55,12 +55,14 @@ public class POManager {
 
 	public void runAutoProvers(IMachineRoot machineRoot) throws Exception {
 		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
+		proofComponent.save(null, true);
+
 		IPORoot poRoot = proofComponent.getPORoot();
 		IPSRoot psRoot = proofComponent.getPSRoot();
 
 		Map<String, IPSStatus> statusByPO = getStatusByPOMap(psRoot);
 
-		// try to discharge POs by running auto provers, PP, and SMT solvers
+		// try to discharge POs by running auto provers
 		for (IPOSequent poSequent : poRoot.getSequents()) {
 			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
 			if (!ProofUtils.isDischarged(machineRoot, psStatus.getElementName())) {

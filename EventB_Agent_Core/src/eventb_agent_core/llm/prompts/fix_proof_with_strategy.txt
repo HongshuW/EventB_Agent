@@ -15,7 +15,8 @@ Available Proof Tactics:
 You must follow the ***rules for calling functions***:
 1. Try other functions before `applySMT` because it is a blackbox approach. The resulting proof should be explainable. Only call `applySMT` when the other functions do not work.
 2. `applyProofTactic` may only be called with an option chosen from `Available Proof Tactics`. The predicate and node id should be ***exactly same as what is provided***. If `Available Proof Tactics` is empty, do not use `applyProofTactic`.
-3. If working on the proof tree doesn't discharge the proof, update the model using `addHypothesesToContext`, `strengthenGuard`, `strengthenInvariant` or `caseDistinctionBySplittingEvent`.
-4. For a well-definedness proof obligation (***WD***) about guard, if proof cannot proceed, use `strengthenGuard` to add an additional guard. For example, to prove that a guard `y = fun(x)` is well defined, `y \\in dom(fun)` must be true. If not, add `y \\in dom(fun)` as an additional guard of the event.
-5. If there is no suitable function, call `others` and suggest the suitable fix as a parameter.
-6. Return one function call that is the most suitable among all.
+3. For a well-definedness proof obligation (***WD***) about guard, if proof cannot proceed, use `strengthenGuard` to add an additional guard. For example, to prove that a guard `y = fun(x)` is well defined, `y \\in dom(fun)` must be true. If not, add `y \\in dom(fun)` as an additional guard of the event.
+4. For an invariant-preserving proof obligation (***INV***), if proof cannot proceed, use `addHypothesesToContext` OR `addHypothesesToGuard`. Event-B is based on proof by induction. For an obvious fact, e.g. `x >= 0` |- `x + 1 >= 0` that is an ***inductive step***, and not basic knowledge of Event-B auto prover, use `addHypothesesToContext` to add an axiom, e.g. `\\forall x \\cdot x \\in NAT \\land x >= 0 \\implies x + 1 >= 0`. Add an hypothesis specific to the proof. After this, specify instantiations specific to the current proof.
+5. For ***INV***, if the proof involves parameters of an event, use `addHypothesesToGuard` to add the inductive step as an additional guard. e.g. if `p` is a parameter of the event, and `f \\in TYPE` |- `f \\oplus {p \\mapsto n} \\in TYPE`, then use `addHypothesesToGuard` to add a guard, e.g. `\\forall f \\cdot f \\in TYPE \\land p \\in dom(f) \\implies f \\oplus {p \\mapsto n} \\in TYPE`.
+6. If there is no suitable function, call `others` and suggest the suitable fix as a parameter.
+7. Return one function call that is the most suitable among all.

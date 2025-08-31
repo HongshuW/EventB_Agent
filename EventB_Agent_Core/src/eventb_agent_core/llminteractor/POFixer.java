@@ -204,8 +204,7 @@ public class POFixer extends AbstractLLMInteractor {
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.HYP);
 			addHypothesesToContext(contextRoot, hypotheses);
 			for (Hypothesis hypothesis : hypotheses) {
-				String pred = ParserUtils.lex(hypothesis.getPredicate());
-				result = fixer.addHypothesis(pred);
+				result = fixer.addHypothesis(hypothesis);
 				finish(result, fixer);
 			}
 			break;
@@ -231,7 +230,7 @@ public class POFixer extends AbstractLLMInteractor {
 			String predicate = args.getString(SchemaKeys.PRED);
 			String pred = ParserUtils.lex(predicate);
 			JSONArray instantiations = args.getJSONArray(SchemaKeys.INSTANTIATIONS);
-			result = fixer.instantiation(pred, instantiations);
+			result = fixer.instantiation(pred, instantiations, nodeID);
 			finish(result, fixer);
 			break;
 		case strengthenInvariant:

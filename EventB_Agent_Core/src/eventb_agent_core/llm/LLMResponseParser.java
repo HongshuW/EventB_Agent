@@ -176,8 +176,18 @@ public abstract class LLMResponseParser {
 		String label = hypothesisJSON.getString(SchemaKeys.LABEL);
 		String predicate = hypothesisJSON.getString(SchemaKeys.PRED);
 
-		Hypothesis hypothesis = new Hypothesis(label, predicate);
-		hypotheses.add(hypothesis);
+		if (argumentsJSON.has(SchemaKeys.INSTANTIATIONS)) {
+			JSONArray instantiations = argumentsJSON.getJSONArray(SchemaKeys.INSTANTIATIONS);
+			String[] insts = new String[instantiations.length()];
+			for (int i = 0; i < instantiations.length(); i++) {
+				insts[i] = instantiations.getString(i);
+			}
+			Hypothesis hypothesis = new Hypothesis(label, predicate, insts);
+			hypotheses.add(hypothesis);
+		} else {
+			Hypothesis hypothesis = new Hypothesis(label, predicate);
+			hypotheses.add(hypothesis);
+		}
 
 		return hypotheses;
 	}
