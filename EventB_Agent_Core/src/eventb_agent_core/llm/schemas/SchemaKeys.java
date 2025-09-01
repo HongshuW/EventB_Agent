@@ -55,7 +55,6 @@ public class SchemaKeys {
 	public static final String INV = "invariant";
 	public static final String GRD = "guard";
 	public static final String INSTANTIATIONS = "instantiations";
-	public static final String CONST_NAME = "constant_name";
 
 	/* keys for model checking */
 	public static final String MODEL_CHECKING_PARAMS = "parameters";

@@ -108,16 +108,19 @@ public class FixProofStrategyRunner {
 		}
 		IProofTreeNode[] children = node.getChildNodes();
 		for (IProofTreeNode child : children) {
-			child.pruneChildren();
 			Predicate predicate = PredicateUtils.parserPredicate(child, pred);
 			Predicate predInNode = PredicateUtils.getPredicate(child, pred);
 			Predicate goal = child.getSequent().goal();
 			if (predInNode != null) {
 				result = instantiation(pred, instantiations, child);
-				applyPostTactic(child);
+				if (result == null) {
+					applyPostTactic(child);
+				}
 			} else if (goal.toString().equals(predicate.toString())) {
 				// hyp in goal
 				applySMT(child);
+			} else {
+				applyPostTactic(child);
 			}
 		}
 
@@ -281,12 +284,14 @@ public class FixProofStrategyRunner {
 		}
 
 		if (Tactics.allD_applicable(predInNode)) {
+			node.pruneChildren();
 			ITactic forAllTactic = Tactics.allmpD(predInNode, instantiationsArray);
 			Object result = forAllTactic.apply(node, null);
 			return result;
 		}
 
 		if (Tactics.exF_applicable(predInNode)) {
+			node.pruneChildren();
 			StringBuilder input = new StringBuilder();
 			for (int i = 0; i < instantiationsArray.length; i++) {
 				String inst = instantiationsArray[i];
@@ -307,9 +312,8 @@ public class FixProofStrategyRunner {
 		String[] instantiationsArray = new String[instantiations.length()];
 
 		for (int i = 0; i < instantiations.length(); i++) {
-			JSONObject inst = instantiations.getJSONObject(i);
-			String name = inst.getString(SchemaKeys.CONST_NAME);
-			instantiationsArray[i] = name;
+			String inst = instantiations.getString(i);
+			instantiationsArray[i] = inst;
 		}
 
 		final IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);

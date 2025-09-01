@@ -9,7 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eventb.core.IAxiom;
 import org.eventb.core.IContextRoot;
 import org.eventb.core.IEvent;
@@ -140,7 +144,7 @@ public class POFixer extends AbstractLLMInteractor {
 			e.printStackTrace();
 		}
 
-		if (tree != null) {
+		if (tree != null && !ProofUtils.isDischargedWithRefresh(machineRoot, poName, tree)) {
 			try {
 				reasonerMessage = null;
 				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName,
@@ -149,7 +153,7 @@ public class POFixer extends AbstractLLMInteractor {
 				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF,
 						requestHistory);
 				modifyModel(answer, machineRoot, contextRoot, poSequent, tree);
-				if (!ProofUtils.isDischarged(machineRoot, poName)) {
+				if (!ProofUtils.isDischargedWithRefresh(machineRoot, poName, tree)) {
 					EvaluationManager.endLatestAction();
 					EvaluationManager.repeatAndStartPrevoiusAction(maxAttemptsProof);
 					EvaluationManager.setLastPOActionIndex();
@@ -165,7 +169,7 @@ public class POFixer extends AbstractLLMInteractor {
 				throw new ReachMaxAttemptException(ComponentType.FIX_PROOF.name(), poName);
 			}
 		} else {
-			System.out.println("Proof tree is null.");
+			System.out.println("Proof tree is null or discharged.");
 		}
 
 	}
@@ -208,6 +212,15 @@ public class POFixer extends AbstractLLMInteractor {
 				finish(result, fixer);
 			}
 			break;
+		case addHypothesesToGuard:
+			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.GRD);
+			String eventName = args.getString(SchemaKeys.EVENT_NAME);
+			addHypothesesToGuard(machineRoot, hypotheses, eventName);
+			for (Hypothesis hypothesis : hypotheses) {
+				result = fixer.addHypothesis(hypothesis);
+				finish(result, fixer);
+			}
+			break;
 		case addAbstractExpression:
 			String expression = args.getString(SchemaKeys.EXPR);
 			String expr = ParserUtils.lex(expression);
@@ -239,7 +252,7 @@ public class POFixer extends AbstractLLMInteractor {
 			break;
 		case strengthenGuard:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.GRD);
-			String eventName = args.getString(SchemaKeys.EVENT_NAME);
+			eventName = args.getString(SchemaKeys.EVENT_NAME);
 			String[] poNameElements = poSequent.getElementName().split("/");
 			String grdInPO = poNameElements.length == 3 ? poNameElements[1] : null;
 			strengthenGuard(machineRoot, hypotheses, eventName, grdInPO);
@@ -254,8 +267,17 @@ public class POFixer extends AbstractLLMInteractor {
 		if (result instanceof ReasonerFailure) {
 			ReasonerFailure fail = (ReasonerFailure) result;
 			reasonerMessage = fail.getReason();
-		} else {
-			fixer.applyPostTactic();
+		}
+
+		fixer.applyPostTactic();
+		ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+
+		try {
+			Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+			Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
+		} catch (OperationCanceledException | InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -289,6 +311,50 @@ public class POFixer extends AbstractLLMInteractor {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	private void addHypothesesToGuard(IMachineRoot machineRoot, List<Hypothesis> hypotheses, String targetEventName) {
+		IRodinFile rodinFile = machineRoot.getRodinFile();
+
+		try {
+			IEvent targetEvent = null;
+			IEvent[] events = machineRoot.getChildrenOfType(IEvent.ELEMENT_TYPE);
+			for (IEvent event : events) {
+				if (event.getLabel().equals(targetEventName)) {
+					targetEvent = event;
+					break;
+				}
+			}
+			if (targetEvent == null) {
+				return;
+			}
+
+			for (int i = 0; i < hypotheses.size(); i++) {
+				Hypothesis hyp = hypotheses.get(i);
+				String label = hyp.getLabel();
+				String predicate = ParserUtils.lex(hyp.getPredicate());
+
+				boolean guardExists = false;
+				IGuard[] guards = targetEvent.getGuards();
+				for (IGuard g : guards) {
+					if (g.getLabel().equals(label)) {
+						guardExists = true;
+						break;
+					}
+				}
+
+				if (!guardExists) {
+					IGuard guard = targetEvent.createChild(IGuard.ELEMENT_TYPE, null, null);
+					guard.setLabel(label, null);
+					guard.setPredicateString(predicate, null);
+
+					rodinFile.save(null, false);
+				}
+			}
+		} catch (RodinDBException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	private void strengthenInvariants(IMachineRoot machineRoot, List<Hypothesis> hypotheses) {
@@ -414,8 +480,8 @@ public class POFixer extends AbstractLLMInteractor {
 
 		applicable.append("\n");
 		String[] applicableFunctions = new String[] { "addAbstractExpression", "addHypothesesToContext",
-				"caseDistinction", "caseDistinctionBySplittingEvent", "instantiation", "strengthenGuard",
-				"strengthenInvariant", "applySMT" };
+				"addHypothesesToGuard", "caseDistinction", "caseDistinctionBySplittingEvent", "instantiation",
+				"strengthenGuard", "strengthenInvariant", "applySMT" };
 		for (String function : applicableFunctions) {
 			applicable.append(function + ", ");
 		}

@@ -754,7 +754,7 @@ public class ModelWorkspaceInteractor {
 				} catch (ReachMaxAttemptException e) {
 					reattemptFixPO(e, projectName, fileNames, poName);
 				} catch (Exception e) {
-					e.printStackTrace();
+					reattemptFixPO(null, projectName, fileNames, poName);
 				} finally {
 					monitor.done();
 				}
@@ -767,10 +767,9 @@ public class ModelWorkspaceInteractor {
 
 	private void reattemptFixPO(ReachMaxAttemptException e, String projectName, String[] fileNames, String poName)
 			throws InvocationTargetException {
-		System.out.println(e.getMessage());
 		EvaluationManager.endLatestAction();
-		EvaluationManager.copyActionForInfoRecording(e.getMessage());
-		visitedPOs.add(e.poName == null ? poName : e.poName);
+		EvaluationManager.copyActionForInfoRecording(e == null ? "Exception" : e.getMessage());
+		visitedPOs.add((e == null || e.poName == null) ? poName : e.poName);
 		try {
 			backtrackToPreviousModel(projectName);
 			fixPOs(projectName, fileNames, null);

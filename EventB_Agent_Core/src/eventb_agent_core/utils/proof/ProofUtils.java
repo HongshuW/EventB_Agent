@@ -133,6 +133,36 @@ public class ProofUtils {
 		return false;
 	}
 
+	public static boolean isDischargedWithRefresh(IMachineRoot machineRoot, String poName, IProofTree tree)
+			throws RodinDBException {
+		if (ProofUtils.getLastUndischargedNodeFromTree(tree) == null) {
+			return true;
+		}
+
+		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
+		pc.save(null, true);
+
+		IPSRoot ps = pc.getPSRoot();
+
+		for (IPSStatus st : ps.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
+			if (poName.equals(st.getPOSequent().getElementName())) {
+				boolean isDischarged = st.getConfidence() >= IConfidence.DISCHARGED_MAX;
+				int trial = 0;
+				while (!isDischarged && trial < 3) {
+					try {
+						Thread.sleep(500);
+						trial++;
+						isDischarged = st.getConfidence() >= IConfidence.DISCHARGED_MAX;
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				return isDischarged;
+			}
+		}
+		return false;
+	}
+
 //	public static boolean isDischarged(IMachineRoot machineRoot, String poName) throws CoreException {
 //		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
 //		pc.save(null, true);

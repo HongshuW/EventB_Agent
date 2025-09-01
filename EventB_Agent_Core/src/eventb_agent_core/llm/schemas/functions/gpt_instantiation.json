@@ -28,22 +28,6 @@
 					}
 				},
 				"additionalProperties": false
-			},
-			"constant": {
-				"type": "object",
-				"required": [
-					"constant_name",
-					"constant_type"
-				],
-				"properties": {
-					"constant_name": {
-						"$ref": "#/$defs/identifier"
-					},
-					"constant_type": {
-						"$ref": "#/$defs/identifier"
-					}
-				},
-				"additionalProperties": false
 			}
 		},
 		"properties": {
@@ -57,7 +41,7 @@
 			"instantiations": {
 				"type": "array",
 				"items": {
-					"$ref": "#/$defs/constant"
+					"$ref": "#/$defs/identifier"
 				},
 				"description": "If the predicate is from the selected hypotheses, suggest instantiations for universal predicate. If the predicate is from the goal, suggest instantiations for existential predicate, which must be constant(s) defined in the context with matching type."
 			}
