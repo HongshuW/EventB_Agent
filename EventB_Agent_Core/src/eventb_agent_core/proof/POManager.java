@@ -66,7 +66,7 @@ public class POManager {
 		for (IPOSequent poSequent : poRoot.getSequents()) {
 			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
 			if (!ProofUtils.isDischarged(machineRoot, psStatus.getElementName())) {
-				FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent, machineRoot);
+				FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent.getElementName(), machineRoot);
 				fixer.runAutoProvers();
 			}
 		}
