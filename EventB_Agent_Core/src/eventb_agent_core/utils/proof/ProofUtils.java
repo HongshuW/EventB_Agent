@@ -3,9 +3,11 @@ package eventb_agent_core.utils.proof;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eventb.core.IEventBRoot;
 import org.eventb.core.IMachineRoot;
+import org.eventb.core.IPORoot;
 import org.eventb.core.IPOSequent;
 import org.eventb.core.IPSRoot;
 import org.eventb.core.IPSStatus;
@@ -93,13 +95,15 @@ public class ProofUtils {
 		return null;
 	}
 
-	public static IProofAttempt getProofAttempt(IPOSequent poSequent, IMachineRoot machineRoot, String poOwnerName)
+	public static IProofAttempt getProofAttempt(String poName, IMachineRoot machineRoot, String poOwnerName)
 			throws RodinDBException {
 		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
-		String poName = poSequent.getElementName();
 
 		IProofAttempt proofAttempt = proofComponent.getProofAttempt(poName, poOwnerName);
 		if (proofAttempt == null) {
+			proofAttempt = proofComponent.createProofAttempt(poName, poOwnerName, null);
+		} else if (proofAttempt.isBroken()) {
+			proofAttempt.dispose();
 			proofAttempt = proofComponent.createProofAttempt(poName, poOwnerName, null);
 		}
 
@@ -107,12 +111,18 @@ public class ProofUtils {
 	}
 
 	public static void saveProofAttempt(IMachineRoot machineRoot, IProofAttempt proofAttempt) throws CoreException {
-		proofAttempt.commit(false, false, null);
+		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
+
+		proofAttempt.commit(true, null);
+		pc.save(null, true);
 
 		IRodinFile bpo = proofAttempt.getComponent().getPORoot().getRodinFile();
 		IRodinFile bps = proofAttempt.getComponent().getPSRoot().getRodinFile();
 		bpo.save(null, true);
 		bps.save(null, true);
+
+		IPORoot poRoot = proofAttempt.getComponent().getPORoot();
+		poRoot.getRodinFile().getResource().refreshLocal(IResource.DEPTH_INFINITE, null);
 
 		if (isDischarged(machineRoot, proofAttempt.getName())) {
 			proofAttempt.dispose();
@@ -133,11 +143,7 @@ public class ProofUtils {
 		return false;
 	}
 
-	public static boolean isDischargedWithRefresh(IMachineRoot machineRoot, String poName, IProofTree tree)
-			throws RodinDBException {
-		if (ProofUtils.getLastUndischargedNodeFromTree(tree) == null) {
-			return true;
-		}
+	public static boolean isDischargedWithRefresh(IMachineRoot machineRoot, String poName) throws RodinDBException {
 
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
 		pc.save(null, true);
@@ -162,88 +168,6 @@ public class ProofUtils {
 		}
 		return false;
 	}
-
-//	public static boolean isDischarged(IMachineRoot machineRoot, String poName) throws CoreException {
-//		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
-//		pc.save(null, true);
-//
-//		IPSRoot ps = pc.getPSRoot();
-//
-//		for (IPSStatus st : ps.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
-//			if (poName.equals(st.getPOSequent().getElementName())) {
-//				if (st.isBroken() || st.getProof() == null) {
-//					return isDischargedWithRefresh(machineRoot, poName);
-//				}
-//				return st.getConfidence() >= IConfidence.DISCHARGED_MAX;
-//			}
-//		}
-//		return false;
-//	}
-//
-//	public static boolean isDischargedWithRefresh(IMachineRoot machineRoot, String poName) throws RodinDBException {
-//		RodinCore.run((IWorkspaceRunnable) runnable -> {
-//			try {
-//
-//				IProject project = machineRoot.getRodinProject().getProject();
-////				project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-////				
-////				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_BUILD, null);
-////			    Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
-//
-//				// Refresh Proof Component
-//				IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
-//				pc.save(null, true);
-//
-//				// Get fresh PS root and find the PO
-//				IPSRoot ps = pc.getPSRoot();
-//				IPSStatus target = null;
-//				for (IPSStatus st : ps.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
-//					if (poName.equals(st.getPOSequent().getElementName())) {
-//						target = st;
-//						break;
-//					}
-//				}
-//				if (target == null) {
-//					return;
-//				} // PO not found; leave as not discharged
-//
-//				// If status is broken, delete the obsolete proof and re-prove
-//				if (target.isBroken()) {
-//					if (target.getProof() != null && target.getProof().exists()) {
-//						target.getProof().delete(true, null);
-//					}
-//
-//					// Re-fetch handles after deletion
-//					pc.save(null, true);
-//					ps = pc.getPSRoot();
-//					for (IPSStatus st : ps.getChildrenOfType(IPSStatus.ELEMENT_TYPE)) {
-//						if (poName.equals(st.getPOSequent().getElementName())) {
-//							target = st;
-//							break;
-//						}
-//					}
-//
-//					IProofAttempt pa = pc.getProofAttempt(poName, PO_OWNER_NAME);
-//					IProofTreeNode root = pa.getProofTree().getRoot();
-//
-//					ITactic auto = EventBPlugin.getAutoPostTacticManager().getSelectedPostTactics(machineRoot);
-//					auto.apply(root, null);
-//
-//					pa.commit(true, null);
-//					pa.dispose();
-//				}
-//
-//				// Final refresh after proof changes
-//				project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-//				pc.save(null, true);
-//
-//			} catch (OperationCanceledException e) {
-//				// ignore
-//			}
-//		}, null, null);
-//
-//		return isDischargedWithoutRefresh(machineRoot, poName);
-//	}
 
 	/**
 	 * Node ID starts from 0.

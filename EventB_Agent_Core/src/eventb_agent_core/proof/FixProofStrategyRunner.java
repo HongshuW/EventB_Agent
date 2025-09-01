@@ -6,7 +6,6 @@ import java.util.List;
 import org.eclipse.core.runtime.CoreException;
 import org.eventb.core.EventBPlugin;
 import org.eventb.core.IMachineRoot;
-import org.eventb.core.IPOSequent;
 import org.eventb.core.ast.IPosition;
 import org.eventb.core.ast.Predicate;
 import org.eventb.core.pm.IProofAttempt;
@@ -20,30 +19,32 @@ import org.eventb.core.seqprover.tactics.BasicTactics;
 import org.eventb.internal.core.seqprover.eventbExtensions.rewriters.AbstractManualRewrites;
 import org.eventb.smt.core.internal.tactics.SMTAutoTactic;
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.rodinp.core.RodinDBException;
 
-import eventb_agent_core.llm.schemas.SchemaKeys;
 import eventb_agent_core.utils.llm.ParserUtils;
 import eventb_agent_core.utils.proof.PredicateUtils;
 import eventb_agent_core.utils.proof.ProofUtils;
 
 public class FixProofStrategyRunner {
 
-	private IPOSequent poSequent;
+	private String poName;
 	private IMachineRoot machineRoot;
 	private String poOwnerName;
 
 	private static final String PO_OWNER_NAME = "POFixer"; // share the same name
 
-	public FixProofStrategyRunner(IPOSequent poSequent, IMachineRoot machineRoot) {
-		this(poSequent, machineRoot, PO_OWNER_NAME);
+	public FixProofStrategyRunner(String poName, IMachineRoot machineRoot) {
+		this(poName, machineRoot, PO_OWNER_NAME);
 	}
 
-	public FixProofStrategyRunner(IPOSequent poSequent, IMachineRoot machineRoot, String poOwnerName) {
-		this.poSequent = poSequent;
+	public FixProofStrategyRunner(String poName, IMachineRoot machineRoot, String poOwnerName) {
+		this.poName = poName;
 		this.machineRoot = machineRoot;
 		this.poOwnerName = poOwnerName;
+	}
+
+	public IProofAttempt getProofAttempt() throws RodinDBException {
+		return ProofUtils.getProofAttempt(poName, machineRoot, poOwnerName);
 	}
 
 	/**
@@ -52,8 +53,7 @@ public class FixProofStrategyRunner {
 	 * @throws CoreException
 	 */
 	public void runAutoProvers() throws CoreException {
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
-		IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(proofAttempt);
+		IProofAttempt proofAttempt = getProofAttempt();
 
 		// auto provers
 		applyAutoTactic();
@@ -64,33 +64,33 @@ public class FixProofStrategyRunner {
 	}
 
 	public void applySMT(IProofTreeNode node) throws CoreException {
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		IProofAttempt proofAttempt = getProofAttempt();
 		ITactic smt = new SMTAutoTactic();
 		smt.apply(node, null);
 		ProofUtils.saveProofAttempt(machineRoot, proofAttempt);
 	}
 
 	public void applySMT() throws CoreException {
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		IProofAttempt proofAttempt = getProofAttempt();
 		IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(proofAttempt);
 
 		applySMT(node);
 	}
 
 	public void applyLasoo(IProofTreeNode node) throws CoreException {
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		IProofAttempt proofAttempt = getProofAttempt();
 		Tactics.lasoo().apply(node, null);
 		ProofUtils.saveProofAttempt(machineRoot, proofAttempt);
 	}
 
 	public void applyLasoo() throws CoreException {
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		IProofAttempt proofAttempt = getProofAttempt();
 		IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(proofAttempt);
 		applyLasoo(node);
 	}
 
 	public Object addHypothesis(Hypothesis hypothesis) throws CoreException {
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		IProofAttempt proofAttempt = getProofAttempt();
 		IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(proofAttempt);
 
 		// insert lemma
@@ -128,7 +128,7 @@ public class FixProofStrategyRunner {
 	}
 
 	public Object addAbstractExpression(String hypothesis) throws CoreException {
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		IProofAttempt proofAttempt = getProofAttempt();
 		IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(proofAttempt);
 
 		// insert lemma
@@ -196,7 +196,7 @@ public class FixProofStrategyRunner {
 	}
 
 	private Object applyProofTactic(int predicateID, int nodeID, String reasonerID) throws RodinDBException {
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		IProofAttempt proofAttempt = getProofAttempt();
 		IProofTreeNode node = ProofUtils.getProofTreeNode(proofAttempt.getProofTree(), nodeID);
 
 		Predicate predInNode = null;
@@ -234,7 +234,7 @@ public class FixProofStrategyRunner {
 	}
 
 	public void applyAutoTactic(IProofTreeNode node) throws CoreException {
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		IProofAttempt proofAttempt = getProofAttempt();
 
 		ITactic autoTactics = EventBPlugin.getAutoPostTacticManager().getSelectedAutoTactics(machineRoot);
 		ITactic basicTactics = BasicTactics.onAllPending(autoTactics);
@@ -244,14 +244,14 @@ public class FixProofStrategyRunner {
 	}
 
 	public void applyAutoTactic() throws CoreException {
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		IProofAttempt proofAttempt = getProofAttempt();
 		IProofTreeNode node = proofAttempt.getProofTree().getRoot();
 
 		applyAutoTactic(node);
 	}
 
 	private void applyPostTactic(IProofTreeNode node) throws CoreException {
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		IProofAttempt proofAttempt = getProofAttempt();
 
 		ITactic postTactics = EventBPlugin.getAutoPostTacticManager().getSelectedPostTactics(machineRoot);
 		ITactic basicTactics = BasicTactics.onAllPending(postTactics);
@@ -261,14 +261,14 @@ public class FixProofStrategyRunner {
 	}
 
 	public void applyPostTactic() throws CoreException {
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		IProofAttempt proofAttempt = getProofAttempt();
 		IProofTreeNode node = proofAttempt.getProofTree().getRoot();
 
 		applyPostTactic(node);
 	}
 
 	public Object caseDistinction(String expression) throws CoreException {
-		final IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		final IProofAttempt proofAttempt = getProofAttempt();
 		IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(proofAttempt);
 
 		ITactic directCases = Tactics.doCase(expression);
@@ -316,7 +316,7 @@ public class FixProofStrategyRunner {
 			instantiationsArray[i] = inst;
 		}
 
-		final IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, poOwnerName);
+		final IProofAttempt proofAttempt = getProofAttempt();
 		IProofTreeNode node = ProofUtils.getProofTreeNode(proofAttempt.getProofTree(), nodeID);
 		return instantiation(predicate, instantiationsArray, node);
 	}

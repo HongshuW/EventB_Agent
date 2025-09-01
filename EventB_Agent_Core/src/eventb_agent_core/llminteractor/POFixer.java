@@ -65,6 +65,8 @@ public class POFixer extends AbstractLLMInteractor {
 	private static final String PO_OWNER_NAME = "POFixer";
 	private static String reasonerMessage = null;
 
+	private IProofAttempt proofAttempt;
+
 	public POFixer(LLMRequestSender llmRequestSender, LLMResponseParser llmResponseParser) {
 		super(llmRequestSender, llmResponseParser);
 	}
@@ -83,7 +85,7 @@ public class POFixer extends AbstractLLMInteractor {
 			throws RodinDBException, IOException, ReachMaxAttemptException {
 		String poName = poSequent.getElementName();
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, PO_OWNER_NAME);
+		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poName, machineRoot, PO_OWNER_NAME);
 
 		// retrieve information from workspace
 		IProofTree tree = proofAttempt.getProofTree();
@@ -126,7 +128,7 @@ public class POFixer extends AbstractLLMInteractor {
 
 		String poName = poSequent.getElementName();
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
-		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poSequent, machineRoot, PO_OWNER_NAME);
+		proofAttempt = ProofUtils.getProofAttempt(poName, machineRoot, PO_OWNER_NAME);
 
 		// retrieve information from workspace
 		IProofTree tree = proofAttempt.getProofTree();
@@ -144,7 +146,7 @@ public class POFixer extends AbstractLLMInteractor {
 			e.printStackTrace();
 		}
 
-		if (tree != null && !ProofUtils.isDischargedWithRefresh(machineRoot, poName, tree)) {
+		if (tree != null) {
 			try {
 				reasonerMessage = null;
 				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName,
@@ -153,7 +155,7 @@ public class POFixer extends AbstractLLMInteractor {
 				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF,
 						requestHistory);
 				modifyModel(answer, machineRoot, contextRoot, poSequent, tree);
-				if (!ProofUtils.isDischargedWithRefresh(machineRoot, poName, tree)) {
+				if (!ProofUtils.isDischargedWithRefresh(machineRoot, poName)) {
 					EvaluationManager.endLatestAction();
 					EvaluationManager.repeatAndStartPrevoiusAction(maxAttemptsProof);
 					EvaluationManager.setLastPOActionIndex();
@@ -162,11 +164,11 @@ public class POFixer extends AbstractLLMInteractor {
 							reasonerMessage, requestHistory, answer);
 					autoFixPO(machineRoot, poSequent, requestHistory);
 				}
-			} catch (CoreException e) {
-				System.out.println(e.getMessage());
 			} catch (ReachMaxAttemptException e) {
 				System.out.println(e.getMessage());
 				throw new ReachMaxAttemptException(ComponentType.FIX_PROOF.name(), poName);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
 			}
 		} else {
 			System.out.println("Proof tree is null or discharged.");
@@ -175,7 +177,7 @@ public class POFixer extends AbstractLLMInteractor {
 	}
 
 	private void modifyModel(JSONObject answer, IMachineRoot machineRoot, IContextRoot contextRoot,
-			IPOSequent poSequent, IProofTree tree) throws CoreException {
+			IPOSequent poSequent, IProofTree tree) throws CoreException, InterruptedException {
 		String function = answer.getString(Constants.FUNCTION_NAME);
 		JSONObject args = null;
 		try {
@@ -190,7 +192,7 @@ public class POFixer extends AbstractLLMInteractor {
 
 		ProofFixingStrategies strategy = ProofFixingStrategies.valueOf(function);
 		int nodeID = args.getInt(SchemaKeys.NODE_ID);
-		FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent, machineRoot);
+		FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent.getElementName(), machineRoot);
 
 		List<Hypothesis> hypotheses = new ArrayList<>();
 
@@ -207,18 +209,20 @@ public class POFixer extends AbstractLLMInteractor {
 		case addHypothesesToContext:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.HYP);
 			addHypothesesToContext(contextRoot, hypotheses);
+			waitForPORebuild(fixer);
+			fixer.applyAutoTactic();
 			for (Hypothesis hypothesis : hypotheses) {
 				result = fixer.addHypothesis(hypothesis);
-				finish(result, fixer);
 			}
 			break;
 		case addHypothesesToGuard:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.GRD);
 			String eventName = args.getString(SchemaKeys.EVENT_NAME);
 			addHypothesesToGuard(machineRoot, hypotheses, eventName);
+			waitForPORebuild(fixer);
+			fixer.applyAutoTactic();
 			for (Hypothesis hypothesis : hypotheses) {
 				result = fixer.addHypothesis(hypothesis);
-				finish(result, fixer);
 			}
 			break;
 		case addAbstractExpression:
@@ -229,9 +233,11 @@ public class POFixer extends AbstractLLMInteractor {
 			break;
 		case applySMT:
 			fixer.applySMT();
+			finish(result, fixer);
 			break;
 		case applyLasoo:
 			fixer.applyLasoo();
+			finish(result, fixer);
 			break;
 		case caseDistinction:
 			expression = args.getString(SchemaKeys.EXPR);
@@ -249,6 +255,8 @@ public class POFixer extends AbstractLLMInteractor {
 		case strengthenInvariant:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.INV);
 			strengthenInvariants(machineRoot, hypotheses);
+			waitForPORebuild(fixer);
+			fixer.applyAutoTactic();
 			break;
 		case strengthenGuard:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.GRD);
@@ -256,11 +264,12 @@ public class POFixer extends AbstractLLMInteractor {
 			String[] poNameElements = poSequent.getElementName().split("/");
 			String grdInPO = poNameElements.length == 3 ? poNameElements[1] : null;
 			strengthenGuard(machineRoot, hypotheses, eventName, grdInPO);
+			waitForPORebuild(fixer);
+			fixer.applyAutoTactic();
 			break;
 		default:
-			fixer.applyPostTactic();
+			finish(null, fixer);
 		}
-
 	}
 
 	private void finish(Object result, FixProofStrategyRunner fixer) throws CoreException {
@@ -279,6 +288,13 @@ public class POFixer extends AbstractLLMInteractor {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public void waitForPORebuild(FixProofStrategyRunner fixer) throws RodinDBException, InterruptedException {
+		if (this.proofAttempt != null && (this.proofAttempt.isBroken() || this.proofAttempt.isDisposed())) {
+			this.proofAttempt.dispose();
+		}
+		this.proofAttempt = fixer.getProofAttempt();
 	}
 
 	private void addHypothesesToContext(IContextRoot contextRoot, List<Hypothesis> hypotheses) throws CoreException {

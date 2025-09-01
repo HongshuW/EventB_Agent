@@ -88,7 +88,7 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 				}
 				IPOSequent undischargedPO = getPO(pos, poName);
 
-				FixProofStrategyRunner fixer = new FixProofStrategyRunner(undischargedPO, machineRoot);
+				FixProofStrategyRunner fixer = new FixProofStrategyRunner(poName, machineRoot);
 				try {
 					fixer.runAutoProvers();
 				} catch (CoreException e) {

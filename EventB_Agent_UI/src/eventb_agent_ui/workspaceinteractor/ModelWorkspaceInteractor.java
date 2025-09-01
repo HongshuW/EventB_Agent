@@ -63,6 +63,7 @@ import eventb_agent_core.llminteractor.CompilationErrorFixer;
 import eventb_agent_core.llminteractor.ModelCheckingFixer;
 import eventb_agent_core.llminteractor.ModelCreator;
 import eventb_agent_core.llminteractor.POFixer;
+import eventb_agent_core.proof.FixProofStrategyRunner;
 import eventb_agent_core.proof.POManager;
 import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.utils.RetrieveModelUtils;
@@ -739,6 +740,11 @@ public class ModelWorkspaceInteractor {
 							if (newModel != null) {
 								saveModel(projectName, newModel);
 								EvaluationManager.endLatestAction();
+
+								// rebuild PO
+								FixProofStrategyRunner fixer = new FixProofStrategyRunner(poName, machineRoot);
+								poFixer.waitForPORebuild(fixer);
+								fixer.applyAutoTactic();
 
 								if (ProofUtils.isDischarged(machineRoot, undischargedPOName)) {
 									visitedPOs.add(undischargedPOName);
