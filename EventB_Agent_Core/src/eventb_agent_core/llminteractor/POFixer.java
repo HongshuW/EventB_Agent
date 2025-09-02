@@ -144,7 +144,8 @@ public class POFixer extends AbstractLLMInteractor {
 				reasonerMessage = null;
 				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName,
 						ParserUtils.reverseLex(ProofUtils.getProofTreeString(tree), 1),
-						getApplicableProofTacticsNew(tree) };
+						findApplicableProofTactics(poName) ? getApplicableProofTactics(tree)
+								: getOtherApplicableFunctions() };
 				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF,
 						requestHistory);
 				modifyModel(answer, machineRoot, contextRoot, poSequent, tree);
@@ -356,6 +357,8 @@ public class POFixer extends AbstractLLMInteractor {
 					IAxiom newAxiom = contextRoot.createChild(IAxiom.ELEMENT_TYPE, null, null);
 					newAxiom.setLabel(label, null);
 					newAxiom.setPredicateString(predicate, null);
+				} else {
+					a.setPredicateString(predicate, null);
 				}
 
 				rodinFile.save(null, false);
@@ -384,6 +387,8 @@ public class POFixer extends AbstractLLMInteractor {
 					IGuard guard = targetEvent.createChild(IGuard.ELEMENT_TYPE, null, null);
 					guard.setLabel(label, null);
 					guard.setPredicateString(predicate, null);
+				} else {
+					targetGuard.setPredicateString(predicate, null);
 				}
 
 				rodinFile.save(null, false);
@@ -408,6 +413,8 @@ public class POFixer extends AbstractLLMInteractor {
 					IInvariant newInv = machineRoot.createChild(IInvariant.ELEMENT_TYPE, null, null);
 					newInv.setLabel(label, null);
 					newInv.setPredicateString(predicate, null);
+				} else {
+					targetInvariant.setPredicateString(predicate, null);
 				}
 
 				rodinFile.save(null, false);
@@ -438,6 +445,8 @@ public class POFixer extends AbstractLLMInteractor {
 					IGuard newGrd = targetEvent.createChild(IGuard.ELEMENT_TYPE, previousGuard, null);
 					newGrd.setLabel(label, null);
 					newGrd.setPredicateString(predicate, null);
+				} else {
+					targetGuard.setPredicateString(predicate, null);
 				}
 
 				rodinFile.save(null, false);
@@ -447,7 +456,32 @@ public class POFixer extends AbstractLLMInteractor {
 		}
 	}
 
-	public String getApplicableProofTacticsNew(IProofTree tree) {
+	public boolean findApplicableProofTactics(String poName) throws RodinDBException {
+		String[] entries = poName.split("/");
+		if (entries.length == 2) {
+			if (entries[1].equals("WD")) {
+				return false;
+			}
+		} else if (entries.length == 3) {
+			if (entries[2].equals("WD")) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public String getOtherApplicableFunctions() {
+		StringBuilder applicable = new StringBuilder("applyProofTactic: None\n");
+		String[] applicableFunctions = new String[] { "addAbstractExpression", "addHypothesesToContext",
+				"addHypothesesToGuard", "caseDistinction", "caseDistinctionBySplittingEvent", "instantiation",
+				"strengthenGuard", "strengthenInvariant", "applySMT" };
+		for (String function : applicableFunctions) {
+			applicable.append(function + ", ");
+		}
+		return applicable.toString();
+	}
+
+	public String getApplicableProofTactics(IProofTree tree) {
 		StringBuilder applicable = new StringBuilder("applyProofTactic: ");
 		Set<Map<String, String>> applicableSet = new HashSet<>();
 

@@ -166,13 +166,13 @@ public class FixProofStrategyRunner {
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return Tactics.arithRewrites(predInNode, position).apply(node, null);
+			return Tactics.arithRewrites(isGoal ? null : predInNode, position).apply(node, null);
 		case cardinalityDefinition:
 			positions = Tactics.cardDefGetPositions(predInNode);
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return Tactics.cardDef(predInNode, position).apply(node, null);
+			return Tactics.cardDef(isGoal ? null : predInNode, position).apply(node, null);
 		case conjunction:
 			return Tactics.conjF(predInNode).apply(node, null);
 		case disjunctionToImplication:
@@ -180,7 +180,7 @@ public class FixProofStrategyRunner {
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return Tactics.disjToImpl(predInNode, position).apply(node, null);
+			return Tactics.disjToImpl(isGoal ? null : predInNode, position).apply(node, null);
 		case equality:
 			return Tactics.eqE(predInNode).apply(node, null);
 		case equivalence:
@@ -194,7 +194,7 @@ public class FixProofStrategyRunner {
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return Tactics.finiteDef(predInNode, position).apply(node, null);
+			return Tactics.finiteDef(isGoal ? null : predInNode, position).apply(node, null);
 		case functionalImageDefinition:
 			positions = Tactics.funImgSimpGetPositions(predInNode, node.getSequent());
 			if (positions != null && !positions.isEmpty()) {
@@ -206,19 +206,19 @@ public class FixProofStrategyRunner {
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return Tactics.impAndRewrites(predInNode, position).apply(node, null);
+			return Tactics.impAndRewrites(isGoal ? null : predInNode, position).apply(node, null);
 		case implicationOr:
 			positions = Tactics.impOrGetPositions(predInNode);
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return Tactics.impOrRewrites(predInNode, position).apply(node, null);
+			return Tactics.impOrRewrites(isGoal ? null : predInNode, position).apply(node, null);
 		case removeInclusion:
 			positions = Tactics.riGetPositions(predInNode);
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return Tactics.removeInclusion(predInNode, position).apply(node, null);
+			return Tactics.removeInclusion(isGoal ? null : predInNode, position).apply(node, null);
 		case removeMembership:
 			positions = Tactics.rmGetPositions(predInNode);
 			if (positions != null && !positions.isEmpty()) {
@@ -230,31 +230,31 @@ public class FixProofStrategyRunner {
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return Tactics.removeNeg(predInNode, position).apply(node, null);
+			return Tactics.removeNeg(isGoal ? null : predInNode, position).apply(node, null);
 		case setEqual:
 			positions = Tactics.setEqlGetPositions(predInNode);
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return Tactics.setEqlRewrites(predInNode, position).apply(node, null);
+			return Tactics.setEqlRewrites(isGoal ? null : predInNode, position).apply(node, null);
 		case setMinus:
 			positions = Tactics.setMinusGetPositions(predInNode);
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return Tactics.setMinusRewrites(predInNode, position).apply(node, null);
+			return Tactics.setMinusRewrites(isGoal ? null : predInNode, position).apply(node, null);
 		case strictInclusion:
 			positions = Tactics.sirGetPositions(predInNode);
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return Tactics.removeStrictInclusion(predInNode, position).apply(node, null);
+			return Tactics.removeStrictInclusion(isGoal ? null : predInNode, position).apply(node, null);
 		case relationOverwriteDefinition:
 			positions = Tactics.relOvrGetPositions(predInNode);
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return Tactics.relOvr(predInNode, position).apply(node, null);
+			return Tactics.relOvr(isGoal ? null : predInNode, position).apply(node, null);
 		}
 
 		return null;
