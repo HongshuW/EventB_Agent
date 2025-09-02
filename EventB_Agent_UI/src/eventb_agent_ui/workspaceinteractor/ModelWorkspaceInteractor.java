@@ -669,6 +669,8 @@ public class ModelWorkspaceInteractor {
 		};
 		runnableContext.run(false, false, fixPOsOperation);
 	}
+	
+	private static String poName;
 
 	private String[] fixPOs(String projectName, String[] fileNames, String poName)
 			throws InvocationTargetException, InterruptedException, ReachMaxAttemptException {
@@ -712,6 +714,7 @@ public class ModelWorkspaceInteractor {
 					IPOSequent undischargedPO = getPO(pos, poName);
 					if (undischargedPO != null) {
 						String undischargedPOName = undischargedPO.getElementName();
+						ModelWorkspaceInteractor.poName = undischargedPOName;
 
 						System.out.println(undischargedPOName);
 
@@ -742,7 +745,7 @@ public class ModelWorkspaceInteractor {
 								EvaluationManager.endLatestAction();
 
 								// rebuild PO
-								FixProofStrategyRunner fixer = new FixProofStrategyRunner(poName, machineRoot);
+								FixProofStrategyRunner fixer = new FixProofStrategyRunner(undischargedPOName, machineRoot);
 								poFixer.waitForPORebuild(fixer);
 								fixer.applyAutoTactic();
 
@@ -760,7 +763,7 @@ public class ModelWorkspaceInteractor {
 				} catch (ReachMaxAttemptException e) {
 					reattemptFixPO(e, projectName, fileNames, poName);
 				} catch (Exception e) {
-					reattemptFixPO(null, projectName, fileNames, poName);
+					reattemptFixPO(null, projectName, fileNames, ModelWorkspaceInteractor.poName);
 				} finally {
 					monitor.done();
 				}
