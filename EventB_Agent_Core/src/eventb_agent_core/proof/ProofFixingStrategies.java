@@ -2,12 +2,17 @@ package eventb_agent_core.proof;
 
 public enum ProofFixingStrategies {
 
-	addAbstractExpression, addHypothesesToContext, addHypothesesToGuard, applyProofTactic, caseDistinction, caseDistinctionBySplittingEvent,
-	instantiation, strengthenGuard, strengthenInvariant, // strategies with parameters
-	cardinalityDefinition, disjunctionToImplication, doubleImplication, equalCardinality, equivalence, finiteDefinition,
-	functionalImageDefinition, implicationAnd, implicationOr, inclusionSetMinus, removeInclusion, removeMembership,
-	removeNegation, setEqual, setMinus, strictInclusion, relationOverwriteDefinition, //
+	addAbstractExpression, addHypothesesToContext, addHypothesesToGuard, applyProofTactic, caseDistinction,
+	caseDistinctionBySplittingEvent, instantiation, selectHypothesisFromContext, strengthenGuard, strengthenInvariant, // strategies
+																														// with
+																														// parameters
+
+	arithmeticRewrite, cardinalityDefinition, conjunction, disjunctionToImplication, equality, equivalence,
+	finiteDefinition, functionalImageDefinition, implicationAnd, implicationOr, partition, removeInclusion,
+	removeMembership, removeNegation, setEqual, setMinus, strictInclusion, relationOverwriteDefinition, //
+
 	applySMT, applyLasoo, //
+
 	others
 
 }

@@ -21,20 +21,14 @@ import org.eventb.core.IGuard;
 import org.eventb.core.IInvariant;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPOSequent;
-import org.eventb.core.ast.IPosition;
 import org.eventb.core.ast.Predicate;
 import org.eventb.core.pm.IProofAttempt;
 import org.eventb.core.pm.IProofComponent;
 import org.eventb.core.seqprover.IProofTree;
 import org.eventb.core.seqprover.IProofTreeNode;
-import org.eventb.core.seqprover.IReasoner;
-import org.eventb.core.seqprover.IReasonerRegistry;
-import org.eventb.core.seqprover.ITactic;
-import org.eventb.core.seqprover.SequentProver;
-import org.eventb.core.seqprover.tactics.BasicTactics;
+import org.eventb.core.seqprover.eventbExtensions.Tactics;
 import org.eventb.internal.core.pm.ProofManager;
 import org.eventb.internal.core.seqprover.ReasonerFailure;
-import org.eventb.internal.core.seqprover.eventbExtensions.rewriters.AbstractManualRewrites;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,7 +42,6 @@ import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.llm.schemas.SchemaKeys;
-import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.proof.FixProofStrategyRunner;
 import eventb_agent_core.proof.Hypothesis;
 import eventb_agent_core.proof.PredicateWrapper;
@@ -151,7 +144,7 @@ public class POFixer extends AbstractLLMInteractor {
 				reasonerMessage = null;
 				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName,
 						ParserUtils.reverseLex(ProofUtils.getProofTreeString(tree), 1),
-						getApplicableProofTactics(tree) };
+						getApplicableProofTacticsNew(tree) };
 				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF,
 						requestHistory);
 				modifyModel(answer, machineRoot, contextRoot, poSequent, tree);
@@ -252,6 +245,18 @@ public class POFixer extends AbstractLLMInteractor {
 			result = fixer.instantiation(pred, instantiations, nodeID);
 			finish(result, fixer);
 			break;
+		case selectHypothesisFromContext:
+			String axiomLabel = args.getString(SchemaKeys.AXM_LABEL);
+			IAxiom axiom = getAxiom(contextRoot, axiomLabel);
+			pred = axiom == null ? "" : axiom.getPredicateString();
+			instantiations = args.getJSONArray(SchemaKeys.INSTANTIATIONS);
+			String[] insts = new String[instantiations.length()];
+			for (int i = 0; i < instantiations.length(); i++) {
+				insts[i] = instantiations.getString(i);
+			}
+			Hypothesis hyp = new Hypothesis(axiomLabel, pred, insts);
+			result = fixer.addHypothesis(hyp);
+			break;
 		case strengthenInvariant:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.INV);
 			strengthenInvariants(machineRoot, hypotheses);
@@ -270,6 +275,46 @@ public class POFixer extends AbstractLLMInteractor {
 		default:
 			finish(null, fixer);
 		}
+	}
+
+	private IAxiom getAxiom(IContextRoot contextRoot, String label) throws RodinDBException {
+		IAxiom[] axioms = contextRoot.getAxioms();
+		for (IAxiom axiom : axioms) {
+			if (axiom.getLabel().equals(label)) {
+				return axiom;
+			}
+		}
+		return null;
+	}
+
+	private IInvariant getInvariant(IMachineRoot machineRoot, String label) throws RodinDBException {
+		IInvariant[] invariants = machineRoot.getInvariants();
+		for (IInvariant invariant : invariants) {
+			if (invariant.getLabel().equals(label)) {
+				return invariant;
+			}
+		}
+		return null;
+	}
+
+	private IEvent getEvent(IMachineRoot machineRoot, String label) throws RodinDBException {
+		IEvent[] events = machineRoot.getEvents();
+		for (IEvent event : events) {
+			if (event.getLabel().equals(label)) {
+				return event;
+			}
+		}
+		return null;
+	}
+
+	private IGuard getGuard(IEvent event, String label) throws RodinDBException {
+		IGuard[] guards = event.getGuards();
+		for (IGuard guard : guards) {
+			if (guard.getLabel().equals(label)) {
+				return guard;
+			}
+		}
+		return null;
 	}
 
 	private void finish(Object result, FixProofStrategyRunner fixer) throws CoreException {
@@ -305,17 +350,8 @@ public class POFixer extends AbstractLLMInteractor {
 			String label = hyp.getLabel();
 			String predicate = ParserUtils.lex(hyp.getPredicate());
 			try {
-				IAxiom[] axioms = contextRoot.getChildrenOfType(IAxiom.ELEMENT_TYPE);
-				boolean axiomExists = false;
-				for (IAxiom a : axioms) {
-					if (a.getLabel().equals(label)) {
-						// modify the existing axiom
-						a.setPredicateString(predicate, null);
-						axiomExists = true;
-						break;
-					}
-				}
-				if (!axiomExists) {
+				IAxiom a = getAxiom(contextRoot, label);
+				if (a == null) {
 					// add new axiom
 					IAxiom newAxiom = contextRoot.createChild(IAxiom.ELEMENT_TYPE, null, null);
 					newAxiom.setLabel(label, null);
@@ -333,14 +369,7 @@ public class POFixer extends AbstractLLMInteractor {
 		IRodinFile rodinFile = machineRoot.getRodinFile();
 
 		try {
-			IEvent targetEvent = null;
-			IEvent[] events = machineRoot.getChildrenOfType(IEvent.ELEMENT_TYPE);
-			for (IEvent event : events) {
-				if (event.getLabel().equals(targetEventName)) {
-					targetEvent = event;
-					break;
-				}
-			}
+			IEvent targetEvent = getEvent(machineRoot, targetEventName);
 			if (targetEvent == null) {
 				return;
 			}
@@ -350,22 +379,14 @@ public class POFixer extends AbstractLLMInteractor {
 				String label = hyp.getLabel();
 				String predicate = ParserUtils.lex(hyp.getPredicate());
 
-				boolean guardExists = false;
-				IGuard[] guards = targetEvent.getGuards();
-				for (IGuard g : guards) {
-					if (g.getLabel().equals(label)) {
-						guardExists = true;
-						break;
-					}
-				}
-
-				if (!guardExists) {
+				IGuard targetGuard = getGuard(targetEvent, label);
+				if (targetGuard == null) {
 					IGuard guard = targetEvent.createChild(IGuard.ELEMENT_TYPE, null, null);
 					guard.setLabel(label, null);
 					guard.setPredicateString(predicate, null);
-
-					rodinFile.save(null, false);
 				}
+
+				rodinFile.save(null, false);
 			}
 		} catch (RodinDBException e) {
 			e.printStackTrace();
@@ -381,17 +402,8 @@ public class POFixer extends AbstractLLMInteractor {
 			String label = hyp.getLabel();
 			String predicate = ParserUtils.lex(hyp.getPredicate());
 			try {
-				IInvariant[] invariants = machineRoot.getChildrenOfType(IInvariant.ELEMENT_TYPE);
-				boolean invExists = false;
-				for (IInvariant inv : invariants) {
-					if (inv.getLabel().equals(label)) {
-						// modify the existing invariant
-						inv.setPredicateString(predicate, null);
-						invExists = true;
-						break;
-					}
-				}
-				if (!invExists) {
+				IInvariant targetInvariant = getInvariant(machineRoot, label);
+				if (targetInvariant == null) {
 					// add new invariant
 					IInvariant newInv = machineRoot.createChild(IInvariant.ELEMENT_TYPE, null, null);
 					newInv.setLabel(label, null);
@@ -409,14 +421,7 @@ public class POFixer extends AbstractLLMInteractor {
 			String poGrdLabel) throws RodinDBException {
 		IRodinFile rodinFile = machineRoot.getRodinFile();
 
-		IEvent targetEvent = null;
-		IEvent[] events = machineRoot.getChildrenOfType(IEvent.ELEMENT_TYPE);
-		for (IEvent event : events) {
-			if (event.getLabel().equals(eventName) || event.getLabel() == eventName) {
-				targetEvent = event;
-				break;
-			}
-		}
+		IEvent targetEvent = getEvent(machineRoot, eventName);
 		if (targetEvent == null) {
 			return;
 		}
@@ -426,25 +431,10 @@ public class POFixer extends AbstractLLMInteractor {
 			String label = hyp.getLabel();
 			String predicate = ParserUtils.lex(hyp.getPredicate());
 			try {
-				IGuard[] guards = targetEvent.getChildrenOfType(IGuard.ELEMENT_TYPE);
-				boolean grdExists = false;
-				for (IGuard grd : guards) {
-					if (grd.getLabel().equals(label)) {
-						// modify the existing guard
-						grd.setPredicateString(predicate, null);
-						grdExists = true;
-						break;
-					}
-				}
-				if (!grdExists) {
-					// add new invariant
-					IGuard previousGuard = null;
-					for (IGuard grd : guards) {
-						if (grd.getLabel().equals(poGrdLabel)) {
-							previousGuard = grd;
-							break;
-						}
-					}
+				IGuard targetGuard = getGuard(targetEvent, label);
+				if (targetGuard == null) {
+					// add new guard
+					IGuard previousGuard = getGuard(targetEvent, poGrdLabel);
 					IGuard newGrd = targetEvent.createChild(IGuard.ELEMENT_TYPE, previousGuard, null);
 					newGrd.setLabel(label, null);
 					newGrd.setPredicateString(predicate, null);
@@ -457,27 +447,17 @@ public class POFixer extends AbstractLLMInteractor {
 		}
 	}
 
-	public String getApplicableProofTactics(IProofTree tree) {
+	public String getApplicableProofTacticsNew(IProofTree tree) {
 		StringBuilder applicable = new StringBuilder("applyProofTactic: ");
 		Set<Map<String, String>> applicableSet = new HashSet<>();
 
 		List<ProofNodeWrapper> nodes = ProofUtils.getUndischargedNodes(tree);
 		for (ProofNodeWrapper nodeWrapper : nodes) {
-			IReasonerRegistry registry = SequentProver.getReasonerRegistry();
-			String[] reasonerIds = registry.getRegisteredIDs();
-
-			for (String reasonerId : reasonerIds) {
-				try {
-					List<PredicateWrapper> predicateWrappers = PredicateUtils.getAllPredicates(nodeWrapper.node);
-					for (PredicateWrapper pred : predicateWrappers) {
-						addTactics(nodeWrapper, pred, reasonerId, applicableSet, IPosition.ROOT);
-					}
-					addTactics(nodeWrapper, new PredicateWrapper(nodeWrapper.node.getSequent().goal(), 0, true),
-							reasonerId, applicableSet, IPosition.ROOT);
-				} catch (Exception e) {
-					// skip
-				}
+			List<PredicateWrapper> predicateWrappers = PredicateUtils.getAllPredicates(nodeWrapper.node);
+			for (PredicateWrapper pred : predicateWrappers) {
+				addTactics(nodeWrapper, pred, applicableSet);
 			}
+			addTactics(nodeWrapper, new PredicateWrapper(nodeWrapper.node.getSequent().goal(), 0, true), applicableSet);
 		}
 
 		if (applicableSet.isEmpty()) {
@@ -504,90 +484,88 @@ public class POFixer extends AbstractLLMInteractor {
 		return applicable.toString();
 	}
 
-	private void addTactics(ProofNodeWrapper nodeWrapper, PredicateWrapper predWrapper, String reasonerId,
-			Set<Map<String, String>> applicableSet, IPosition position) {
-		IProofTreeNode node = nodeWrapper.node;
-		int id = nodeWrapper.id;
-
-		List<IPosition> posList = new ArrayList<>();
-		posList.add(position);
-		IPosition left = position.getFirstChild();
-		IPosition right = left.getNextSibling();
-		posList.add(left);
-		posList.add(right);
-		posList.add(left.getFirstChild());
-		posList.add(left.getFirstChild().getNextSibling());
-
-		Predicate pred = predWrapper.isGoal ? null : predWrapper.predicate;
-
-		while (!posList.isEmpty()) {
-			IPosition pos = posList.remove(0);
-			AbstractManualRewrites.Input input = new AbstractManualRewrites.Input(pred, pos);
-
-			// Create a tactic for this reasoner
-			IReasoner reasoner = SequentProver.getReasonerRegistry().getReasonerDesc(reasonerId).getInstance();
-			ITactic tactic = BasicTactics.reasonerTac(reasoner, input);
-
-			// Test if it's applicable (create a copy of the node to test)
-			Object rule = tactic.apply(node, null);
-
-			if (rule == null) {
-				String tacticName = getTacticName(reasonerId);
-				if (tacticName == "") {
-					return;
-				}
-				Map<String, String> applicable = new HashMap<>();
-				applicable.put("proof_tactic", tacticName);
-				String predicate = ParserUtils.reverseLex(predWrapper.predicate.toString(), 1);
-				applicable.put("predicate_id", String.valueOf(predWrapper.predicateID));
-				applicable.put("predicate", predicate);
-				applicable.put("node_id", String.valueOf(id));
-				applicableSet.add(applicable);
-				node.pruneChildren();
-				return;
-			}
+	private void addTacticString(String tacticName, ProofNodeWrapper nodeWrapper, PredicateWrapper predWrapper,
+			Set<Map<String, String>> applicableSet) {
+		if (tacticName == "") {
+			return;
 		}
+		Map<String, String> applicable = new HashMap<>();
+		applicable.put("proof_tactic", tacticName);
+		String predicate = ParserUtils.reverseLex(predWrapper.predicate.toString(), 1);
+		applicable.put("predicate_id", String.valueOf(predWrapper.predicateID));
+		applicable.put("predicate", predicate);
+		applicable.put("node_id", String.valueOf(nodeWrapper.id));
+		applicableSet.add(applicable);
 	}
 
-	private String getTacticName(String reasonerId) {
+	private void addTactics(ProofNodeWrapper nodeWrapper, PredicateWrapper predWrapper,
+			Set<Map<String, String>> applicableSet) {
 
-		if (reasonerId.contains(".ri")) {
-			return ProofFixingStrategies.removeInclusion.name();
-		} else if (reasonerId.contains(".rm")) {
-			return ProofFixingStrategies.removeMembership.name();
-		} else if (reasonerId.contains(".cardDefRewrites")) {
-			return ProofFixingStrategies.cardinalityDefinition.name();
-		} else if (reasonerId.contains(".disjToImplRewrites")) {
-			return ProofFixingStrategies.disjunctionToImplication.name();
-		} else if (reasonerId.contains(".doubleImplHypRewrites")) {
-			return ProofFixingStrategies.doubleImplication.name();
-		} else if (reasonerId.contains(".equalCardRewrites")) {
-			return ProofFixingStrategies.equalCardinality.name();
-		} else if (reasonerId.contains(".eqvRewrites")) {
-			return ProofFixingStrategies.equivalence.name();
-		} else if (reasonerId.contains(".finiteDefRewrites")) {
-			return ProofFixingStrategies.finiteDefinition.name();
-		} else if (reasonerId.contains(".funImgSimplifies")) {
-			return ProofFixingStrategies.functionalImageDefinition.name();
-		} else if (reasonerId.contains(".impAndRewrites")) {
-			return ProofFixingStrategies.implicationAnd.name();
-		} else if (reasonerId.contains(".impOrRewrites")) {
-			return ProofFixingStrategies.implicationOr.name();
-		} else if (reasonerId.contains(".inclusionSetMinusLeftRewrites")) {
-			return ProofFixingStrategies.inclusionSetMinus.name();
-		} else if (reasonerId.contains(".rn")) {
-			return ProofFixingStrategies.removeNegation.name();
-		} else if (reasonerId.contains(".setEqlRewrites")) {
-			return ProofFixingStrategies.setEqual.name();
-		} else if (reasonerId.contains(".setMinusRewrites")) {
-			return ProofFixingStrategies.setMinus.name();
-		} else if (reasonerId.contains(".sir")) {
-			return ProofFixingStrategies.strictInclusion.name();
-		} else if (reasonerId.contains(".relOvrRewrites")) {
-			return ProofFixingStrategies.relationOverwriteDefinition.name();
+		IProofTreeNode node = nodeWrapper.node;
+		Predicate predicate = predWrapper.predicate;
+
+		/* hypothesis */
+
+		if (Tactics.conjF_applicable(predicate)) {
+			addTacticString(ProofFixingStrategies.conjunction.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.eqE_applicable(predicate)) {
+			addTacticString(ProofFixingStrategies.equality.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.eqv_applicable(predicate)) {
+			addTacticString(ProofFixingStrategies.equivalence.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.isRemoveNegationApplicable(predicate)) {
+			addTacticString(ProofFixingStrategies.removeNegation.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.isRemoveMembershipApplicable(predicate)) {
+			addTacticString(ProofFixingStrategies.removeMembership.name(), nodeWrapper, predWrapper, applicableSet);
 		}
 
-		return "";
+		if (Tactics.riGetPositions(predicate) != null && !Tactics.riGetPositions(predicate).isEmpty()) {
+			addTacticString(ProofFixingStrategies.removeInclusion.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.sirGetPositions(predicate) != null && !Tactics.sirGetPositions(predicate).isEmpty()) {
+			addTacticString(ProofFixingStrategies.strictInclusion.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.disjToImplGetPositions(predicate) != null && !Tactics.disjToImplGetPositions(predicate).isEmpty()) {
+			addTacticString(ProofFixingStrategies.disjunctionToImplication.name(), nodeWrapper, predWrapper,
+					applicableSet);
+		}
+		if (Tactics.impAndGetPositions(predicate) != null && !Tactics.impAndGetPositions(predicate).isEmpty()) {
+			addTacticString(ProofFixingStrategies.implicationAnd.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.impOrGetPositions(predicate) != null && !Tactics.impOrGetPositions(predicate).isEmpty()) {
+			addTacticString(ProofFixingStrategies.implicationOr.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.setEqlGetPositions(predicate) != null && !Tactics.setEqlGetPositions(predicate).isEmpty()) {
+			addTacticString(ProofFixingStrategies.setEqual.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.setMinusGetPositions(predicate) != null && !Tactics.setMinusGetPositions(predicate).isEmpty()) {
+			addTacticString(ProofFixingStrategies.setMinus.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.relOvrGetPositions(predicate) != null && !Tactics.relOvrGetPositions(predicate).isEmpty()) {
+			addTacticString(ProofFixingStrategies.relationOverwriteDefinition.name(), nodeWrapper, predWrapper,
+					applicableSet);
+		}
+		if (Tactics.partitionGetPositions(predicate) != null && !Tactics.partitionGetPositions(predicate).isEmpty()) {
+			addTacticString(ProofFixingStrategies.partition.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.arithGetPositions(predicate) != null && !Tactics.arithGetPositions(predicate).isEmpty()) {
+			addTacticString(ProofFixingStrategies.arithmeticRewrite.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.finiteDefGetPositions(predicate) != null && !Tactics.finiteDefGetPositions(predicate).isEmpty()) {
+			addTacticString(ProofFixingStrategies.finiteDefinition.name(), nodeWrapper, predWrapper, applicableSet);
+		}
+		if (Tactics.cardDefGetPositions(predicate) != null && !Tactics.cardDefGetPositions(predicate).isEmpty()) {
+			addTacticString(ProofFixingStrategies.cardinalityDefinition.name(), nodeWrapper, predWrapper,
+					applicableSet);
+		}
+		if (Tactics.funImgSimpGetPositions(predicate, node.getSequent()) != null
+				&& !Tactics.funImgSimpGetPositions(predicate, node.getSequent()).isEmpty()) {
+			addTacticString(ProofFixingStrategies.functionalImageDefinition.name(), nodeWrapper, predWrapper,
+					applicableSet);
+		}
 	}
 
 }

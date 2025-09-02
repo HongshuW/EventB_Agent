@@ -138,64 +138,6 @@ public class FixProofStrategyRunner {
 
 	public Object applyProofTactic(int predicateID, int nodeID, ProofFixingStrategies strategy)
 			throws RodinDBException {
-		String reasonerID = "org.eventb.core.seqprover";
-		switch (strategy) {
-		case cardinalityDefinition:
-			reasonerID += ".cardDefRewrites";
-			break;
-		case disjunctionToImplication:
-			reasonerID += ".disjToImplRewrites";
-			break;
-		case doubleImplication:
-			reasonerID += ".doubleImplHypRewrites";
-			break;
-		case equalCardinality:
-			reasonerID += ".equalCardRewrites";
-			break;
-		case equivalence:
-			reasonerID += ".eqvRewrites";
-			break;
-		case finiteDefinition:
-			reasonerID += ".finiteDefRewrites";
-			break;
-		case functionalImageDefinition:
-			reasonerID += ".funImgSimplifies";
-			break;
-		case implicationAnd:
-			reasonerID += ".impAndRewrites";
-			break;
-		case implicationOr:
-			reasonerID += ".impOrRewrites";
-			break;
-		case inclusionSetMinus:
-			reasonerID += ".inclusionSetMinusLeftRewrites"; // or inclusionSetMinusRightRewrites
-			break;
-		case removeInclusion:
-			reasonerID += ".ri";
-			break;
-		case removeMembership:
-			reasonerID += ".rmL2";
-			break;
-		case removeNegation:
-			reasonerID += ".rn";
-			break;
-		case setEqual:
-			reasonerID += ".setEqlRewrites";
-			break;
-		case setMinus:
-			reasonerID += ".setMinusRewrites";
-			break;
-		case strictInclusion:
-			reasonerID += ".sir";
-			break;
-		case relationOverwriteDefinition:
-			reasonerID += ".relOvrRewrites";
-			break;
-		}
-		return applyProofTactic(predicateID, nodeID, reasonerID);
-	}
-
-	private Object applyProofTactic(int predicateID, int nodeID, String reasonerID) throws RodinDBException {
 		IProofAttempt proofAttempt = getProofAttempt();
 		IProofTreeNode node = ProofUtils.getProofTreeNode(proofAttempt.getProofTree(), nodeID);
 
@@ -209,25 +151,110 @@ public class FixProofStrategyRunner {
 				}
 			}
 		}
+		boolean isGoal = false;
+		if (predInNode == null) {
+			isGoal = true;
+			predInNode = node.getSequent().goal();
+		}
 
-		List<IPosition> posList = new ArrayList<>();
-		posList.add(IPosition.ROOT);
-		IPosition left = IPosition.ROOT.getFirstChild();
-		IPosition right = left.getNextSibling();
-		posList.add(left);
-		posList.add(right);
-		posList.add(left.getFirstChild());
-		posList.add(left.getFirstChild().getNextSibling());
+		List<IPosition> positions = null;
+		IPosition position = IPosition.ROOT;
 
-		for (int i = 0; i < posList.size(); i++) {
-			IPosition pos = posList.get(i);
-			AbstractManualRewrites.Input input = new AbstractManualRewrites.Input(predInNode, pos);
-			IReasoner reasoner = SequentProver.getReasonerRegistry().getReasonerDesc(reasonerID).getInstance();
-			ITactic tac = BasicTactics.reasonerTac(reasoner, input);
-			Object result = tac.apply(node, null);
-			if (result == null || i == posList.size() - 1) {
-				return result;
+		switch (strategy) {
+		case arithmeticRewrite:
+			positions = Tactics.arithGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
 			}
+			return Tactics.arithRewrites(predInNode, position).apply(node, null);
+		case cardinalityDefinition:
+			positions = Tactics.cardDefGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return Tactics.cardDef(predInNode, position).apply(node, null);
+		case conjunction:
+			return Tactics.conjF(predInNode).apply(node, null);
+		case disjunctionToImplication:
+			positions = Tactics.disjToImplGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return Tactics.disjToImpl(predInNode, position).apply(node, null);
+		case equality:
+			return Tactics.eqE(predInNode).apply(node, null);
+		case equivalence:
+			Object result = Tactics.eqvRL(predInNode).apply(node, null);
+			if (result != null) {
+				result = Tactics.eqvLR(predInNode).apply(node, null);
+			}
+			return result;
+		case finiteDefinition:
+			positions = Tactics.finiteDefGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return Tactics.finiteDef(predInNode, position).apply(node, null);
+		case functionalImageDefinition:
+			positions = Tactics.funImgSimpGetPositions(predInNode, node.getSequent());
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return (isGoal ? Tactics.funImgGoal(predInNode, position) : Tactics.funImgSimplifies(predInNode, position)).apply(node, null);
+		case implicationAnd:
+			positions = Tactics.impAndGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return Tactics.impAndRewrites(predInNode, position).apply(node, null);
+		case implicationOr:
+			positions = Tactics.impOrGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return Tactics.impOrRewrites(predInNode, position).apply(node, null);
+		case removeInclusion:
+			positions = Tactics.riGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return Tactics.removeInclusion(predInNode, position).apply(node, null);
+		case removeMembership:
+			positions = Tactics.rmGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return Tactics.removeMembership(isGoal ? null : predInNode, position).apply(node, null);
+		case removeNegation:
+			positions = Tactics.rnGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return Tactics.removeNeg(predInNode, position).apply(node, null);
+		case setEqual:
+			positions = Tactics.setEqlGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return Tactics.setEqlRewrites(predInNode, position).apply(node, null);
+		case setMinus:
+			positions = Tactics.setMinusGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return Tactics.setMinusRewrites(predInNode, position).apply(node, null);
+		case strictInclusion:
+			positions = Tactics.sirGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return Tactics.removeStrictInclusion(predInNode, position).apply(node, null);
+		case relationOverwriteDefinition:
+			positions = Tactics.relOvrGetPositions(predInNode);
+			if (positions != null && !positions.isEmpty()) {
+				position = positions.get(0);
+			}
+			return Tactics.relOvr(predInNode, position).apply(node, null);
 		}
 
 		return null;

@@ -230,13 +230,15 @@ public class ProofUtils {
 
 	private static ProofNodeWrapper getAllNodesHelper(IProofTreeNode node, int currentID,
 			List<ProofNodeWrapper> nodes) {
-		if (node == null || node.isClosed() || node.getConfidence() == IConfidence.DISCHARGED_MAX) {
+		if (node == null) {
 			return new ProofNodeWrapper(node, currentID);
 		}
 
 		if (node.getChildNodes().length == 0) {
 			ProofNodeWrapper wrapper = new ProofNodeWrapper(node, currentID);
-			nodes.add(wrapper);
+			if (!(node.isClosed() || node.getConfidence() == IConfidence.DISCHARGED_MAX)) {
+				nodes.add(wrapper);
+			}
 			return wrapper;
 		}
 

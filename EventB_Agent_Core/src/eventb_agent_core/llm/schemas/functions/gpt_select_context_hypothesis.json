@@ -1,0 +1,36 @@
+{
+	"type": "function",
+	"name": "selectHypothesisFromContext",
+	"description": "Select axiom in the context as hypothesis and add to the proof tree. Use this function when a standard fact that is not recognized by Event-B should be added, and it has been added to the context. This function will add the selected hypothesis. You need to specify the instantiations for `\\forall` or `\\exists` hypotheses.",
+	"strict": true,
+	"parameters": {
+		"type": "object",
+		"$defs": {
+			"identifier": {
+				"type": "string",
+				"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+			}
+		},
+		"properties": {
+			"node_id": {
+				"type": "integer",
+				"description": "ID of the node in the proof tree to apply this function on."
+			},
+			"axiom_label": {
+				"$ref": "#/$defs/identifier"
+			},
+			"instantiations": {
+				"type": "array",
+				"items": {
+					"$ref": "#/$defs/identifier"
+				}
+			}
+		},
+		"additionalProperties": false,
+		"required": [
+			"node_id",
+			"axiom_label",
+			"instantiations"
+		]
+	}
+}

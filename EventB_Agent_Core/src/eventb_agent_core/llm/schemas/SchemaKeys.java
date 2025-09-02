@@ -55,6 +55,7 @@ public class SchemaKeys {
 	public static final String INV = "invariant";
 	public static final String GRD = "guard";
 	public static final String INSTANTIATIONS = "instantiations";
+	public static final String AXM_LABEL = "axiom_label";
 
 	/* keys for model checking */
 	public static final String MODEL_CHECKING_PARAMS = "parameters";

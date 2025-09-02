@@ -13,15 +13,18 @@ Available Proof Tactics:
 {{proof_tactics}}
 
 You must follow the ***rules for calling functions***:
-1. For a well-definedness proof obligation (***WD***) about guard, if proof cannot proceed, use `strengthenGuard` to add an additional guard. For example, to prove that a guard `y = fun(x)` is well defined, `y \\in dom(fun)` must be true. If not, add `y \\in dom(fun)` as an additional guard of the event.
-2. For an invariant-preserving proof obligation (***INV***), if proof cannot proceed, use `addHypothesesToContext` OR `addHypothesesToGuard`. 
-2a. Event-B is based on proof by induction. For an obvious fact, e.g. `x >= 0` |- `x + 1 >= 0` that is an ***inductive step***, and not basic knowledge of Event-B auto prover, use `addHypothesesToContext` to add an axiom, e.g. `\\forall x \\cdot x \\in NAT \\land x >= 0 \\implies x + 1 >= 0`. Add an hypothesis specific to the proof. After this, specify instantiations specific to the current proof.
-2b. For ***INV***, if the proof involves parameters of an event, use `addHypothesesToGuard` to add the inductive step as an additional guard. e.g. if `p` is a parameter of the event, and `f \\in TYPE` |- `f \\oplus {p \\mapsto n} \\in TYPE`, then use `addHypothesesToGuard` to add a guard, e.g. `\\forall f \\cdot f \\in TYPE \\land p \\in dom(f) \\implies f \\oplus {p \\mapsto n} \\in TYPE`.
-2c. If the hypothesis involves multiple variables to be instantiated, used the format `\\forall x,y \\cdot ...` and `\\exists x,y \\cdot ...`, instead of `\\forall x \\cdot ... \\implies \\forall y ...`.
-2d. After adding hypothesis that is `\\forall` or `\\exists`, you also need to specify instantiations. e.g. `\\forall x,y,z ...`, the instantiations array should contain 3 items for `x`, `y`, `z` respectively, and the order must match.
-3. If add hypothesis (`ah`) appeared in the proof tree, but its children nodes are not discharged, use `instantiation` to discharge the children nodes.
-4. `applyProofTactic` may only be called with an option chosen from `Available Proof Tactics`. The predicate and node id should be ***exactly same as what is provided***. If `Available Proof Tactics` is empty, do not use `applyProofTactic`.
-5. Functions other than `applyProofTactic` can be called on nodes with children. If this happens, the node will be pruned before the function is applied.
-6. Try other functions before `applySMT` because it is a blackbox approach. The resulting proof should be explainable. Only call `applySMT` when the other functions do not work.
-7. If there is no suitable function, call `others` and suggest the suitable fix as a parameter.
-8. Return one function call that is the most suitable among all.
+1. For any proof node in the form `H1, H2, ...Hn |- G`, where G is the goal, H are the hypotheses. You should always pay more attention to the hypothesis that are the most similar to G.
+2. For a well-definedness proof obligation (***WD***) about guard, if proof cannot proceed, use `strengthenGuard` to add an additional guard. For example, to prove that a guard `y = fun(x)` is well defined, `y \\in dom(fun)` must be true. If not, add `y \\in dom(fun)` as an additional guard of the event.
+3. For an invariant-preserving proof obligation (***INV***), if proof cannot proceed, use `addHypothesesToContext` OR `addHypothesesToGuard`. 
+3a. Event-B is based on proof by induction. For an obvious fact, e.g. `x >= 0` |- `x + 1 >= 0` that is an ***inductive step***, and not basic knowledge of Event-B auto prover, use `addHypothesesToContext` to add an axiom, e.g. `\\forall x \\cdot x \\in NAT \\land x >= 0 \\implies x + 1 >= 0`. Add an hypothesis specific to the proof. After this, specify instantiations specific to the current proof.
+3b. The added hypothesis ***must be relevant to the goal*** of the selected node. e.g. If there are many selected hypothesis, and the goal is `x+1 \\in NAT`. Then you should focus on the selected hypothesis such as `x \\in NAT`, which is relevant to the goal by an inductive step.
+3c. For ***INV***, if the proof involves parameters of an event, use `addHypothesesToGuard` to add the inductive step as an additional guard. e.g. if `p` is a parameter of the event, and `f \\in TYPE` |- `f \\oplus {p \\mapsto n} \\in TYPE`, then use `addHypothesesToGuard` to add a guard, e.g. `\\forall f \\cdot f \\in TYPE \\land p \\in dom(f) \\implies f \\oplus {p \\mapsto n} \\in TYPE`.
+3d. If the hypothesis involves multiple variables to be instantiated, used the format `\\forall x,y \\cdot ...` and `\\exists x,y \\cdot ...`, instead of `\\forall x \\cdot ... \\implies \\forall y ...`.
+3e. After adding hypothesis that is `\\forall` or `\\exists`, you also need to specify instantiations. e.g. `\\forall x,y,z ...`, the instantiations array should contain 3 items for `x`, `y`, `z` respectively, and the order must match.
+3f. If the hypothesis to be added already exists as an axiom in the context, use `selectHypothesisFromContext` to add this hypothesis to the proof tree.
+4. If add hypothesis (`ah`) appeared in the proof tree, but its children nodes are not discharged, use `instantiation` to discharge the children nodes.
+5. `applyProofTactic` may only be called with an option chosen from `Available Proof Tactics`. The predicate and node id should be ***exactly same as what is provided***. If `Available Proof Tactics` is empty, do not use `applyProofTactic`.
+6. Functions other than `applyProofTactic` can be called on nodes with children. If this happens, the node will be pruned before the function is applied.
+7. Try other functions before `applySMT` because it is a blackbox approach. The resulting proof should be explainable. Only call `applySMT` when the other functions do not work.
+8. If there is no suitable function, call `others` and suggest the suitable fix as a parameter.
+9. Return one function call that is the most suitable among all.
