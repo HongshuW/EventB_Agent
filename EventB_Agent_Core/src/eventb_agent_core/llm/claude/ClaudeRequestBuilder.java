@@ -94,7 +94,7 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 	public void addRequestHistory(String prompt, String message, List<LinkedHashMap<String, Object>> history,
 			JSONObject functionCall) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

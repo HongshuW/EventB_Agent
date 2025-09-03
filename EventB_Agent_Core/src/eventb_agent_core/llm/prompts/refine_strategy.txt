@@ -5,6 +5,7 @@ In each refinement level, a subset of requirements is included. If a requirement
 Each concrete refinement level l_c should refine the previous abstract level l_a. Two adjacent refinement levels should be linked by gluing invariants. In level l_c, specify the gluing invariants that link l_a and l_c. The first refinement level should not contain gluing invariants.
 The gluing invariants should be described in natural language. Each invariant should be an entry in the array called `gluing_invariants`.
 The label of an invariant should have the format: `gluing_inv_<a>_<c>_<description>`. e.g. `gluing_inv_1_2_VarName`.
+If a gluing invariant in unnecessary, don't include it.
 
 System Description:
 {{system_desc}}

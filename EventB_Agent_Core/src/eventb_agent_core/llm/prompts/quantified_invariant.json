@@ -1,0 +1,7 @@
+[
+	{
+		"id": "1",
+		"sub_id": "",
+		"rule": "For ***INV*** about an invariant of the form ***`\\\\forall x \\\\cdot ... \\\\implies <goal about x>`***. In proving, `x0` means `x` after event. If the ***goal G is about `x0`***, then find the predicate that is the most similar to the invariant of this proof and instantiate it. e.g. if the goal is `x0=y`, look for `\\\\forall x0 \\\\cdot ... \\\\implies x0=y`, and instantiate it. Note that goal G `x0=y` is very similar to the implied predicate `x=y` in the hypothesis."
+	}
+]

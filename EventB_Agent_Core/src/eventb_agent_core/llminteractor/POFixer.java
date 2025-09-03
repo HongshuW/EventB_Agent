@@ -44,6 +44,7 @@ import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.llm.schemas.SchemaKeys;
 import eventb_agent_core.proof.FixProofStrategyRunner;
 import eventb_agent_core.proof.Hypothesis;
+import eventb_agent_core.proof.ProofScenarioType;
 import eventb_agent_core.proof.PredicateWrapper;
 import eventb_agent_core.proof.ProofFixingStrategies;
 import eventb_agent_core.proof.ProofNodeWrapper;
@@ -142,14 +143,15 @@ public class POFixer extends AbstractLLMInteractor {
 		if (tree != null) {
 			try {
 				reasonerMessage = null;
+				ProofScenarioType poType = getPOType(poName, machineRoot, requestHistory);
 				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName,
 						ParserUtils.reverseLex(ProofUtils.getProofTreeString(tree), 1),
-						findApplicableProofTactics(poName) ? getApplicableProofTactics(tree)
+						poType == ProofScenarioType.INV ? getApplicableProofTactics(tree)
 								: getOtherApplicableFunctions() };
 				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF,
-						requestHistory);
+						requestHistory, poType);
 				modifyModel(answer, machineRoot, contextRoot, poSequent, tree);
-				if (!ProofUtils.isDischargedWithRefresh(machineRoot, poName)) {
+				if (!ProofUtils.isDischarged(machineRoot, poName)) {
 					EvaluationManager.endLatestAction();
 					EvaluationManager.repeatAndStartPrevoiusAction(maxAttemptsProof);
 					EvaluationManager.setLastPOActionIndex();
@@ -214,9 +216,9 @@ public class POFixer extends AbstractLLMInteractor {
 			String eventName = args.getString(SchemaKeys.EVENT_NAME);
 			addHypothesesToGuard(machineRoot, hypotheses, eventName);
 			waitForPORebuild(fixer);
-			fixer.applyAutoTactic();
 			for (Hypothesis hypothesis : hypotheses) {
-				result = fixer.addHypothesis(hypothesis);
+				result = fixer.instantiation(hypothesis, 0); // without auto proving, node ID is 0
+				finish(result, fixer);
 			}
 			break;
 		case addAbstractExpression:
@@ -276,6 +278,41 @@ public class POFixer extends AbstractLLMInteractor {
 		default:
 			finish(null, fixer);
 		}
+	}
+
+	private ProofScenarioType getPOType(String poName, IMachineRoot machineRoot,
+			List<LinkedHashMap<String, Object>> requestHistory) throws RodinDBException {
+		String[] entries = poName.split("/");
+		if (entries.length == 2) {
+			if (entries[1].equals("WD")) {
+				return ProofScenarioType.WD;
+			}
+		} else if (entries.length == 3) {
+			if (entries[2].equals("WD")) {
+				return ProofScenarioType.WD;
+			} else if (entries[2].equals("INV")) {
+				String invariantLabel = entries[1];
+				IInvariant invariant = getInvariant(machineRoot, invariantLabel);
+				if (invariant != null) {
+					String invString = ParserUtils.reverseLex(invariant.getPredicateString());
+					if (invString.startsWith("\\forall") || invString.startsWith("\\exists")) {
+						return ProofScenarioType.QUANT_INV;
+					}
+				}
+			}
+		}
+
+		String lastAction = "";
+		for (LinkedHashMap<String, Object> entry : requestHistory) {
+			if (entry.containsKey("type") && entry.get("type").equals("function_call")) {
+				lastAction = (String) entry.get("name");
+			}
+		}
+		if (lastAction.equals("addHypothesesToContext") || lastAction.equals("addHypothesesToGuard")) {
+			return ProofScenarioType.ADDED_HYP;
+		}
+
+		return ProofScenarioType.INV;
 	}
 
 	private IAxiom getAxiom(IContextRoot contextRoot, String label) throws RodinDBException {
@@ -340,7 +377,10 @@ public class POFixer extends AbstractLLMInteractor {
 		if (this.proofAttempt != null && (this.proofAttempt.isBroken() || this.proofAttempt.isDisposed())) {
 			this.proofAttempt.dispose();
 		}
-		this.proofAttempt = fixer.getProofAttempt();
+		while (this.proofAttempt == null || this.proofAttempt.isBroken() || this.proofAttempt.isDisposed()) {
+			Thread.sleep(1000);
+			this.proofAttempt = fixer.getProofAttempt();
+		}
 	}
 
 	private void addHypothesesToContext(IContextRoot contextRoot, List<Hypothesis> hypotheses) throws CoreException {
@@ -454,20 +494,6 @@ public class POFixer extends AbstractLLMInteractor {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	public boolean findApplicableProofTactics(String poName) throws RodinDBException {
-		String[] entries = poName.split("/");
-		if (entries.length == 2) {
-			if (entries[1].equals("WD")) {
-				return false;
-			}
-		} else if (entries.length == 3) {
-			if (entries[2].equals("WD")) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	public String getOtherApplicableFunctions() {

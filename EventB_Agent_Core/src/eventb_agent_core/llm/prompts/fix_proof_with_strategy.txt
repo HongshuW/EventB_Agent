@@ -1,5 +1,7 @@
 Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Consider the goal in the proof tree, complete the proof by calling the most suitable function. Each function will either modify the proof tree or modify the Event-B model. If the proof tree should be modified, choose a node in the proof tree to apply the function on, the node ID is labeled as NODE_n in the proof tree. 
 
+Return one function call that is the most suitable among all.
+
 Model:
 {{model}}
 
@@ -12,24 +14,4 @@ Proof Tree:
 Available Proof Tactics:
 {{proof_tactics}}
 
-You must follow the rules for calling functions:
-***General Rules***
-1. For any proof node in the form `H1, H2, ...Hn |- G`, where G is the goal, H are the hypotheses. You should always pay more attention to the hypothesis that are the most similar to G.
-2. `applyProofTactic` may only be called with an option chosen from `Available Proof Tactics`. The predicate and node id should be ***exactly same as what is provided***. If `Available Proof Tactics` is empty, do not use `applyProofTactic`.
-3. Try other functions before `applySMT` because it is a blackbox approach. The resulting proof should be explainable. Only call `applySMT` when the other functions do not work.
-4. Return one function call that is the most suitable among all.
-
-***If Proof Obligation contains WD***
-1. For a partial function `f \\in A \\rightharpoonup B`, whenever referring to an element in the domain of `f`, always use ***`dom(f)`*** instead of `A`. Always use either `strengthenGuard` or `strengthenInvariant` to update the domain. e.g. ***replace*** `\\forall x \\cdot x \\in A ...` with `\\forall x \\cdot x \\in dom(f) ...`.
-2. For a well-definedness proof obligation (***WD***) about guard, if proof cannot proceed, use `strengthenGuard` to add an additional guard. For example, to prove that a guard `y = fun(x)` is well defined, `y \\in dom(fun)` must be true. If not, add `y \\in dom(fun)` as an additional guard of the event.
-3. For ***WD*** about invariant, where the invariant contains `card(...)`, you ***must use `strengthenInvariant`*** to update the invariant. e.g. for partial function `f \\in A \\rightharpoonup B`, important!: ***replace*** `card({p \\mid p \\in A \\land f(p) = x}) \\leq 1` with `\\forall p,q \\cdot p \\in dom(f) \\land q \\in dom(f) \\land f(p)=x \\land f(q)=x \\implies p=q`. Keep the label same as before. Note that ***`dom(f)`*** is used instead of `A`.
-
-***If Proof Obligation contains INV***
-1. If the goal and its most similar hypothesis in the node partially match one of the `\\forall` or `\\exists` axioms, use `selectHypothesisFromContext` to add the hypothesis to the proof tree.
-2. For an invariant-preserving proof obligation (***INV***), if proof cannot proceed, use `addHypothesesToContext` OR `addHypothesesToGuard`. 
-2a. Event-B is based on proof by induction. For an obvious fact, e.g. `x >= 0` |- `x + 1 >= 0` that is an ***inductive step***, and not basic knowledge of Event-B auto prover, use `addHypothesesToContext` to add an axiom, e.g. `\\forall x \\cdot x \\in NAT \\land x >= 0 \\implies x + 1 >= 0`. Add an hypothesis specific to the proof. After this, specify instantiations specific to the current proof.
-2b. The added hypothesis ***must be relevant to the goal*** of the selected node. e.g. If there are many selected hypothesis, and the goal is `x+1 \\in NAT`. Then you should focus on the selected hypothesis such as `x \\in NAT`, which is relevant to the goal by an inductive step.
-2c. For ***INV***, if the proof involves parameters of an event, use `addHypothesesToGuard` to add the inductive step as an additional guard. e.g. if `p` is a parameter of the event, and `f \\in TYPE` |- `f \\oplus {p \\mapsto n} \\in TYPE`, then use `addHypothesesToGuard` to add a guard, e.g. `\\forall f \\cdot f \\in TYPE \\land p \\in dom(f) \\implies f \\oplus {p \\mapsto n} \\in TYPE`.
-2d. If the hypothesis involves multiple variables to be instantiated, used the format `\\forall x,y \\cdot ...` and `\\exists x,y \\cdot ...`, instead of `\\forall x \\cdot ... \\implies \\forall y ...`.
-2e. After adding hypothesis that is `\\forall` or `\\exists`, you also need to specify instantiations. e.g. `\\forall x,y,z ...`, the instantiations array should contain 3 items for `x`, `y`, `z` respectively, and the order must match.
-3. If add hypothesis (`ah`) appeared in the proof tree, but its children nodes are not discharged, use `instantiation` to discharge the children nodes.
+You must follow the ***rules for calling functions***:

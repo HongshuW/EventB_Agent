@@ -58,7 +58,7 @@ public class FileUtils {
 
 		// Read JSON file as generic Map (order preserved)
 		Map<String, Object> json = new LinkedHashMap<>();
-		;
+
 		try {
 			json = (Map<String, Object>) mapper.readValue(path.toFile(), Map.class);
 			return json;
@@ -66,6 +66,19 @@ public class FileUtils {
 			e.printStackTrace();
 		}
 		return json;
+	}
+
+	public static List<Map<String, Object>> readOrderedJSONArray(Path path) {
+		ObjectMapper mapper = new ObjectMapper();
+
+		try {
+			List<Map<String, Object>> json = mapper.readValue(path.toFile(), List.class);
+			return json;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 	private static File getAgentDirectory() {

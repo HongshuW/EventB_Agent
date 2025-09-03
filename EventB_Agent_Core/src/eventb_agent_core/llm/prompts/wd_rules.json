@@ -1,0 +1,17 @@
+[
+	{
+		"id": "1",
+		"sub_id": "",
+		"rule": "For a partial function `f \\\\in A \\\\rightharpoonup B`, whenever referring to an element in the domain of `f`, always use ***`dom(f)`*** instead of `A`. Always use either `strengthenGuard` or `strengthenInvariant` to update the domain. e.g. ***replace*** `\\\\forall x \\\\cdot x \\\\in A ...` with `\\\\forall x \\\\cdot x \\\\in dom(f) ...`."
+	},
+	{
+		"id": "2",
+		"sub_id": "",
+		"rule": "For a well-definedness proof obligation (***WD***) about guard, if proof cannot proceed, use `strengthenGuard` to add an additional guard. For example, to prove that a guard `y = fun(x)` is well defined, `y \\\\in dom(fun)` must be true. If not, add `y \\\\in dom(fun)` as an additional guard of the event."
+	},
+	{
+		"id": "3",
+		"sub_id": "",
+		"rule": "For ***WD*** about invariant, where the invariant contains `card(...)`, you ***must use `strengthenInvariant`*** to update the invariant. e.g. for partial function `f \\\\in A \\\\rightharpoonup B`, important!: ***replace*** `card({p \\\\mid p \\\\in A \\\\land f(p) = x}) \\\\leq 1` with `\\\\forall p,q \\\\cdot p \\\\in dom(f) \\\\land q \\\\in dom(f) \\\\land f(p)=x \\\\land f(q)=x \\\\implies p=q`. Keep the label same as before. Note that ***`dom(f)`*** is used instead of `A`."
+	}
+]

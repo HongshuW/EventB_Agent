@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import eventb_agent_core.proof.ProofScenarioType;
 import eventb_agent_core.utils.llm.ParserUtils;
 
 /**
@@ -61,11 +62,14 @@ public abstract class LLMRequestSender {
 	}
 
 	public String sendRequest(String[] contentInPlaceHolders, LLMRequestTypes requestType,
-			List<LinkedHashMap<String, Object>> history) throws IOException {
+			List<LinkedHashMap<String, Object>> history, ProofScenarioType poType) throws IOException {
 		String[] placeHolders = requestType.getPlaceHolders();
 		int length = Math.min(contentInPlaceHolders.length, placeHolders.length);
 		RequestBuilder requestBuilder = getRequestBuilder();
 		String prompt = requestType.getPrompt();
+		if (poType != null) {
+			prompt += poType.getRules();
+		}
 
 		for (int i = 0; i < length; i++) {
 			String contentInPlaceHolder = ParserUtils.reverseLex(contentInPlaceHolders[i]);

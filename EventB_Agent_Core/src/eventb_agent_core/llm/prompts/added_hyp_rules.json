@@ -1,0 +1,7 @@
+[
+	{
+		"id": "1",
+		"sub_id": "",
+		"rule": "If add hypothesis (`ah`) appeared in the proof tree, but its children nodes are not discharged, use `instantiation` to discharge the children nodes."
+	}
+]

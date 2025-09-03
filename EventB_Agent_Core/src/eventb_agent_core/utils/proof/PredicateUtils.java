@@ -47,18 +47,33 @@ public class PredicateUtils {
 		return result;
 	}
 
+	private static Predicate getPredicate(Iterator<Predicate> predicates, Predicate targetPred) {
+		while (predicates.hasNext()) {
+			Predicate predicate = predicates.next();
+			if (predicate != null
+					&& (predicate.equals(targetPred) || predicate.toString().equals(targetPred.toString()))) {
+				return predicate;
+			}
+		}
+		return null;
+	}
+
 	public static Predicate getPredicate(IProofTreeNode node, Predicate targetPred) {
 		if (targetPred == null) {
 			return null;
 		}
 
 		IProverSequent sequent = node.getSequent();
+		Iterator<Predicate> selectedPredicates = sequent.selectedHypIterable().iterator();
+		Predicate predicate = getPredicate(selectedPredicates, targetPred);
+		if (predicate != null) {
+			return predicate;
+		}
 
-		Optional<Predicate> inHyps = StreamSupport.stream(sequent.selectedHypIterable().spliterator(), false).filter(
-				pred -> pred != null && (pred.equals(targetPred) || pred.toString().equals(targetPred.toString())))
-				.findFirst();
-		if (inHyps.isPresent()) {
-			return inHyps.get();
+		Iterator<Predicate> hiddenPredicates = sequent.hiddenHypIterable().iterator();
+		predicate = getPredicate(hiddenPredicates, targetPred);
+		if (predicate != null) {
+			return predicate;
 		}
 
 		return null;

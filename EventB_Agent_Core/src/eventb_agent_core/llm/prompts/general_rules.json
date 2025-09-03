@@ -1,0 +1,17 @@
+[
+	{
+		"id": "1",
+		"sub_id": "",
+		"rule": "For any proof node in the form `H1, H2, ...Hn |- G`, where G is the goal, H are the hypotheses. You should always pay more attention to the hypothesis that are the most similar to G."
+	},
+	{
+		"id": "2",
+		"sub_id": "",
+		"rule": "`applyProofTactic` may only be called with an option chosen from `Available Proof Tactics`. The predicate and node id should be ***exactly same as what is provided***. If `Available Proof Tactics` is empty, do not use `applyProofTactic`."
+	},
+	{
+		"id": "3",
+		"sub_id": "",
+		"rule": "Try other functions before `applySMT` because it is a blackbox approach. The resulting proof should be explainable. Only call `applySMT` when the other functions do not work."
+	}
+]

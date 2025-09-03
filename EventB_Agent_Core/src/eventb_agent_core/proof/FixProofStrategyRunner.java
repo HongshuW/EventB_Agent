@@ -200,7 +200,8 @@ public class FixProofStrategyRunner {
 			if (positions != null && !positions.isEmpty()) {
 				position = positions.get(0);
 			}
-			return (isGoal ? Tactics.funImgGoal(predInNode, position) : Tactics.funImgSimplifies(predInNode, position)).apply(node, null);
+			return (isGoal ? Tactics.funImgGoal(predInNode, position) : Tactics.funImgSimplifies(predInNode, position))
+					.apply(node, null);
 		case implicationAnd:
 			positions = Tactics.impAndGetPositions(predInNode);
 			if (positions != null && !positions.isEmpty()) {
@@ -346,6 +347,16 @@ public class FixProofStrategyRunner {
 		final IProofAttempt proofAttempt = getProofAttempt();
 		IProofTreeNode node = ProofUtils.getProofTreeNode(proofAttempt.getProofTree(), nodeID);
 		return instantiation(predicate, instantiationsArray, node);
+	}
+
+	public Object instantiation(Hypothesis hypothesis, int nodeID) throws RodinDBException {
+		String predicate = ParserUtils.lex(hypothesis.getPredicate());
+
+		String[] instantiations = hypothesis.getInstantiations();
+
+		final IProofAttempt proofAttempt = getProofAttempt();
+		IProofTreeNode node = ProofUtils.getProofTreeNode(proofAttempt.getProofTree(), nodeID);
+		return instantiation(predicate, instantiations, node);
 	}
 
 	public List<String> getApplicableReasoners(IProofTreeNode node) {
