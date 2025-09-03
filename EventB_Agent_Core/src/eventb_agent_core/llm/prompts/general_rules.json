@@ -12,7 +12,12 @@
 	{
 		"id": "3",
 		"sub_id": "",
-		"rule": "Try other functions before `applySMT` because it is a blackbox approach. The resulting proof should be explainable. Only call `applySMT` when the other functions do not work."
+		"rule": "Try other functions before `applySMT` because it is a blackbox approach. The resulting proof should be explainable."
+	},
+	{
+		"id": "3",
+		"sub_id": "a",
+		"rule": "Call `applySMT` when the goal is true by definition, or could be closed within one step, but there is no available function provided."
 	},
 	{
 		"id": "4",
