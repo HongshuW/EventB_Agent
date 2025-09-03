@@ -12,6 +12,6 @@
 	{
 		"id": "1",
 		"sub_id": "b",
-		"rule": "To instantiate `\\\\forall` or `\\\\exists` predicates, the instantiations must match the number of variables. e.g. `\\\\forall x,y \\cdot ...` should have instantiations for `x` and `y` and no other variables."
+		"rule": "To instantiate `\\\\forall` or `\\\\exists` predicates, the instantiations must match the number of variables. e.g. `\\\\forall x,y \\\\cdot ...` should have instantiations for `x` and `y` and no other variables."
 	}
 ]

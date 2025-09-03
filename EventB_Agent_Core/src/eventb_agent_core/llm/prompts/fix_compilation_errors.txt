@@ -2,14 +2,13 @@ Fix the Event-B model with the listed errors. Return the fixed Event-B model.
 
 The erroneous parts are quoted as ***erroneous code***.
 
-For each variable v in machine, include an invariant `v ∈|⊆|⊂ ...` to specify its type.
-For each constant c in context, include an axiom `c ∈|⊆|⊂ ...` to specify its type.
+For each variable v in machine, include an invariant `v \\in | \\subset | \\subseteq ...` to specify its type.
+For each constant c in context, include an axiom `c \\in | \\subset | \\subseteq ...` to specify its type.
 Make sure sets are not misplaced into constants, e.g. sets are types that are capitalized.
 If a constant `fun` is used, make sure define its type, use format fun(x) if x is an element, and fun[X] if X is a set.
 Any variable, constant or parameter in event must have a corresponding invariant, axiom, or guard to define its type.
 Do not include comments.
-Respond using only code-points 0x20-0x7E. Do not emit \\u0000 to \\u001F. For Event-B use: \in for '∈', \subseteq for '⊆', not for '¬', etc.
-If latex commands are used, make sure that only commands with a corresponding symbol in Event-B is included, e.g. exclude commands like \bcmin, \quad, etc.
+Try to use latex commands to represent special symbols, make sure that only commands with a corresponding symbol in Event-B are included, e.g. exclude commands like \\bcmin, \\quad, etc.
 Clauses such as "if...else..." are not supported by Event-B, use two events with different guards to represent the logic.
 (x,y) is not supported and you must use x |-> y.
 
