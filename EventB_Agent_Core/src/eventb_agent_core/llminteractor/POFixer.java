@@ -14,6 +14,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eventb.core.IAction;
 import org.eventb.core.IAxiom;
 import org.eventb.core.IContextRoot;
 import org.eventb.core.IEvent;
@@ -286,6 +287,13 @@ public class POFixer extends AbstractLLMInteractor {
 			waitForPORebuild(fixer);
 			fixer.applyAutoTactic();
 			break;
+		case updateAction:
+			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.ACT);
+			eventName = args.getString(SchemaKeys.EVENT_NAME);
+			updateAction(machineRoot, hypotheses, eventName);
+			waitForPORebuild(fixer);
+			fixer.applyAutoTactic();
+			break;
 		default:
 			finish(null, fixer);
 		}
@@ -370,6 +378,16 @@ public class POFixer extends AbstractLLMInteractor {
 		for (IGuard guard : guards) {
 			if (guard.getLabel().equals(label)) {
 				return guard;
+			}
+		}
+		return null;
+	}
+
+	private IAction getAction(IEvent event, String label) throws RodinDBException {
+		IAction[] actions = event.getActions();
+		for (IAction action : actions) {
+			if (action.getLabel().equals(label)) {
+				return action;
 			}
 		}
 		return null;
@@ -517,6 +535,37 @@ public class POFixer extends AbstractLLMInteractor {
 		}
 	}
 
+	private void updateAction(IMachineRoot machineRoot, List<Hypothesis> hypotheses, String eventName)
+			throws RodinDBException {
+		IRodinFile rodinFile = machineRoot.getRodinFile();
+
+		IEvent targetEvent = getEvent(machineRoot, eventName);
+		if (targetEvent == null) {
+			return;
+		}
+
+		for (int i = 0; i < hypotheses.size(); i++) {
+			Hypothesis hyp = hypotheses.get(i);
+			String label = hyp.getLabel();
+			String assignment = ParserUtils.lex(hyp.getPredicate());
+			try {
+				IAction targetAction = getAction(targetEvent, label);
+				if (targetAction == null) {
+					// add new action
+					IAction newAct = targetEvent.createChild(IAction.ELEMENT_TYPE, null, null);
+					newAct.setLabel(label, null);
+					newAct.setAssignmentString(assignment, null);
+				} else {
+					targetAction.setAssignmentString(assignment, null);
+				}
+
+				rodinFile.save(null, false);
+			} catch (RodinDBException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public String getOtherApplicableFunctions() {
 		StringBuilder applicable = new StringBuilder("applyProofTactic: None\n");
 		String[] applicableFunctions = new String[] { "addAbstractExpression", "addHypothesesToContext",
@@ -557,8 +606,8 @@ public class POFixer extends AbstractLLMInteractor {
 
 		applicable.append("\n");
 		String[] applicableFunctions = new String[] { "addAbstractExpression", "addHypothesesToContext",
-				"addHypothesesToGuard", "caseDistinction", "caseDistinctionBySplittingEvent", "instantiation",
-				"strengthenGuard", "strengthenInvariant", "applySMT" };
+				"addHypothesesToGuard", "caseDistinction", "instantiation", "strengthenGuard", "strengthenInvariant",
+				"applySMT", "updateAction", "selectHypothesisFromContext" };
 		for (String function : applicableFunctions) {
 			applicable.append(function + ", ");
 		}

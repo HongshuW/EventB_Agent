@@ -1,0 +1,53 @@
+{
+	"type": "function",
+	"name": "updateAction",
+	"description": "If the proof obligation about an event cannot be discharged because the action is wrong, add or update an action.",
+	"strict": true,
+	"parameters": {
+		"type": "object",
+		"$defs": {
+			"assignment": {
+				"type": "string",
+				"pattern": "^.*:=.*$"
+			},
+			"identifier": {
+				"type": "string",
+				"pattern": "^[a-zA-Z][a-zA-Z_0-9]*$"
+			},
+			"labeled_assignment": {
+				"type": "object",
+				"required": [
+					"label_name",
+					"assignment"
+				],
+				"properties": {
+					"label_name": {
+						"$ref": "#/$defs/identifier"
+					},
+					"assignment": {
+						"$ref": "#/$defs/assignment"
+					}
+				},
+				"additionalProperties": false
+			}
+		},
+		"properties": {
+			"node_id": {
+				"type": "integer",
+				"description": "ID of the node in the proof tree to apply this function on."
+			},
+			"event_name": {
+				"$ref": "#/$defs/identifier"
+			},
+			"action": {
+				"$ref": "#/$defs/labeled_assignment"
+			}
+		},
+		"additionalProperties": false,
+		"required": [
+			"node_id",
+			"event_name",
+			"action"
+		]
+	}
+}
