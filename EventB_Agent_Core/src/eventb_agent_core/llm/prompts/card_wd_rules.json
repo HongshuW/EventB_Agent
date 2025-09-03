@@ -1,0 +1,22 @@
+[
+	{
+		"id": "1",
+		"sub_id": "",
+		"rule": "For ***WD*** about invariant, where the invariant contains `card(...)`, you ***must use `strengthenInvariant`*** to update the invariant."
+	},
+	{
+		"id": "1",
+		"sub_id": "a",
+		"rule": "e.g. for partial function `f \\\\in A \\\\rightharpoonup B`, important!: ***replace*** `card({p \\\\mid p \\\\in A \\\\land f(p) = x}) \\\\leq 1` with `\\\\forall p,q \\\\cdot p \\\\in dom(f) \\\\land q \\\\in dom(f) \\\\land f(p)=x \\\\land f(q)=x \\\\implies p=q`. Keep the label same as before. Note that ***`dom(f)`*** is used instead of `A`."
+	},
+	{
+		"id": "1",
+		"sub_id": "b",
+		"rule": "After this, you must also ensure that the range of `f` contain distinct elements so that `p` and `q` can be compared. This should be done by `addHypothesesToContext`. The axiom should be `partition(B, {b_1}, {b_2}, ... {b_n})`, where `b_i` are all possible values in  `B`."
+	},
+	{
+		"id": "1",
+		"sub_id": "c",
+		"rule": "Return these two functions at once."
+	}
+]

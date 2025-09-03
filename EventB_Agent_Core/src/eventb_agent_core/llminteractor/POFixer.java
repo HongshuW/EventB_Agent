@@ -148,16 +148,24 @@ public class POFixer extends AbstractLLMInteractor {
 						ParserUtils.reverseLex(ProofUtils.getProofTreeString(tree), 1),
 						poType == ProofScenarioType.INV ? getApplicableProofTactics(tree)
 								: getOtherApplicableFunctions() };
-				JSONObject answer = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF,
+				JSONObject answerWrapper = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF,
 						requestHistory, poType);
-				modifyModel(answer, machineRoot, contextRoot, poSequent, tree);
+				JSONArray answer = answerWrapper.getJSONArray("result");
+				int limit = 1;
+				if (poType == ProofScenarioType.CARD_WD) {
+					limit = 2;
+				}
+				for (int i = 0; i < Math.min(limit, answer.length()); i++) {
+					JSONObject functionCall = answer.getJSONObject(i);
+					modifyModel(functionCall, machineRoot, contextRoot, poSequent, tree, poType);
+					llmRequestSender.getRequestBuilder().addRequestHistory(
+							"The PO is not discharged. The Event-B model and proof tree are updated. What to do next?",
+							reasonerMessage, requestHistory, functionCall);
+				}
 				if (!ProofUtils.isDischarged(machineRoot, poName)) {
 					EvaluationManager.endLatestAction();
 					EvaluationManager.repeatAndStartPrevoiusAction(maxAttemptsProof);
 					EvaluationManager.setLastPOActionIndex();
-					llmRequestSender.getRequestBuilder().addRequestHistory(
-							"The PO is not discharged. The Event-B model and proof tree are updated. What to do next?",
-							reasonerMessage, requestHistory, answer);
 					autoFixPO(machineRoot, poSequent, requestHistory);
 				}
 			} catch (ReachMaxAttemptException e) {
@@ -173,7 +181,8 @@ public class POFixer extends AbstractLLMInteractor {
 	}
 
 	private void modifyModel(JSONObject answer, IMachineRoot machineRoot, IContextRoot contextRoot,
-			IPOSequent poSequent, IProofTree tree) throws CoreException, InterruptedException {
+			IPOSequent poSequent, IProofTree tree, ProofScenarioType poType)
+			throws CoreException, InterruptedException {
 		String function = answer.getString(Constants.FUNCTION_NAME);
 		JSONObject args = null;
 		try {
@@ -207,8 +216,10 @@ public class POFixer extends AbstractLLMInteractor {
 			addHypothesesToContext(contextRoot, hypotheses);
 			waitForPORebuild(fixer);
 			fixer.applyAutoTactic();
-			for (Hypothesis hypothesis : hypotheses) {
-				result = fixer.addHypothesis(hypothesis);
+			if (poType != ProofScenarioType.CARD_WD) {
+				for (Hypothesis hypothesis : hypotheses) {
+					result = fixer.addHypothesis(hypothesis);
+				}
 			}
 			break;
 		case addHypothesesToGuard:
@@ -285,7 +296,16 @@ public class POFixer extends AbstractLLMInteractor {
 		String[] entries = poName.split("/");
 		if (entries.length == 2) {
 			if (entries[1].equals("WD")) {
-				return ProofScenarioType.WD;
+				String invariantLabel = entries[0];
+				IInvariant invariant = getInvariant(machineRoot, invariantLabel);
+				if (invariant != null) {
+					String invString = ParserUtils.reverseLex(invariant.getPredicateString());
+					if (invString.startsWith("card(")) {
+						return ProofScenarioType.CARD_WD;
+					} else {
+						return ProofScenarioType.WD;
+					}
+				}
 			}
 		} else if (entries.length == 3) {
 			if (entries[2].equals("WD")) {
@@ -374,6 +394,7 @@ public class POFixer extends AbstractLLMInteractor {
 	}
 
 	public void waitForPORebuild(FixProofStrategyRunner fixer) throws RodinDBException, InterruptedException {
+		Thread.sleep(1000);
 		if (this.proofAttempt != null && (this.proofAttempt.isBroken() || this.proofAttempt.isDisposed())) {
 			this.proofAttempt.dispose();
 		}
@@ -500,7 +521,7 @@ public class POFixer extends AbstractLLMInteractor {
 		StringBuilder applicable = new StringBuilder("applyProofTactic: None\n");
 		String[] applicableFunctions = new String[] { "addAbstractExpression", "addHypothesesToContext",
 				"addHypothesesToGuard", "caseDistinction", "caseDistinctionBySplittingEvent", "instantiation",
-				"strengthenGuard", "strengthenInvariant", "applySMT" };
+				"selectHypothesisFromContext", "strengthenGuard", "strengthenInvariant", "applySMT" };
 		for (String function : applicableFunctions) {
 			applicable.append(function + ", ");
 		}

@@ -669,7 +669,7 @@ public class ModelWorkspaceInteractor {
 		};
 		runnableContext.run(false, false, fixPOsOperation);
 	}
-	
+
 	private static String poName;
 
 	private String[] fixPOs(String projectName, String[] fileNames, String poName)
@@ -745,7 +745,8 @@ public class ModelWorkspaceInteractor {
 								EvaluationManager.endLatestAction();
 
 								// rebuild PO
-								FixProofStrategyRunner fixer = new FixProofStrategyRunner(undischargedPOName, machineRoot);
+								FixProofStrategyRunner fixer = new FixProofStrategyRunner(undischargedPOName,
+										machineRoot);
 								poFixer.waitForPORebuild(fixer);
 								fixer.applyAutoTactic();
 

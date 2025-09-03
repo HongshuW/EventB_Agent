@@ -141,11 +141,17 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 					try {
 						previousModel = modelWorkspaceInteractor.createModel(projectName, refinementStep,
 								previousModel);
-					} catch (InterruptedException | InvocationTargetException | CoreException
-							| ReachMaxAttemptException e) {
+					} catch (ReachMaxAttemptException e) {
 						e.printStackTrace();
 						EvaluationManager
 								.setErrorToLatestAction(e.getMessage() == null ? e.toString() : e.getMessage());
+						EvaluationManager.endLatestAction();
+					} catch (InterruptedException | InvocationTargetException | CoreException e) {
+						e.printStackTrace();
+						EvaluationManager
+								.setErrorToLatestAction(e.getMessage() == null ? e.toString() : e.getMessage());
+						EvaluationManager.endLatestAction();
+						i--; // retry
 					}
 				}
 

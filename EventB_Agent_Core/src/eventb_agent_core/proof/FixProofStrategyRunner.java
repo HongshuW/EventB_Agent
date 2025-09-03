@@ -306,7 +306,7 @@ public class FixProofStrategyRunner {
 	private Object instantiation(String predicate, String[] instantiationsArray, IProofTreeNode node)
 			throws RodinDBException {
 
-		Predicate predInNode = PredicateUtils.getPredicate(node, predicate);
+ 		Predicate predInNode = PredicateUtils.getPredicate(node, predicate);
 		if (predInNode == null) {
 			predInNode = node.getSequent().goal();
 		}
@@ -346,6 +346,9 @@ public class FixProofStrategyRunner {
 
 		final IProofAttempt proofAttempt = getProofAttempt();
 		IProofTreeNode node = ProofUtils.getProofTreeNode(proofAttempt.getProofTree(), nodeID);
+		if (node == null) {
+			node = ProofUtils.getLastUndischargedNodeFromTree(proofAttempt);
+		}
 		return instantiation(predicate, instantiationsArray, node);
 	}
 

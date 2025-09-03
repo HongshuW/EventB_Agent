@@ -9,7 +9,7 @@ import eventb_agent_core.utils.FileUtils;
 
 public enum ProofScenarioType {
 
-	WD, INV, QUANT_INV, ADDED_HYP;
+	WD, INV, QUANT_INV, ADDED_HYP, CARD_WD;
 
 	public String getRules() {
 
@@ -45,6 +45,8 @@ public enum ProofScenarioType {
 			return new String[] { "quantified_invariant.json" };
 		case ADDED_HYP:
 			return new String[] { "added_hyp_rules.json" };
+		case CARD_WD:
+			return new String[] { "card_wd_rules.json" };
 		default:
 			return new String[] { "general_rules.json" };
 		}

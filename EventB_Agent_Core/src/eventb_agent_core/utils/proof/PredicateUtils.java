@@ -64,14 +64,8 @@ public class PredicateUtils {
 		}
 
 		IProverSequent sequent = node.getSequent();
-		Iterator<Predicate> selectedPredicates = sequent.selectedHypIterable().iterator();
-		Predicate predicate = getPredicate(selectedPredicates, targetPred);
-		if (predicate != null) {
-			return predicate;
-		}
-
-		Iterator<Predicate> hiddenPredicates = sequent.hiddenHypIterable().iterator();
-		predicate = getPredicate(hiddenPredicates, targetPred);
+		Iterator<Predicate> predicates = sequent.hypIterable().iterator();
+		Predicate predicate = getPredicate(predicates, targetPred);
 		if (predicate != null) {
 			return predicate;
 		}

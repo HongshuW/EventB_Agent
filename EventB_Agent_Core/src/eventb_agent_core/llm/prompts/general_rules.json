@@ -13,5 +13,10 @@
 		"id": "3",
 		"sub_id": "",
 		"rule": "Try other functions before `applySMT` because it is a blackbox approach. The resulting proof should be explainable. Only call `applySMT` when the other functions do not work."
+	},
+	{
+		"id": "4",
+		"sub_id": "",
+		"rule": "Return one function call that is the most suitable among all."
 	}
 ]

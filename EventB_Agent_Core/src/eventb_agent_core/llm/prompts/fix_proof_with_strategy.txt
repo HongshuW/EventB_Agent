@@ -1,7 +1,5 @@
 Given the proof tree in Event-B that is incomplete, and that the proof is not dischargeable with the capability of the auto-prover in Event-B. Consider the goal in the proof tree, complete the proof by calling the most suitable function. Each function will either modify the proof tree or modify the Event-B model. If the proof tree should be modified, choose a node in the proof tree to apply the function on, the node ID is labeled as NODE_n in the proof tree. 
 
-Return one function call that is the most suitable among all.
-
 Model:
 {{model}}
 
