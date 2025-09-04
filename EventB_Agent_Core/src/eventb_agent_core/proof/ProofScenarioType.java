@@ -40,7 +40,7 @@ public enum ProofScenarioType {
 		case WD:
 			return new String[] { "general_rules.json", "wd_rules.json" };
 		case INV:
-			return new String[] { "general_rules.json", "inv_rules.json" };
+			return new String[] { "inv_rules.json", "general_rules.json" };
 		case QUANT_INV:
 			return new String[] { "general_rules.json", "quantified_invariant.json" };
 		case ADDED_HYP:

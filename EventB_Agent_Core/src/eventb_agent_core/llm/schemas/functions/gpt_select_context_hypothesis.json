@@ -16,6 +16,14 @@
 				"type": "integer",
 				"description": "ID of the node in the proof tree to apply this function on."
 			},
+			"goal": {
+				"type": "string",
+				"description": "Goal of the selected string."
+			},
+			"similar_hypothesis": {
+				"type": "string",
+				"description": "The hypothesis in the node that is the most similar to the goal."
+			},
 			"axiom_label": {
 				"$ref": "#/$defs/identifier"
 			},
@@ -29,6 +37,8 @@
 		"additionalProperties": false,
 		"required": [
 			"node_id",
+			"goal",
+			"similar_hypothesis",
 			"axiom_label",
 			"instantiations"
 		]

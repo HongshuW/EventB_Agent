@@ -2,36 +2,36 @@
 	{
 		"id": "1",
 		"sub_id": "",
-		"rule": "If the goal and its most similar hypothesis in the node partially match one of the `\\\\forall` or `\\\\exists` axioms, use `selectHypothesisFromContext` to add the hypothesis to the proof tree."
+		"rule": "For an invariant-preserving proof obligation (***INV***), if proof cannot proceed, use `addHypothesesToContext`, `addHypothesesToGuard`, or `selectHypothesisFromContext`."
 	},
 	{
-		"id": "2",
-		"sub_id": "",
-		"rule": "For an invariant-preserving proof obligation (***INV***), if proof cannot proceed, use `addHypothesesToContext` OR `addHypothesesToGuard`."
-	},
-	{
-		"id": "2",
+		"id": "1",
 		"sub_id": "a",
-		"rule": "Event-B is based on proof by induction. For an obvious fact, e.g. `x >= 0` |- `x + 1 >= 0` that is an ***inductive step***, and not basic knowledge of Event-B auto prover, use `addHypothesesToContext` to add an axiom, e.g. `\\\\forall x \\\\cdot x \\\\in NAT \\\\land x >= 0 \\\\implies x + 1 >= 0`. Add an hypothesis specific to the proof. After this, specify instantiations specific to the current proof."
+		"rule": "***Whether these functions are suitable***: First identify the ***goal of the selected node***. The added hypothesis must be relevant to the goal. e.g. If the goal `G` is in the formats ***type***: `x \\\\in TYPE`, ***arithmetic***: `x > 0`, `y + 1 >= 0`, or ***function type***: `x \\\\in A \\\\rightarrow B`, `y \\\\in A \\\\oplus B \\\\rightharpoonup C`, ... If there is a hypothesis `H` in the node that is similar to `G`, then using one of these functions is suitable."
 	},
 	{
-		"id": "2",
+		"id": "1",
 		"sub_id": "b",
-		"rule": "The added hypothesis ***must be relevant to the goal*** of the selected node. e.g. If there are many selected hypothesis, and the goal is `x+1 \\\\in NAT`. Then you should focus on the selected hypothesis such as `x \\\\in NAT`, which is relevant to the goal by an inductive step."
+		"rule": "***Content of Hypothesis***: The hypothesis should be an inductive step with the format `\\\\forall x \\\\cdot H \\\\implies G` or `\\\\exists x \\\\cdot H \\\\implies G`. e.g. if the goal `G` is `x+1>=0`, the similar hypothesis `H` is `x >= 0`, then the hypothesis should be `\\\\forall x \\\\cdot x \\\\in NAT \\\\land x >=0 \\\\implies x+1 >= 0`. e.g. If the goal `G` is `f \\\\setminus A \\\\in B \\\\rightarrow C`, and similar hypothesis `H` is `f \\\\in B \\\\rightarrow C`, then the hypothesis should be `\\\\forall f \\\\cdot f \\\\in B \\\\rightarrow C \\\\implies f \\\\ setminus A \\\\in B \\\\rightarrow C`. Important!: ***The goal must partially match the hypothesis.***"
 	},
 	{
-		"id": "2",
+		"id": "1",
 		"sub_id": "c",
-		"rule": "For ***INV***, if the proof involves parameters of an event, use `addHypothesesToGuard` to add the inductive step as an additional guard. e.g. if `p` is a parameter of the event, and `f \\\\in TYPE` |- `f \\\\oplus {p \\\\mapsto n} \\\\in TYPE`, then use `addHypothesesToGuard` to add a guard, e.g. `\\\\forall f \\\\cdot f \\\\in TYPE \\\\land p \\\\in dom(f) \\\\implies f \\\\oplus {p \\\\mapsto n} \\\\in TYPE`."
+		"rule": "If there are multiple variables involved, you must use the format `\\\\forall x,y \\\\cdot ...` instead of `\\\\forall x \\\\cdot ... \\\\implies \\\\forall y \\\\cdot ...`."
 	},
 	{
-		"id": "2",
+		"id": "1",
 		"sub_id": "d",
-		"rule": "If the hypothesis involves multiple variables to be instantiated, used the format `\\\\forall x,y \\\\cdot ...` and `\\\\exists x,y \\\\cdot ...`, instead of `\\\\forall x \\\\cdot ... \\\\implies \\\\forall y ...`."
+		"rule": "The added hypothesis must be well defined. e.g. If the goal `G` is about updating value `f(p)` for function `f`, then the type of `p` must be `dom(f)`."
 	},
 	{
-		"id": "2",
+		"id": "1",
 		"sub_id": "e",
-		"rule": "After adding hypothesis that is `\\\\forall` or `\\\\exists`, you also need to specify instantiations. e.g. `\\\\forall x,y,z ...`, the instantiations array should contain 3 items for `x`, `y`, `z` respectively, and the order must match."
+		"rule": "***Instantiation***: After adding the hypothesis, you must provide instantiations. e.g. `\\\\forall x,y,z \\\\cdot ...` should have instantiations for `x`, `y`, `z` that refer to some symbols in the model or proof tree."
+	},
+	{
+		"id": "1",
+		"sub_id": "f",
+		"rule": "***Differences between functions***: Always consider `addHypothesesToContext` before `selectHypothesisFromContext`. If there is no existing axiom that matches the goal, use `addHypothesesToContext` to add one. If the hypothesis to be added already exists as an axiom, use `selectHypothesisFromContext`. If the hypothesis uses some parameters from an event, use `addHypothesesToGuard`."
 	}
 ]
