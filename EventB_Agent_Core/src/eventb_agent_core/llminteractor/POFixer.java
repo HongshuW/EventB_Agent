@@ -115,11 +115,10 @@ public class POFixer extends AbstractLLMInteractor {
 	 * @param machineRoot
 	 * @param poSequent
 	 * @param requestHistory TODO
-	 * @throws CoreException
-	 * @throws ReachMaxAttemptException
+	 * @throws Exception
 	 */
 	public void autoFixPO(IMachineRoot machineRoot, IPOSequent poSequent,
-			List<LinkedHashMap<String, Object>> requestHistory) throws CoreException, ReachMaxAttemptException {
+			List<LinkedHashMap<String, Object>> requestHistory) throws Exception {
 
 		String poName = poSequent.getElementName();
 		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
@@ -144,10 +143,12 @@ public class POFixer extends AbstractLLMInteractor {
 		if (tree != null) {
 			try {
 				reasonerMessage = null;
-				ProofScenarioType poType = getPOType(poName, machineRoot, requestHistory);
+				ProofScenarioType poType = getPOType(poName, tree, machineRoot, requestHistory);
+				boolean shouldGetAllProofTactics = shouldGetAllProofTactics(poType);
 				String[] placeHolderContents = new String[] { ParserUtils.reverseLex(modelJSON), poName,
 						ParserUtils.reverseLex(ProofUtils.getProofTreeString(tree), 1),
-						poType == ProofScenarioType.INV ? getApplicableProofTactics(tree)
+						shouldGetAllProofTactics
+								? getApplicableProofTactics(tree, poType != ProofScenarioType.TRIVIAL_INV)
 								: getOtherApplicableFunctions() };
 				JSONObject answerWrapper = getLLMResponseWithTools(placeHolderContents, LLMRequestTypes.FIX_PROOF,
 						requestHistory, poType);
@@ -174,6 +175,7 @@ public class POFixer extends AbstractLLMInteractor {
 				throw new ReachMaxAttemptException(ComponentType.FIX_PROOF.name(), poName);
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
+				throw e;
 			}
 		} else {
 			System.out.println("Proof tree is null or discharged.");
@@ -183,7 +185,7 @@ public class POFixer extends AbstractLLMInteractor {
 
 	private void modifyModel(JSONObject answer, IMachineRoot machineRoot, IContextRoot contextRoot,
 			IPOSequent poSequent, IProofTree tree, ProofScenarioType poType)
-			throws CoreException, InterruptedException {
+			throws CoreException, InterruptedException, ReachMaxAttemptException {
 		String function = answer.getString(Constants.FUNCTION_NAME);
 		JSONObject args = null;
 		try {
@@ -253,6 +255,14 @@ public class POFixer extends AbstractLLMInteractor {
 			result = fixer.caseDistinction(expr);
 			finish(result, fixer);
 			break;
+		case fixThroughModelChecking:
+			JSONArray parameters = args.getJSONArray(SchemaKeys.MODEL_CHECKING_PARAMS);
+			ModelCheckingFixer modelCheckingFixer = new ModelCheckingFixer(llmRequestSender, llmResponseParser);
+			String modelCheckingResult = modelCheckingFixer.getModelCheckingResult(machineRoot, parameters);
+			if (modelCheckingResult != null) {
+				reasonerMessage = modelCheckingResult;
+			}
+			break;
 		case instantiation:
 			String predicate = args.getString(SchemaKeys.PRED);
 			String pred = ParserUtils.lex(predicate);
@@ -299,8 +309,11 @@ public class POFixer extends AbstractLLMInteractor {
 		}
 	}
 
-	private ProofScenarioType getPOType(String poName, IMachineRoot machineRoot,
+	private ProofScenarioType getPOType(String poName, IProofTree tree, IMachineRoot machineRoot,
 			List<LinkedHashMap<String, Object>> requestHistory) throws RodinDBException {
+
+		String lastAction = getLastAction(requestHistory);
+
 		String[] entries = poName.split("/");
 		if (entries.length == 2) {
 			if (entries[1].equals("WD")) {
@@ -324,23 +337,43 @@ public class POFixer extends AbstractLLMInteractor {
 				if (invariant != null) {
 					String invString = ParserUtils.reverseLex(invariant.getPredicateString());
 					if (invString.startsWith("\\forall") || invString.startsWith("\\exists")) {
-						return ProofScenarioType.QUANT_INV;
+						if (lastAction.equals("instantiation")) {
+							return ProofScenarioType.TRIVIAL_INV;
+						} else {
+							return ProofScenarioType.QUANT_INV;
+						}
+					}
+				}
+				IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(tree);
+				if (node != null) {
+					String predicateString = node.getSequent().goal().toString();
+					predicateString = ParserUtils.reverseLex(predicateString);
+					if (predicateString.startsWith("{}")) {
+						return ProofScenarioType.TRIVIAL_INV;
 					}
 				}
 			}
 		}
 
+		if (lastAction.equals("addHypothesesToContext") || lastAction.equals("addHypothesesToGuard")) {
+			return ProofScenarioType.ADDED_HYP;
+		}
+
+		return ProofScenarioType.INV;
+	}
+
+	private String getLastAction(List<LinkedHashMap<String, Object>> requestHistory) {
 		String lastAction = "";
 		for (LinkedHashMap<String, Object> entry : requestHistory) {
 			if (entry.containsKey("type") && entry.get("type").equals("function_call")) {
 				lastAction = (String) entry.get("name");
 			}
 		}
-		if (lastAction.equals("addHypothesesToContext") || lastAction.equals("addHypothesesToGuard")) {
-			return ProofScenarioType.ADDED_HYP;
-		}
+		return lastAction;
+	}
 
-		return ProofScenarioType.INV;
+	private boolean shouldGetAllProofTactics(ProofScenarioType poType) {
+		return poType == ProofScenarioType.INV || poType == ProofScenarioType.TRIVIAL_INV;
 	}
 
 	private IAxiom getAxiom(IContextRoot contextRoot, String label) throws RodinDBException {
@@ -569,15 +602,15 @@ public class POFixer extends AbstractLLMInteractor {
 	public String getOtherApplicableFunctions() {
 		StringBuilder applicable = new StringBuilder("applyProofTactic: None\n");
 		String[] applicableFunctions = new String[] { "addAbstractExpression", "addHypothesesToContext",
-				"addHypothesesToGuard", "caseDistinction", "caseDistinctionBySplittingEvent", "instantiation",
-				"selectHypothesisFromContext", "strengthenGuard", "strengthenInvariant", "applySMT" };
+				"addHypothesesToGuard", "caseDistinction", "fixThroughModelChecking", "instantiation",
+				"selectHypothesisFromContext", "strengthenGuard", "strengthenInvariant", "updateAction", "applySMT" };
 		for (String function : applicableFunctions) {
 			applicable.append(function + ", ");
 		}
 		return applicable.toString();
 	}
 
-	public String getApplicableProofTactics(IProofTree tree) {
+	public String getApplicableProofTactics(IProofTree tree, boolean addOtherFunctions) {
 		StringBuilder applicable = new StringBuilder("applyProofTactic: ");
 		Set<Map<String, String>> applicableSet = new HashSet<>();
 
@@ -605,12 +638,16 @@ public class POFixer extends AbstractLLMInteractor {
 		}
 
 		applicable.append("\n");
-		String[] applicableFunctions = new String[] { "addAbstractExpression", "addHypothesesToContext",
-				"addHypothesesToGuard", "caseDistinction", "instantiation", "strengthenGuard", "strengthenInvariant",
-				"applySMT", "updateAction", "selectHypothesisFromContext" };
-		for (String function : applicableFunctions) {
-			applicable.append(function + ", ");
+		if (addOtherFunctions) {
+			String[] applicableFunctions = new String[] { "addAbstractExpression", "addHypothesesToContext",
+					"addHypothesesToGuard", "caseDistinction", "instantiation", "strengthenGuard",
+					"strengthenInvariant", "applySMT", "updateAction", "selectHypothesisFromContext",
+					"fixThroughModelChecking" };
+			for (String function : applicableFunctions) {
+				applicable.append(function + ", ");
+			}
 		}
+
 		return applicable.toString();
 	}
 

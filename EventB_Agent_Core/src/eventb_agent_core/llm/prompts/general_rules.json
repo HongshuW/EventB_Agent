@@ -22,6 +22,11 @@
 	{
 		"id": "4",
 		"sub_id": "",
+		"rule": "If the model is wrong, but it is not clear how to fix the model, call `fixThroughModelChecking` to get counterexamples. Suggest parameters specific to the model. The parameters should set bound for constants or sets in the context."
+	},
+	{
+		"id": "5",
+		"sub_id": "",
 		"rule": "Return one function call that is the most suitable among all."
 	}
 ]

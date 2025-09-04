@@ -1,0 +1,29 @@
+{
+	"type": "function",
+	"name": "fixThroughModelChecking",
+	"description": "If the proof goal is `false`, use this function to call model checking. Suggest suitable parameters to set up bound for model checking.",
+	"strict": true,
+	"parameters": {
+		"type": "object",
+		"properties": {
+			"node_id": {
+				"type": "integer",
+				"description": "ID of the node in the proof tree to apply this function on."
+			},
+			"parameters": {
+				"type": "array",
+				"description": "Array of parameters specific to the model.",
+				"items": {
+					"type": "string",
+					"pattern": "^.*([<>=]).*$",
+					"description": "Each parameter must be one of the forms 'NAME=VALUE', 'NAME<VALUE', or 'NAME>VALUE'. NAME must be a constant name or set. The parameters array should be specific to the model."
+				}
+			}
+		},
+		"additionalProperties": false,
+		"required": [
+			"node_id",
+			"parameters"
+		]
+	}
+}

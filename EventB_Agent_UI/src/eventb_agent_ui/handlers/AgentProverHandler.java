@@ -98,7 +98,7 @@ public class AgentProverHandler extends AbstractHandler implements IHandler {
 				if (undischargedPO != null) {
 					try {
 						poFixer.autoFixPO(machineRoot, undischargedPO, new ArrayList<>());
-					} catch (CoreException | ReachMaxAttemptException e) {
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}

@@ -161,7 +161,7 @@ public class ModelWorkspaceInteractor {
 			fixCompilationErrors(projectName, fileNames);
 			countCompilationErrors(projectName, fileNames);
 
-//			fixBasedOnModelCheckingResults(projectName, fileNames);
+			fixBasedOnModelCheckingResults(projectName, fileNames);
 
 			runAutoProvers(projectName, fileNames);
 			fixPOs(projectName, fileNames, null);
@@ -183,7 +183,7 @@ public class ModelWorkspaceInteractor {
 			fixCompilationErrors(projectName, fileNames);
 			countCompilationErrors(projectName, fileNames);
 
-//			fixBasedOnModelCheckingResults(projectName, fileNames);
+			fixBasedOnModelCheckingResults(projectName, fileNames);
 
 			runAutoProvers(projectName, fileNames);
 			fixPOs(projectName, fileNames, null);

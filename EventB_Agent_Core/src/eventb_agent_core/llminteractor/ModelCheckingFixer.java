@@ -23,7 +23,6 @@ import eventb_agent_core.llm.LLMRequestSender;
 import eventb_agent_core.llm.LLMRequestTypes;
 import eventb_agent_core.llm.LLMResponseParser;
 import eventb_agent_core.llm.schemas.SchemaKeys;
-import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.RetrieveModelUtils;
 
 public class ModelCheckingFixer extends AbstractLLMInteractor {
@@ -32,16 +31,77 @@ public class ModelCheckingFixer extends AbstractLLMInteractor {
 		super(llmRequestSender, llmResponseParser);
 	}
 
-	public JSONObject fixModelBasedOnProBResults(IContextRoot contextRoot, IMachineRoot machineRoot)
-			throws ReachMaxAttemptException {
+	public String getModelCheckingResult(IMachineRoot machineRoot, JSONArray parameters) {
 
+		List<String> opts = new ArrayList<>();
+		for (int i = 0; i < parameters.length(); i++) {
+			String paramVal = parameters.getString(i);
+			opts.add("-scope");
+			opts.add(paramVal);
+		}
+
+		StringBuilder resultString = new StringBuilder();
+
+		// load animator and model
+		Animator animator = Animator.getAnimator();
+		try {
+			LoadEventBModelCommand.load(animator, machineRoot);
+		} catch (ProBException e) {
+			EvaluationManager.setErrorToLatestAction(e.getMessage());
+			resultString.append("\nError: ");
+			resultString.append(e.getMessage().replace("\n", "\\n"));
+			return resultString.toString();
+		}
+
+		ModelCheckingResult<Result> modelCheckingResult = null;
+		try {
+			modelCheckingResult = ModelCheckingCommand.modelcheck(animator, 10000, opts);
+		} catch (ProBException e) {
+			EvaluationManager.setErrorToLatestAction(e.getMessage());
+			resultString.append("\nError: ");
+			resultString.append(e.getMessage().replace("\n", "\\n"));
+			return resultString.toString();
+		}
+
+		if (modelCheckingResult != null) {
+			Result result = modelCheckingResult.getResult();
+			EvaluationManager.setErrorToLatestAction(result.name());
+			if (!result.equals(Result.ok) && !result.equals(Result.ok_not_all_nodes_considered)) {
+				resultString.append(result.name());
+				resultString.append("\nWorked: ");
+				resultString.append(String.valueOf(modelCheckingResult.getWorked()));
+				resultString.append("\nNumber of states: ");
+				resultString.append(String.valueOf(modelCheckingResult.getNumStates()));
+				resultString.append("\nNumber of transitions: ");
+				resultString.append(String.valueOf(modelCheckingResult.getNumTransitions()));
+				TraceResult traceResult;
+				try {
+					traceResult = GetFullTraceCommand.getTrace(animator);
+					resultString.append("\nTrace: ");
+					List<String> operations = traceResult.getOperations();
+					for (String op : operations) {
+						resultString.append(op + ",");
+					}
+				} catch (ProBException e) {
+					EvaluationManager.setErrorToLatestAction(e.getMessage());
+					resultString.append("\nError: ");
+					resultString.append(e.getMessage().replace("\n", "\\n"));
+				}
+				return resultString.toString();
+			} else {
+				return result.name();
+			}
+		}
+		return null;
+	}
+
+	public JSONObject fixModel(IContextRoot contextRoot, IMachineRoot machineRoot, JSONArray parameters)
+			throws ReachMaxAttemptException {
 		String modelJSON = getModelString(contextRoot, machineRoot);
 
-		// get parameters for model checking
-		JSONArray modelCheckingParams = getModelCheckingParameters(modelJSON);
 		List<String> opts = new ArrayList<>();
-		for (int i = 0; i < modelCheckingParams.length(); i++) {
-			String paramVal = modelCheckingParams.getString(i);
+		for (int i = 0; i < parameters.length(); i++) {
+			String paramVal = parameters.getString(i);
 			opts.add("-scope");
 			opts.add(paramVal);
 		}
@@ -97,6 +157,16 @@ public class ModelCheckingFixer extends AbstractLLMInteractor {
 			}
 		}
 		return null;
+	}
+
+	public JSONObject fixModelBasedOnProBResults(IContextRoot contextRoot, IMachineRoot machineRoot)
+			throws ReachMaxAttemptException {
+
+		String modelJSON = getModelString(contextRoot, machineRoot);
+
+		// get parameters for model checking
+		JSONArray modelCheckingParams = getModelCheckingParameters(modelJSON);
+		return fixModel(contextRoot, machineRoot, modelCheckingParams);
 	}
 
 	private String getModelString(IContextRoot contextRoot, IMachineRoot machineRoot) {

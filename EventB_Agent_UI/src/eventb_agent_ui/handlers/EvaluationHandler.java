@@ -104,8 +104,6 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 				EvaluationManager.startTimer();
 
 				IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
-				ModelWorkspaceInteractor modelWorkspaceInteractor = new ModelWorkspaceInteractor(llmRequestSender,
-						llmResponseParser, enableFixStrategy, maxAttemptsSynth, maxAttemptsProof, window);
 
 				final String projectName = file.getName().split(".json")[0];
 				if (visitedProjects.contains(projectName)) {
@@ -139,6 +137,9 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 					RefinementStep refinementStep = llmResponseParser.getRefinementStep(refStepJSON, systemReqs);
 
 					try {
+						ModelWorkspaceInteractor modelWorkspaceInteractor = new ModelWorkspaceInteractor(
+								llmRequestSender, llmResponseParser, enableFixStrategy, maxAttemptsSynth,
+								maxAttemptsProof, window);
 						previousModel = modelWorkspaceInteractor.createModel(projectName, refinementStep,
 								previousModel);
 					} catch (ReachMaxAttemptException e) {

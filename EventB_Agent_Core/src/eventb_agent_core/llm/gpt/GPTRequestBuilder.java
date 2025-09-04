@@ -52,8 +52,9 @@ public class GPTRequestBuilder extends RequestBuilder {
 		switch (requestType) {
 		case FIX_PROOF:
 			return new String[] { "gpt_ae.json", "gpt_ah.json", "gpt_ah_guard.json", "gpt_apply_proof_tactic.json",
-					"gpt_dc.json", "gpt_instantiation.json", "gpt_select_context_hypothesis.json", "gpt_smt.json",
-					"gpt_strengthen_guard.json", "gpt_strengthen_invariant.json", "gpt_update_action.json" };
+					"gpt_dc.json", "gpt_instantiation.json", "gpt_model_checking.json",
+					"gpt_select_context_hypothesis.json", "gpt_smt.json", "gpt_strengthen_guard.json",
+					"gpt_strengthen_invariant.json", "gpt_update_action.json" };
 		default:
 			return new String[] {};
 		}
@@ -191,6 +192,9 @@ public class GPTRequestBuilder extends RequestBuilder {
 			LinkedHashMap<String, Object> functionCallOutput = new LinkedHashMap<>();
 			if (message == null) {
 				functionCallOutput.put("status", "success");
+			} else if (message.equals("ok") || message.equals("ok_not_all_nodes_considered")) {
+				functionCallOutput.put("status", "success");
+				functionCallOutput.put("message", message);
 			} else {
 				functionCallOutput.put("status", "failure");
 				functionCallOutput.put("message", message);
