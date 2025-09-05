@@ -39,6 +39,8 @@ public class ModelCheckingFixer extends AbstractLLMInteractor {
 			opts.add("-scope");
 			opts.add(paramVal);
 		}
+		opts.add("-mc");
+		opts.add("10000");
 
 		StringBuilder resultString = new StringBuilder();
 
@@ -55,7 +57,7 @@ public class ModelCheckingFixer extends AbstractLLMInteractor {
 
 		ModelCheckingResult<Result> modelCheckingResult = null;
 		try {
-			modelCheckingResult = ModelCheckingCommand.modelcheck(animator, 10000, opts);
+			modelCheckingResult = ModelCheckingCommand.modelcheck(animator, 300000, opts);
 		} catch (ProBException e) {
 			EvaluationManager.setErrorToLatestAction(e.getMessage());
 			resultString.append("\nError: ");
@@ -105,6 +107,8 @@ public class ModelCheckingFixer extends AbstractLLMInteractor {
 			opts.add("-scope");
 			opts.add(paramVal);
 		}
+		opts.add("-mc");
+		opts.add("10000");
 
 		StringBuilder resultString = new StringBuilder();
 
@@ -121,7 +125,7 @@ public class ModelCheckingFixer extends AbstractLLMInteractor {
 
 		ModelCheckingResult<Result> modelCheckingResult = null;
 		try {
-			modelCheckingResult = ModelCheckingCommand.modelcheck(animator, 10000, opts);
+			modelCheckingResult = ModelCheckingCommand.modelcheck(animator, 300000, opts);
 		} catch (ProBException e) {
 			EvaluationManager.setErrorToLatestAction(e.getMessage());
 			resultString.append("\nError: ");
