@@ -123,20 +123,23 @@ public class GPTRequestBuilder extends RequestBuilder {
 		inputs.add(requestMessage);
 		request.put("input", inputs);
 
-//		LinkedHashMap<String, Object> format = new LinkedHashMap<>();
-//		format.put("type", "json_object");
-//		LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
-//		textFormat.put("format", format);
-//		if (!isGPT4()) {
-//			textFormat.put("verbosity", Constants.VERBOSITY);
-//		}
-//		request.put("text", textFormat);
+		LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
+		if (!isGPT4()) {
+			textFormat.put("verbosity", Constants.VERBOSITY);
+		}
+		request.put("text", textFormat);
 
 		request.put("tools", getFunctionSchemas(requestType));
 
-		request.put("temperature", Constants.TEMPERATURE);
-		request.put("top_p", Constants.TOP_P);
-		request.put("max_output_tokens", Constants.TOKEN_LIMIT);
+		if (isGPT4()) {
+			request.put("temperature", Constants.TEMPERATURE);
+			request.put("top_p", Constants.TOP_P);
+			request.put("max_output_tokens", Constants.TOKEN_LIMIT);
+		} else {
+			LinkedHashMap<String, Object> reasoningEffort = new LinkedHashMap<>();
+			reasoningEffort.put("effort", Constants.REASONING);
+			request.put("reasoning", reasoningEffort);
+		}
 
 		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
 		return jsonStr;

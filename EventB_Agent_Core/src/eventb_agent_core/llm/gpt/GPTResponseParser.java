@@ -1,5 +1,6 @@
 package eventb_agent_core.llm.gpt;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import eventb_agent_core.llm.LLMModels;
@@ -31,7 +32,28 @@ public class GPTResponseParser extends LLMResponseParser {
 	@Override
 	public JSONObject getResponseWithTools(String response) {
 		JSONObject result = new JSONObject();
-		result.put("result", new JSONObject(response).getJSONArray("output"));
+
+		JSONArray results = new JSONArray();
+		JSONArray resultFromResponse = new JSONObject(response).getJSONArray("output");
+		if (isGPT4()) {
+			results = resultFromResponse;
+		} else {
+			for (int i = 1; i < resultFromResponse.length(); i++) {
+				JSONObject entry = resultFromResponse.getJSONObject(i);
+				if (entry.has("content")) {
+					JSONArray contents = entry.getJSONArray("content");
+					for (int j = 0; j < contents.length(); j++) {
+						Object text = contents.getJSONObject(j).get("text");
+						if (text instanceof JSONObject) {
+							results.put((JSONObject) text);
+						}
+					}
+				} else {
+					results.put(entry);
+				}
+			}
+		}
+		result.put("result", results);
 		return result;
 	}
 
