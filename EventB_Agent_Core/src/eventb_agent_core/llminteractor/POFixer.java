@@ -79,7 +79,6 @@ public class POFixer extends AbstractLLMInteractor {
 	public JSONObject autoFixPOWithoutStrategy(IMachineRoot machineRoot, IPOSequent poSequent)
 			throws RodinDBException, IOException, ReachMaxAttemptException {
 		String poName = poSequent.getElementName();
-		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
 		IProofAttempt proofAttempt = ProofUtils.getProofAttempt(poName, machineRoot, PO_OWNER_NAME);
 
 		// retrieve information from workspace
@@ -121,7 +120,6 @@ public class POFixer extends AbstractLLMInteractor {
 			List<LinkedHashMap<String, Object>> requestHistory) throws Exception {
 
 		String poName = poSequent.getElementName();
-		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
 		proofAttempt = ProofUtils.getProofAttempt(poName, machineRoot, PO_OWNER_NAME);
 
 		// retrieve information from workspace
@@ -432,7 +430,7 @@ public class POFixer extends AbstractLLMInteractor {
 			reasonerMessage = fail.getReason();
 		}
 
-		fixer.applyPostTactic();
+		fixer.runAutoProvers();
 		ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
 
 		try {

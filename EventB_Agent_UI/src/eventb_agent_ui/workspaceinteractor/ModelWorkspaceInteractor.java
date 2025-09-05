@@ -643,7 +643,6 @@ public class ModelWorkspaceInteractor {
 					}
 
 					POManager poManager = new POManager();
-					POFixer poFixer = new POFixer(llmRequestSender, llmResponseParser);
 
 					EvaluationManager.addAndStartNewAction(ComponentType.PO_CHECKER, 0);
 

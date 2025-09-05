@@ -2,9 +2,12 @@ package eventb_agent_ui.handlers;
 
 import static org.eventb.core.IConfigurationElement.DEFAULT_CONFIGURATION;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -17,6 +20,8 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eventb.core.IConfigurationElement;
 import org.eventb.core.IContextRoot;
 import org.eventb.core.IMachineRoot;
@@ -25,8 +30,13 @@ import org.eventb.core.ISeesContext;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
 
+import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.proof.POManager;
+import eventb_agent_core.refinement.Requirement;
+import eventb_agent_core.refinement.SystemRequirements;
+import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.RodinUtils;
+import eventb_agent_core.utils.proof.ProofUtils;
 
 public class DataCollectionHandler extends AbstractHandler implements IHandler {
 
@@ -44,6 +54,24 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 			try {
 				System.out.println("==========\n" + project.getName() + "\n==========");
 				IRodinProject rodinProject = RodinUtils.getRodinProject(project.getName());
+
+				IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
+				String datasetPath = prefs.get(AgentPreferenceInitializer.PREF_DATASET_LOC, "");
+				String inputPath = datasetPath + File.separator + project.getName() + ".json";
+
+				SystemRequirements systemReqs = new SystemRequirements(Path.of(inputPath));
+				List<Requirement> requirements = systemReqs.getRequirements();
+				Map<String, Integer> coveredRequirements = new HashMap<>();
+				Map<String, Integer> coveredButNotDischarged = new HashMap<>();
+
+				/* Data */
+				int coveredRequirementCount = 0;
+				int fulfilledRequirementCount = 0;
+				double requirementFulfillmentRate = 0.0;
+
+				int poCountRelatedToRequirements = 0;
+				int dischargedPOCountRelatedToRequirements = 0;
+				double relevantPODischargeRate = 0.0;
 
 				List<IFile> machineFiles = getMachineFiles(project);
 				for (IFile file : machineFiles) {
@@ -88,6 +116,57 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					IPOSequent[] POs = poManager.getAllPOs(machineRoot);
 					System.out.println("Discharged POs: " + String.valueOf(POs.length - undischargedPOs.size()));
 					System.out.println("Total POs: " + String.valueOf(POs.length));
+					System.out.println();
+
+					/* Requirement Coverage Rate & Fulfillment Rate */
+					for (IPOSequent po : POs) {
+						String poName = po.getElementName();
+						for (Requirement req : requirements) {
+							String requirementID = req.getRequirementID();
+							if (poName.contains(requirementID)) {
+								// requirement is covered
+								if (!coveredRequirements.containsKey(requirementID)) {
+									coveredRequirements.put(requirementID, 0);
+								}
+								coveredRequirements.put(requirementID, coveredRequirements.get(requirementID) + 1);
+
+								if (!ProofUtils.isDischarged(machineRoot, poName)) {
+									// PO about requirement is discharged
+									if (!coveredButNotDischarged.containsKey(requirementID)) {
+										coveredButNotDischarged.put(requirementID, 0);
+									}
+									coveredButNotDischarged.put(requirementID,
+											coveredButNotDischarged.get(requirementID) + 1);
+								}
+							}
+						}
+					}
+					Map<String, Integer> fulfilledRequirements = new HashMap<>();
+					for (String covered : coveredRequirements.keySet()) {
+						if (coveredButNotDischarged.containsKey(covered)) {
+							fulfilledRequirements.put(covered,
+									coveredRequirements.get(covered) - coveredButNotDischarged.get(covered));
+						} else {
+							fulfilledRequirements.put(covered, coveredRequirements.get(covered));
+						}
+					}
+					System.out.println("Fulfilled requirements: " + String.valueOf(fulfilledRequirements.size()));
+					System.out.println("Covered requirements: " + String.valueOf(coveredRequirements.size()));
+					System.out.println("All requirements: " + String.valueOf(requirements.size()));
+					System.out.println();
+
+					int allPOsAboutRequirements = 0;
+					int dischargedPOsAboutRequirements = 0;
+					for (String covered : coveredRequirements.keySet()) {
+						allPOsAboutRequirements += coveredRequirements.get(covered);
+					}
+					for (String fulfilled : fulfilledRequirements.keySet()) {
+						dischargedPOsAboutRequirements += fulfilledRequirements.get(fulfilled);
+					}
+
+					System.out.println("Discharged POs relevant to requirements: "
+							+ String.valueOf(dischargedPOsAboutRequirements));
+					System.out.println("All POs about requirements: " + String.valueOf(allPOsAboutRequirements));
 					System.out.println();
 				}
 			} catch (CoreException e) {

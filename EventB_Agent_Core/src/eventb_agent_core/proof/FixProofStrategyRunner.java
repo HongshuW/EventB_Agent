@@ -55,12 +55,19 @@ public class FixProofStrategyRunner {
 	public void runAutoProvers() throws CoreException {
 		IProofAttempt proofAttempt = getProofAttempt();
 
+		// lasoo
+		applyLasoo();
+
 		// auto provers
 		applyAutoTactic();
 		if (ProofUtils.isDischarged(machineRoot, poOwnerName)) {
 			ProofUtils.saveProofAttempt(machineRoot, proofAttempt);
 			return;
 		}
+
+		// SMT solvers
+		applySMT();
+		ProofUtils.saveProofAttempt(machineRoot, proofAttempt);
 	}
 
 	public void applySMT(IProofTreeNode node) throws CoreException {
@@ -306,7 +313,7 @@ public class FixProofStrategyRunner {
 	private Object instantiation(String predicate, String[] instantiationsArray, IProofTreeNode node)
 			throws RodinDBException {
 
- 		Predicate predInNode = PredicateUtils.getPredicate(node, predicate);
+		Predicate predInNode = PredicateUtils.getPredicate(node, predicate);
 		if (predInNode == null) {
 			predInNode = node.getSequent().goal();
 		}
