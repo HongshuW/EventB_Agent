@@ -1,0 +1,27 @@
+[
+	{
+		"id": "1",
+		"sub_id": "",
+		"rule": "If the goal is an existential predicate, i.e. starts with `\\\\exists`, then use `updateAction` or `addHypothesesToContext`."
+	},
+	{
+		"id": "1",
+		"sub_id": "a",
+		"rule": "***Differences between functions***: In goal `\\\\exists x \\cdot ...`, if `x` is a variable, use `updateAction`; if `x` is a constant, use `addHypothesesToContext`; if `x` is not declared in the current model, assume that it is a constant and use `addHypothesesToContext`."
+	},
+	{
+		"id": "1",
+		"sub_id": "b",
+		"rule": "***`updateAction`***: If the goal is `\\\\exists x \\\\cdot ...`, add an action to assign a value for `x`."
+	},
+	{
+		"id": "1",
+		"sub_id": "c",
+		"rule": "***`addHypothesesToContext`***: If the goal is `\\\\exists x \\\\cdot ...`, add an axiom to specify the condition for `x`, or an axiom to similar to the goal."
+	},
+	{
+		"id": "1",
+		"sub_id": "d",
+		"rule": "If there is a hypothesis `H` that is similar to goal `G`, from `H` to `G` is an inductive step. If the induction is done in multiple units, use `addHypothesesToContext` to add a lemma suitable for the size of the inductive step."
+	}
+]

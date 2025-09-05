@@ -296,7 +296,7 @@ public class POFixer extends AbstractLLMInteractor {
 			fixer.applyAutoTactic();
 			break;
 		case updateAction:
-			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.ACT);
+			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.ACT, SchemaKeys.ASSIGN);
 			eventName = args.getString(SchemaKeys.EVENT_NAME);
 			updateAction(machineRoot, hypotheses, eventName);
 			waitForPORebuild(fixer);
@@ -348,6 +348,8 @@ public class POFixer extends AbstractLLMInteractor {
 					predicateString = ParserUtils.reverseLex(predicateString);
 					if (predicateString.startsWith("{}")) {
 						return ProofScenarioType.TRIVIAL_INV;
+					} else if (predicateString.startsWith("\\exists")) {
+						return ProofScenarioType.EXST_IN_GOAL;
 					}
 				}
 			}

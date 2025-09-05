@@ -169,12 +169,16 @@ public abstract class LLMResponseParser {
 	/* proof fixing methods */
 
 	public List<Hypothesis> getHypotheses(JSONObject argumentsJSON, String key) {
+		return getHypotheses(argumentsJSON, key, SchemaKeys.PRED);
+	}
+
+	public List<Hypothesis> getHypotheses(JSONObject argumentsJSON, String key, String innerKey) {
 		List<Hypothesis> hypotheses = new ArrayList<>();
 
 		JSONObject hypothesisJSON = argumentsJSON.getJSONObject(key);
 
 		String label = hypothesisJSON.getString(SchemaKeys.LABEL);
-		String predicate = hypothesisJSON.getString(SchemaKeys.PRED);
+		String predicate = hypothesisJSON.getString(innerKey);
 
 		if (argumentsJSON.has(SchemaKeys.INSTANTIATIONS)) {
 			JSONArray instantiations = argumentsJSON.getJSONArray(SchemaKeys.INSTANTIATIONS);
