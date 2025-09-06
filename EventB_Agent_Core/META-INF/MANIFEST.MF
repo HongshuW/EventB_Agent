@@ -24,6 +24,7 @@ Bundle-ActivationPolicy: lazy
 Export-Package: com.fasterxml.jackson.core,
  com.fasterxml.jackson.databind,
  eventb_agent_core,
+ eventb_agent_core.errorinfo,
  eventb_agent_core.evaluation,
  eventb_agent_core.exception,
  eventb_agent_core.llm,

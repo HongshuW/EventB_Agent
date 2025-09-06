@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.eclipse.core.runtime.CoreException;
+import org.eventb.core.IEventBRoot;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPORoot;
 import org.eventb.core.IPOSequent;
@@ -25,14 +26,14 @@ public class POManager {
 	public POManager() {
 	}
 
-	public IPOSequent[] getAllPOs(IMachineRoot machineRoot) throws RodinDBException {
-		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
+	public IPOSequent[] getAllPOs(IEventBRoot eventbRoot) throws RodinDBException {
+		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(eventbRoot);
 		IPORoot poRoot = proofComponent.getPORoot();
 		return poRoot.getSequents();
 	}
 
-	public List<IPOSequent> getOpenPOs(IMachineRoot machineRoot) throws CoreException {
-		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
+	public List<IPOSequent> getOpenPOs(IEventBRoot eventbRoot) throws CoreException {
+		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(eventbRoot);
 		IPORoot poRoot = proofComponent.getPORoot();
 		IPSRoot psRoot = proofComponent.getPSRoot();
 
@@ -44,7 +45,7 @@ public class POManager {
 		List<IPOSequent> open = new ArrayList<>();
 		for (IPOSequent poSequent : poRoot.getSequents()) {
 			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
-			if (!ProofUtils.isDischarged(machineRoot, psStatus.getElementName())) {
+			if (!ProofUtils.isDischarged(eventbRoot, psStatus.getElementName())) {
 				open.add(poSequent);
 			}
 		}

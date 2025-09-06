@@ -129,8 +129,8 @@ public class ProofUtils {
 		}
 	}
 
-	public static boolean isDischarged(IMachineRoot machineRoot, String poName) throws RodinDBException {
-		IProofComponent pc = ProofManager.getDefault().getProofComponent(machineRoot);
+	public static boolean isDischarged(IEventBRoot eventBRoot, String poName) throws RodinDBException {
+		IProofComponent pc = ProofManager.getDefault().getProofComponent(eventBRoot);
 		pc.save(null, true);
 
 		IPSRoot ps = pc.getPSRoot();

@@ -3,11 +3,16 @@ package eventb_agent_ui.handlers;
 import static org.eventb.core.IConfigurationElement.DEFAULT_CONFIGURATION;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -22,14 +27,22 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eventb.core.IAxiom;
 import org.eventb.core.IConfigurationElement;
 import org.eventb.core.IContextRoot;
+import org.eventb.core.IEventBRoot;
+import org.eventb.core.IInvariant;
+import org.eventb.core.ILabeledElement;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPOSequent;
 import org.eventb.core.ISeesContext;
+import org.eventb.core.IVariant;
+import org.rodinp.core.IInternalElement;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
+import org.rodinp.core.RodinDBException;
 
+import eventb_agent_core.errorinfo.CompilationErrorInfoExtractor;
 import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.proof.POManager;
 import eventb_agent_core.refinement.Requirement;
@@ -39,6 +52,9 @@ import eventb_agent_core.utils.RodinUtils;
 import eventb_agent_core.utils.proof.ProofUtils;
 
 public class DataCollectionHandler extends AbstractHandler implements IHandler {
+
+	private String GROUP = "ablation_refine_proofstrategy";
+	private String DATASET_NAME = "textbook";
 
 	public DataCollectionHandler() {
 		super();
@@ -67,11 +83,7 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 				/* Data */
 				int coveredRequirementCount = 0;
 				int fulfilledRequirementCount = 0;
-				double requirementFulfillmentRate = 0.0;
-
-				int poCountRelatedToRequirements = 0;
-				int dischargedPOCountRelatedToRequirements = 0;
-				double relevantPODischargeRate = 0.0;
+				int totalRequirementCount = 0;
 
 				List<IFile> machineFiles = getMachineFiles(project);
 				for (IFile file : machineFiles) {
@@ -119,55 +131,71 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					System.out.println();
 
 					/* Requirement Coverage Rate & Fulfillment Rate */
-					for (IPOSequent po : POs) {
-						String poName = po.getElementName();
-						for (Requirement req : requirements) {
-							String requirementID = req.getRequirementID();
-							if (poName.contains(requirementID)) {
-								// requirement is covered
-								if (!coveredRequirements.containsKey(requirementID)) {
-									coveredRequirements.put(requirementID, 0);
-								}
-								coveredRequirements.put(requirementID, coveredRequirements.get(requirementID) + 1);
 
-								if (!ProofUtils.isDischarged(machineRoot, poName)) {
-									// PO about requirement is discharged
-									if (!coveredButNotDischarged.containsKey(requirementID)) {
-										coveredButNotDischarged.put(requirementID, 0);
-									}
-									coveredButNotDischarged.put(requirementID,
-											coveredButNotDischarged.get(requirementID) + 1);
-								}
-							}
+					/* 1. requirements have errors => not covered */
+					Set<String> erroneousRequirements = new HashSet<>();
+					addUncoveredReqs(machineMarkers, machineRoot, true, requirements, erroneousRequirements);
+					addUncoveredReqs(contextMarkers, contextRoot, false, requirements, erroneousRequirements);
+
+					/* 2. No errors, no POs => assume to be covered and fulfilled. */
+					IAxiom[] axioms = contextRoot.getAxioms();
+					IInvariant[] invariants = machineRoot.getInvariants();
+					IVariant[] variants = machineRoot.getVariants();
+					addCoveredReqs(axioms, requirements, coveredRequirements);
+					addCoveredReqs(invariants, requirements, coveredRequirements);
+					addCoveredReqs(variants, requirements, coveredRequirements);
+
+					/* 3. No errors, POs generated => covered. */
+					IPOSequent[] contextPOs = poManager.getAllPOs(contextRoot);
+					addUnfulfilledReqs(POs, requirements, coveredRequirements, coveredButNotDischarged, machineRoot);
+					addUnfulfilledReqs(contextPOs, requirements, coveredRequirements, coveredButNotDischarged, contextRoot);
+
+					/* Compute fulfilled requirements */
+					Map<String, Integer> finalCovered = new HashMap<>();
+					for (String covered : coveredRequirements.keySet()) {
+						if (erroneousRequirements.contains(covered)) {
+							continue;
 						}
+						finalCovered.put(covered, coveredRequirements.get(covered));
 					}
+
 					Map<String, Integer> fulfilledRequirements = new HashMap<>();
 					for (String covered : coveredRequirements.keySet()) {
-						if (coveredButNotDischarged.containsKey(covered)) {
-							fulfilledRequirements.put(covered,
-									coveredRequirements.get(covered) - coveredButNotDischarged.get(covered));
-						} else {
-							fulfilledRequirements.put(covered, coveredRequirements.get(covered));
+						if (erroneousRequirements.contains(covered)) {
+							continue;
 						}
-					}
-					System.out.println("Fulfilled requirements: " + String.valueOf(fulfilledRequirements.size()));
-					System.out.println("Covered requirements: " + String.valueOf(coveredRequirements.size()));
-					System.out.println("All requirements: " + String.valueOf(requirements.size()));
-					System.out.println();
-
-					int allPOsAboutRequirements = 0;
-					int dischargedPOsAboutRequirements = 0;
-					for (String covered : coveredRequirements.keySet()) {
-						allPOsAboutRequirements += coveredRequirements.get(covered);
-					}
-					for (String fulfilled : fulfilledRequirements.keySet()) {
-						dischargedPOsAboutRequirements += fulfilledRequirements.get(fulfilled);
+						if (coveredButNotDischarged.containsKey(covered)) {
+							continue;
+						}
+						fulfilledRequirements.put(covered, coveredRequirements.get(covered));
 					}
 
-					System.out.println("Discharged POs relevant to requirements: "
-							+ String.valueOf(dischargedPOsAboutRequirements));
-					System.out.println("All POs about requirements: " + String.valueOf(allPOsAboutRequirements));
+					fulfilledRequirementCount = fulfilledRequirements.size();
+					coveredRequirementCount = finalCovered.size();
+					totalRequirementCount = requirements.size();
+
+					System.out.println("Fulfilled requirements: " + String.valueOf(fulfilledRequirementCount));
+					System.out.println("Covered requirements: " + String.valueOf(coveredRequirementCount));
+					System.out.println("All requirements: " + String.valueOf(totalRequirementCount));
 					System.out.println();
+
+					String outputPath = "C:\\Users\\admin\\Downloads\\data_analysis\\" + GROUP + ".txt";
+					write(outputPath, DATASET_NAME, project.getName(), totalRequirementCount, coveredRequirementCount,
+							fulfilledRequirementCount);
+
+//					int allPOsAboutRequirements = 0;
+//					int dischargedPOsAboutRequirements = 0;
+//					for (String covered : coveredRequirements.keySet()) {
+//						allPOsAboutRequirements += coveredRequirements.get(covered);
+//					}
+//					for (String fulfilled : fulfilledRequirements.keySet()) {
+//						dischargedPOsAboutRequirements += fulfilledRequirements.get(fulfilled);
+//					}
+//
+//					System.out.println("Discharged POs relevant to requirements: "
+//							+ String.valueOf(dischargedPOsAboutRequirements));
+//					System.out.println("All POs about requirements: " + String.valueOf(allPOsAboutRequirements));
+//					System.out.println();
 				}
 			} catch (CoreException e) {
 				e.printStackTrace();
@@ -175,6 +203,22 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 		}
 
 		return null;
+	}
+
+	private void write(String path, String datasetName, String projectName, int totalRequirementCount,
+			int coveredRequirementCount, int fulfilledRequirementCount) {
+		StringBuilder contents = new StringBuilder();
+		contents.append(datasetName + ",");
+		contents.append(projectName + ",");
+		contents.append(String.valueOf(totalRequirementCount) + ",");
+		contents.append(String.valueOf(coveredRequirementCount) + ",");
+		contents.append(String.valueOf(fulfilledRequirementCount) + ",\n");
+
+		try (FileWriter writer = new FileWriter(path, true)) {
+			writer.append(contents.toString());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private List<IProject> getOpenProjects() {
@@ -231,4 +275,89 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 		return count;
 	}
 
+	private String getRequirementID(String label, List<Requirement> requirements) {
+		for (Requirement req : requirements) {
+			if (label.contains(req.getRequirementID())) {
+				return req.getRequirementID();
+			}
+		}
+		return null;
+	}
+
+	private void addReqID(String reqID, Map<String, Integer> map) {
+		if (!map.containsKey(reqID)) {
+			map.put(reqID, 0);
+		}
+		map.put(reqID, map.get(reqID) + 1);
+	}
+
+	private void addUncoveredReqs(IMarker[] markers, IEventBRoot root, boolean isMachine,
+			List<Requirement> requirements, Set<String> erroneousRequirements) throws RodinDBException {
+		for (IMarker marker : markers) {
+			int markerSeverity = marker.getAttribute(IMarker.SEVERITY, -1);
+			if (markerSeverity == IMarker.SEVERITY_ERROR) {
+				String handle = (String) marker.getAttribute("element", null);
+				CompilationErrorInfoExtractor infoExtractor = new CompilationErrorInfoExtractor(handle);
+				List<IInternalElement> erroneousElements = new ArrayList<>();
+				if (isMachine) {
+					erroneousElements = infoExtractor.getErroneousElementsFromMachine((IMachineRoot) root);
+				} else {
+					erroneousElements = infoExtractor.getErroneousElementsFromContext((IContextRoot) root);
+				}
+
+				for (IInternalElement element : erroneousElements) {
+					String label = "";
+					if (element instanceof IInvariant) {
+						label = ((IInvariant) element).getLabel();
+					} else if (element instanceof IVariant) {
+						label = ((IVariant) element).getLabel();
+					} else if (element instanceof IAxiom) {
+						label = ((IAxiom) element).getLabel();
+					} else {
+						continue;
+					}
+					String matchingReqID = getRequirementID(label, requirements);
+					if (matchingReqID != null) {
+						erroneousRequirements.add(matchingReqID);
+					}
+				}
+			}
+		}
+	}
+
+	private void addCoveredReqs(ILabeledElement[] elements, List<Requirement> requirements,
+			Map<String, Integer> coveredRequirements) throws RodinDBException {
+		for (ILabeledElement element : elements) {
+			String matchingReqID = getRequirementID(((ILabeledElement) element).getLabel(), requirements);
+			if (matchingReqID != null) {
+				// requirement is covered
+				addReqID(matchingReqID, coveredRequirements);
+			}
+		}
+	}
+
+	private void addUnfulfilledReqs(IPOSequent[] POs, List<Requirement> requirements, Map<String, Integer> covered,
+			Map<String, Integer> notDischarged, IEventBRoot root) throws RodinDBException {
+		Set<String> notDischargedSet = new HashSet<>();
+		for (IPOSequent po : POs) {
+			String poName = po.getElementName();
+			String matchingReqID = getRequirementID(poName, requirements);
+			if (matchingReqID != null) {
+				addReqID(matchingReqID, covered);
+				if (!ProofUtils.isDischarged(root, poName)) {
+					/* 4. No errors, POs not discharged => not fulfilled. */
+					notDischargedSet.add(matchingReqID);
+					addReqID(matchingReqID, notDischarged);
+				}
+			}
+		}
+
+		for (Requirement req : requirements) {
+			String reqID = req.getRequirementID();
+			if (notDischarged.containsKey(reqID) && !notDischargedSet.contains(reqID)) {
+				/* requirement wasn't fulfilled in previous rounds, but is fulfilled now. */
+				notDischarged.remove(reqID);
+			}
+		}
+	}
 }
