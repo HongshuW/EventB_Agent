@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPORoot;
@@ -64,9 +63,10 @@ public class POManager {
 
 		// try to discharge POs by running auto provers
 		for (IPOSequent poSequent : poRoot.getSequents()) {
-			IPSStatus psStatus = statusByPO.get(poSequent.getElementName());
+			String poName = poSequent.getElementName();
+			IPSStatus psStatus = statusByPO.get(poName);
 			if (!ProofUtils.isDischarged(machineRoot, psStatus.getElementName())) {
-				FixProofStrategyRunner fixer = new FixProofStrategyRunner(poSequent.getElementName(), machineRoot);
+				FixProofStrategyRunner fixer = new FixProofStrategyRunner(poName, machineRoot);
 				fixer.runAutoProvers();
 			}
 		}

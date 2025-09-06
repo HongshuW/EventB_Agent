@@ -60,14 +60,12 @@ public class FixProofStrategyRunner {
 
 		// auto provers
 		applyAutoTactic();
-		if (ProofUtils.isDischarged(machineRoot, poOwnerName)) {
-			ProofUtils.saveProofAttempt(machineRoot, proofAttempt);
+		if (ProofUtils.isDischarged(machineRoot, poName)) {
 			return;
 		}
 
 		// SMT solvers
 		applySMT();
-		ProofUtils.saveProofAttempt(machineRoot, proofAttempt);
 	}
 
 	public void applySMT(IProofTreeNode node) throws CoreException {

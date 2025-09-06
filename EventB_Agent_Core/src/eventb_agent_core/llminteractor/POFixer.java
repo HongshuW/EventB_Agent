@@ -222,6 +222,7 @@ public class POFixer extends AbstractLLMInteractor {
 					result = fixer.addHypothesis(hypothesis);
 				}
 			}
+			fixer.runAutoProvers();
 			break;
 		case addHypothesesToGuard:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.GRD);
@@ -232,6 +233,7 @@ public class POFixer extends AbstractLLMInteractor {
 				result = fixer.instantiation(hypothesis, 0); // without auto proving, node ID is 0
 				finish(result, fixer);
 			}
+			fixer.runAutoProvers();
 			break;
 		case addAbstractExpression:
 			String expression = args.getString(SchemaKeys.EXPR);
@@ -284,7 +286,7 @@ public class POFixer extends AbstractLLMInteractor {
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.INV);
 			strengthenInvariants(machineRoot, hypotheses);
 			waitForPORebuild(fixer);
-			fixer.applyAutoTactic();
+			fixer.runAutoProvers();
 			break;
 		case strengthenGuard:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.GRD);
@@ -293,14 +295,14 @@ public class POFixer extends AbstractLLMInteractor {
 			String grdInPO = poNameElements.length == 3 ? poNameElements[1] : null;
 			strengthenGuard(machineRoot, hypotheses, eventName, grdInPO);
 			waitForPORebuild(fixer);
-			fixer.applyAutoTactic();
+			fixer.runAutoProvers();
 			break;
 		case updateAction:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.ACT, SchemaKeys.ASSIGN);
 			eventName = args.getString(SchemaKeys.EVENT_NAME);
 			updateAction(machineRoot, hypotheses, eventName);
 			waitForPORebuild(fixer);
-			fixer.applyAutoTactic();
+			fixer.runAutoProvers();
 			break;
 		default:
 			finish(null, fixer);
