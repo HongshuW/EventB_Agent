@@ -41,9 +41,8 @@
 			"instantiations": {
 				"type": "array",
 				"items": {
-					"$ref": "#/$defs/identifier"
-				},
-				"description": "If the predicate is from the selected hypotheses, suggest instantiations for universal predicate. If the predicate is from the goal, suggest instantiations for existential predicate, which must be constant(s) defined in the context with matching type."
+					"type": "string"
+				}
 			}
 		},
 		"additionalProperties": false,

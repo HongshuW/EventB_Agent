@@ -277,10 +277,11 @@ public class POFixer extends AbstractLLMInteractor {
 			instantiations = args.getJSONArray(SchemaKeys.INSTANTIATIONS);
 			String[] insts = new String[instantiations.length()];
 			for (int i = 0; i < instantiations.length(); i++) {
-				insts[i] = instantiations.getString(i);
+				insts[i] = ParserUtils.lex(instantiations.getString(i));
 			}
 			Hypothesis hyp = new Hypothesis(axiomLabel, pred, insts);
 			result = fixer.addHypothesis(hyp);
+			fixer.runAutoProvers();
 			break;
 		case strengthenInvariant:
 			hypotheses = llmResponseParser.getHypotheses(args, SchemaKeys.INV);
@@ -348,7 +349,10 @@ public class POFixer extends AbstractLLMInteractor {
 				if (node != null) {
 					String predicateString = node.getSequent().goal().toString();
 					predicateString = ParserUtils.reverseLex(predicateString);
-					if (predicateString.startsWith("{}")) {
+					Set<String> applicableTactics = getApplicableProofTacticsOfGoal(node);
+					boolean onlyRmApplicable = applicableTactics.contains(ProofFixingStrategies.removeMembership.name())
+							&& applicableTactics.size() == 1;
+					if (predicateString.startsWith("{}") || onlyRmApplicable) {
 						return ProofScenarioType.TRIVIAL_INV;
 					} else if (predicateString.startsWith("\\exists")) {
 						return ProofScenarioType.EXST_IN_GOAL;
@@ -601,15 +605,80 @@ public class POFixer extends AbstractLLMInteractor {
 		}
 	}
 
+	private String[] applicableFunctions = new String[] { "addAbstractExpression", "addHypothesesToContext",
+			"addHypothesesToGuard", "caseDistinction", "fixThroughModelChecking", "instantiation",
+			"selectHypothesisFromContext", "strengthenGuard", "strengthenInvariant", "updateAction", "applySMT" };
+
 	public String getOtherApplicableFunctions() {
 		StringBuilder applicable = new StringBuilder("applyProofTactic: None\n");
-		String[] applicableFunctions = new String[] { "addAbstractExpression", "addHypothesesToContext",
-				"addHypothesesToGuard", "caseDistinction", "fixThroughModelChecking", "instantiation",
-				"selectHypothesisFromContext", "strengthenGuard", "strengthenInvariant", "updateAction", "applySMT" };
 		for (String function : applicableFunctions) {
 			applicable.append(function + ", ");
 		}
 		return applicable.toString();
+	}
+
+	public Set<String> getApplicableProofTacticsOfGoal(IProofTreeNode node) {
+		Set<String> tactics = new HashSet<>();
+		Predicate predicate = node.getSequent().goal();
+
+		if (Tactics.conjF_applicable(predicate)) {
+			tactics.add(ProofFixingStrategies.conjunction.name());
+		}
+		if (Tactics.eqE_applicable(predicate)) {
+			tactics.add(ProofFixingStrategies.equality.name());
+		}
+		if (Tactics.eqv_applicable(predicate)) {
+			tactics.add(ProofFixingStrategies.equivalence.name());
+		}
+		if (Tactics.isRemoveNegationApplicable(predicate)) {
+			tactics.add(ProofFixingStrategies.removeNegation.name());
+		}
+		if (Tactics.isRemoveMembershipApplicable(predicate)) {
+			tactics.add(ProofFixingStrategies.removeMembership.name());
+		}
+
+		if (Tactics.riGetPositions(predicate) != null && !Tactics.riGetPositions(predicate).isEmpty()) {
+			tactics.add(ProofFixingStrategies.removeInclusion.name());
+		}
+		if (Tactics.sirGetPositions(predicate) != null && !Tactics.sirGetPositions(predicate).isEmpty()) {
+			tactics.add(ProofFixingStrategies.strictInclusion.name());
+		}
+		if (Tactics.disjToImplGetPositions(predicate) != null && !Tactics.disjToImplGetPositions(predicate).isEmpty()) {
+			tactics.add(ProofFixingStrategies.disjunctionToImplication.name());
+		}
+		if (Tactics.impAndGetPositions(predicate) != null && !Tactics.impAndGetPositions(predicate).isEmpty()) {
+			tactics.add(ProofFixingStrategies.implicationAnd.name());
+		}
+		if (Tactics.impOrGetPositions(predicate) != null && !Tactics.impOrGetPositions(predicate).isEmpty()) {
+			tactics.add(ProofFixingStrategies.implicationOr.name());
+		}
+		if (Tactics.setEqlGetPositions(predicate) != null && !Tactics.setEqlGetPositions(predicate).isEmpty()) {
+			tactics.add(ProofFixingStrategies.setEqual.name());
+		}
+		if (Tactics.setMinusGetPositions(predicate) != null && !Tactics.setMinusGetPositions(predicate).isEmpty()) {
+			tactics.add(ProofFixingStrategies.setMinus.name());
+		}
+		if (Tactics.relOvrGetPositions(predicate) != null && !Tactics.relOvrGetPositions(predicate).isEmpty()) {
+			tactics.add(ProofFixingStrategies.relationOverwriteDefinition.name());
+		}
+		if (Tactics.partitionGetPositions(predicate) != null && !Tactics.partitionGetPositions(predicate).isEmpty()) {
+			tactics.add(ProofFixingStrategies.partition.name());
+		}
+		if (Tactics.arithGetPositions(predicate) != null && !Tactics.arithGetPositions(predicate).isEmpty()) {
+			tactics.add(ProofFixingStrategies.arithmeticRewrite.name());
+		}
+		if (Tactics.finiteDefGetPositions(predicate) != null && !Tactics.finiteDefGetPositions(predicate).isEmpty()) {
+			tactics.add(ProofFixingStrategies.finiteDefinition.name());
+		}
+		if (Tactics.cardDefGetPositions(predicate) != null && !Tactics.cardDefGetPositions(predicate).isEmpty()) {
+			tactics.add(ProofFixingStrategies.cardinalityDefinition.name());
+		}
+		if (Tactics.funImgSimpGetPositions(predicate, node.getSequent()) != null
+				&& !Tactics.funImgSimpGetPositions(predicate, node.getSequent()).isEmpty()) {
+			tactics.add(ProofFixingStrategies.functionalImageDefinition.name());
+		}
+
+		return tactics;
 	}
 
 	public String getApplicableProofTactics(IProofTree tree, boolean addOtherFunctions) {
@@ -641,10 +710,6 @@ public class POFixer extends AbstractLLMInteractor {
 
 		applicable.append("\n");
 		if (addOtherFunctions) {
-			String[] applicableFunctions = new String[] { "addAbstractExpression", "addHypothesesToContext",
-					"addHypothesesToGuard", "caseDistinction", "instantiation", "strengthenGuard",
-					"strengthenInvariant", "applySMT", "updateAction", "selectHypothesisFromContext",
-					"fixThroughModelChecking" };
 			for (String function : applicableFunctions) {
 				applicable.append(function + ", ");
 			}

@@ -259,6 +259,7 @@ public class ParserUtils {
 		regexMap.put(">->(?![>])", String.valueOf(TOTAL_INJECTION)); // replace ">->" with "↣"
 		regexMap.put("-->(?![>])", String.valueOf(TOTAL_FUNCTION)); // replace "-->" with "→"
 		regexMap.put("\\|->(?![>])", String.valueOf(MAP_LET)); // replace "|->" with "↦"
+		regexMap.put("/(?![=:<])", String.valueOf(DIVISION)); // replace "/" with DIVISION
 		regexMap.put("\\\\+pfun", String.valueOf(PARTIAL_FUNCTION));
 		regexMap.put("\\\\+subseteq", String.valueOf(SUBSET));
 		regexMap.put("\\\\+subset(?!e)", String.valueOf(STRICT_SUBSET));
@@ -330,6 +331,7 @@ public class ParserUtils {
 		regexMap.put("\\\\+circ", String.valueOf(BACKWARD_COMPOSITION));
 		regexMap.put("\\\\+parallel", String.valueOf(PARALLEL_PRODUCT));
 		regexMap.put("\\\\+bcmeq", String.valueOf(ASSIGN));
+		regexMap.put("\\\\+div", String.valueOf(DIVISION));
 		regexMap.put("\\\\\\{", "{");
 		regexMap.put("\\\\\\}", "}");
 

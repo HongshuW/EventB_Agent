@@ -17,6 +17,8 @@ public class LLMInstanceFactory {
 		case GPT5:
 		case GPT5_MINI:
 		case GPT5_NANO:
+		case GPT_O3:
+		case GPT_O3_MINI:
 		case GPT4_1:
 		case GPT4_1_MINI:
 			return new GPTRequestSender(model);
@@ -34,6 +36,8 @@ public class LLMInstanceFactory {
 		case GPT5:
 		case GPT5_MINI:
 		case GPT5_NANO:
+		case GPT_O3:
+		case GPT_O3_MINI:
 		case GPT4_1:
 		case GPT4_1_MINI:
 			return new GPTRequestBuilder(model);
@@ -51,6 +55,8 @@ public class LLMInstanceFactory {
 		case GPT5:
 		case GPT5_MINI:
 		case GPT5_NANO:
+		case GPT_O3:
+		case GPT_O3_MINI:
 		case GPT4_1:
 		case GPT4_1_MINI:
 			return new GPTResponseParser(model);

@@ -52,7 +52,7 @@
 			"instantiations": {
 				"type": "array",
 				"items": {
-					"$ref": "#/$defs/identifier"
+					"type": "string"
 				}
 			}
 		},

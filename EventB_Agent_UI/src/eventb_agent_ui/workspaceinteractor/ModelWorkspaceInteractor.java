@@ -207,7 +207,7 @@ public class ModelWorkspaceInteractor {
 			throws InvocationTargetException, InterruptedException {
 
 		boolean isEmptyContext = isEmptyContext(contextJSON);
-		String seenContext = getPreviousContext(contextJSON);
+		String seenContext = getPreviousContext(contextJSON, machineJSON);
 
 		String contextFileName = (isEmptyContext ? seenContext : contextJSON.getString(SchemaKeys.CONTEXT)) + "."
 				+ contextFileType;
@@ -282,15 +282,20 @@ public class ModelWorkspaceInteractor {
 		return constants.isEmpty() && sets.isEmpty() && axioms.isEmpty();
 	}
 
-	private String getPreviousContext(JSONObject contextJSON) {
-		if (!contextJSON.has(SchemaKeys.EXTENDS)) {
-			return "";
+	private String getPreviousContext(JSONObject contextJSON, JSONObject machineJSON) {
+		if (contextJSON.has(SchemaKeys.EXTENDS)) {
+			JSONArray extendList = contextJSON.getJSONArray(SchemaKeys.EXTENDS);
+			if (!extendList.isEmpty()) {
+				return extendList.getString(0);
+			}
 		}
-		JSONArray extendList = contextJSON.getJSONArray(SchemaKeys.EXTENDS);
-		if (extendList.isEmpty()) {
-			return "";
+		if (machineJSON.has(SchemaKeys.SEES)) {
+			JSONArray seenList = machineJSON.getJSONArray(SchemaKeys.SEES);
+			if (!seenList.isEmpty()) {
+				return seenList.getString(0);
+			}
 		}
-		return extendList.getString(0);
+		return "";
 	}
 
 	public String[] saveModel(String projectName, JSONObject response)

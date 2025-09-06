@@ -53,7 +53,9 @@ public class FixProofStrategyRunner {
 	 * @throws CoreException
 	 */
 	public void runAutoProvers() throws CoreException {
-		IProofAttempt proofAttempt = getProofAttempt();
+		if (ProofUtils.isDischarged(machineRoot, poName)) {
+			return;
+		}
 
 		// lasoo
 		applyLasoo();
@@ -345,7 +347,7 @@ public class FixProofStrategyRunner {
 		String[] instantiationsArray = new String[instantiations.length()];
 
 		for (int i = 0; i < instantiations.length(); i++) {
-			String inst = instantiations.getString(i);
+			String inst = ParserUtils.lex(instantiations.getString(i));
 			instantiationsArray[i] = inst;
 		}
 

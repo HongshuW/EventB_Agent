@@ -81,6 +81,9 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 				Map<String, Integer> coveredButNotDischarged = new HashMap<>();
 
 				/* Data */
+				int dischargedPOCount = 0;
+				int totalPOCount = 0;
+
 				int coveredRequirementCount = 0;
 				int fulfilledRequirementCount = 0;
 				int totalRequirementCount = 0;
@@ -100,6 +103,10 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					IContextRoot contextRoot = (IContextRoot) contextFile.getRoot();
 
 					System.out.println("Processing: " + machineFileName + " and " + contextFileName);
+
+					/* ====== Important: Baseline Only ====== */
+					POManager poManager = new POManager();
+//					poManager.runAutoProvers(machineRoot);
 
 					/* compilation errors */
 
@@ -123,11 +130,12 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					System.out.println();
 
 					/* PO Discharge Rate */
-					POManager poManager = new POManager();
 					List<IPOSequent> undischargedPOs = poManager.getOpenPOs(machineRoot);
 					IPOSequent[] POs = poManager.getAllPOs(machineRoot);
-					System.out.println("Discharged POs: " + String.valueOf(POs.length - undischargedPOs.size()));
-					System.out.println("Total POs: " + String.valueOf(POs.length));
+					dischargedPOCount = POs.length - undischargedPOs.size();
+					totalPOCount = POs.length;
+					System.out.println("Discharged POs: " + String.valueOf(dischargedPOCount));
+					System.out.println("Total POs: " + String.valueOf(totalPOCount));
 					System.out.println();
 
 					/* Requirement Coverage Rate & Fulfillment Rate */
@@ -148,7 +156,8 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					/* 3. No errors, POs generated => covered. */
 					IPOSequent[] contextPOs = poManager.getAllPOs(contextRoot);
 					addUnfulfilledReqs(POs, requirements, coveredRequirements, coveredButNotDischarged, machineRoot);
-					addUnfulfilledReqs(contextPOs, requirements, coveredRequirements, coveredButNotDischarged, contextRoot);
+					addUnfulfilledReqs(contextPOs, requirements, coveredRequirements, coveredButNotDischarged,
+							contextRoot);
 
 					/* Compute fulfilled requirements */
 					Map<String, Integer> finalCovered = new HashMap<>();
@@ -180,8 +189,8 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					System.out.println();
 
 					String outputPath = "C:\\Users\\admin\\Downloads\\data_analysis\\" + GROUP + ".txt";
-					write(outputPath, DATASET_NAME, project.getName(), totalRequirementCount, coveredRequirementCount,
-							fulfilledRequirementCount);
+					write(outputPath, DATASET_NAME, project.getName(), totalPOCount, dischargedPOCount,
+							totalRequirementCount, coveredRequirementCount, fulfilledRequirementCount);
 
 //					int allPOsAboutRequirements = 0;
 //					int dischargedPOsAboutRequirements = 0;
@@ -197,7 +206,7 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 //					System.out.println("All POs about requirements: " + String.valueOf(allPOsAboutRequirements));
 //					System.out.println();
 				}
-			} catch (CoreException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -205,11 +214,13 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 		return null;
 	}
 
-	private void write(String path, String datasetName, String projectName, int totalRequirementCount,
-			int coveredRequirementCount, int fulfilledRequirementCount) {
+	private void write(String path, String datasetName, String projectName, int totalPOCount, int dischargedPOCount,
+			int totalRequirementCount, int coveredRequirementCount, int fulfilledRequirementCount) {
 		StringBuilder contents = new StringBuilder();
 		contents.append(datasetName + ",");
 		contents.append(projectName + ",");
+		contents.append(String.valueOf(totalPOCount) + ",");
+		contents.append(String.valueOf(dischargedPOCount) + ",");
 		contents.append(String.valueOf(totalRequirementCount) + ",");
 		contents.append(String.valueOf(coveredRequirementCount) + ",");
 		contents.append(String.valueOf(fulfilledRequirementCount) + ",\n");

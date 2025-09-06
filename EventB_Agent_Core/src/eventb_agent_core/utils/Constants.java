@@ -14,6 +14,8 @@ public class Constants {
 	public static final String GPT_5_MODEL = "gpt-5";
 	public static final String GPT_5_MINI_MODEL = "gpt-5-mini";
 	public static final String GPT_5_NANO_MODEL = "gpt-5-nano";
+	public static final String GPT_O3_MODEL = "o3";
+	public static final String GPT_O3_MINI_MODEL = "o3-mini";
 
 	/* Claude parameters */
 
@@ -32,8 +34,8 @@ public class Constants {
 	public static final double TOP_P = 1;
 	public static final int TOKEN_LIMIT = 4096;
 
-	public static final String VERBOSITY = "low";
-	public static final String REASONING = "minimal";
+	public static final String VERBOSITY = "medium";
+	public static final String REASONING = "low";
 
 	public static final String DEFAULT_PLACE_HOLDER = "{{default}}";
 	public static final String REFINEMENT_ID_PLACE_HOLDER = "{{refinement_id}}";
