@@ -1,0 +1,12 @@
+[
+	{
+		"id":"1",
+		"sub_id":"",
+		"rule": "To ensure a gluing invariant holds, use `addHypothesesToContext` when the proof about gluing invariant cannot proceed. e.g. If the gluing invariant is `x \\\\in S \\\\land y`, add hypothesis `\\\\forall x \\\\cdot x \\\\in S \\\\implies y`."
+	},
+	{
+		"id":"1",
+		"sub_id":"a",
+		"rule": "If the proof is about an event, and there is a contradiction in the proof tree, use `updateAction` to fix this. e.g. If a variable `v` should be in range `0..n`, but proof goal is `v=-1`, then the action should be updated."
+	}
+]

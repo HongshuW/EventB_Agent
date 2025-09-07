@@ -281,6 +281,9 @@ public class POFixer extends AbstractLLMInteractor {
 			}
 			Hypothesis hyp = new Hypothesis(axiomLabel, pred, insts);
 			result = fixer.addHypothesis(hyp);
+			if (hyp.getPredicate().equals("")) {
+				reasonerMessage = "The hypothesis doesn't exist in the context.";
+			}
 			fixer.runAutoProvers();
 			break;
 		case strengthenInvariant:
@@ -314,6 +317,15 @@ public class POFixer extends AbstractLLMInteractor {
 			List<LinkedHashMap<String, Object>> requestHistory) throws RodinDBException {
 
 		String lastAction = getLastAction(requestHistory);
+
+		if (lastAction.equals("addHypothesesToContext") || lastAction.equals("addHypothesesToGuard")) {
+			return ProofScenarioType.ADDED_HYP;
+		}
+		if (poName.contains("gluing_inv_")) {
+			return ProofScenarioType.GLUING_INV;
+		} else if (poName.contains("EQL")) {
+			return ProofScenarioType.EQL_PO;
+		}
 
 		String[] entries = poName.split("/");
 		if (entries.length == 2) {
@@ -361,10 +373,6 @@ public class POFixer extends AbstractLLMInteractor {
 			}
 		}
 
-		if (lastAction.equals("addHypothesesToContext") || lastAction.equals("addHypothesesToGuard")) {
-			return ProofScenarioType.ADDED_HYP;
-		}
-
 		return ProofScenarioType.INV;
 	}
 
@@ -379,7 +387,8 @@ public class POFixer extends AbstractLLMInteractor {
 	}
 
 	private boolean shouldGetAllProofTactics(ProofScenarioType poType) {
-		return poType == ProofScenarioType.INV || poType == ProofScenarioType.TRIVIAL_INV;
+		return poType == ProofScenarioType.INV || poType == ProofScenarioType.TRIVIAL_INV
+				|| poType == ProofScenarioType.GLUING_INV;
 	}
 
 	private IAxiom getAxiom(IContextRoot contextRoot, String label) throws RodinDBException {

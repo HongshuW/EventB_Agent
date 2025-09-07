@@ -65,6 +65,7 @@ import eventb_agent_core.llminteractor.ModelCreator;
 import eventb_agent_core.llminteractor.POFixer;
 import eventb_agent_core.proof.FixProofStrategyRunner;
 import eventb_agent_core.proof.POManager;
+import eventb_agent_core.proof.PoOrder;
 import eventb_agent_core.refinement.RefinementStep;
 import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.RodinUtils;
@@ -615,9 +616,10 @@ public class ModelWorkspaceInteractor {
 			if (poName == null) {
 				if (selectedPO == null) {
 					selectedPO = po;
-				} else if (otherPOName.contains("WD")) {
+					continue;
+				}
+				if (PoOrder.shouldProveBefore(po.getElementName(), selectedPO.getElementName())) {
 					selectedPO = po;
-					break;
 				}
 			}
 			if (otherPOName.equals(poName) || otherPOName == poName) {

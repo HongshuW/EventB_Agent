@@ -79,9 +79,10 @@ public class FixProofStrategyRunner {
 
 	public void applySMT() throws CoreException {
 		IProofAttempt proofAttempt = getProofAttempt();
-		IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(proofAttempt);
-
-		applySMT(node);
+		List<ProofNodeWrapper> nodes = ProofUtils.getUndischargedNodes(proofAttempt.getProofTree());
+		for (ProofNodeWrapper node : nodes) {
+			applySMT(node.node);
+		}
 	}
 
 	public void applyLasoo(IProofTreeNode node) throws CoreException {
@@ -115,19 +116,14 @@ public class FixProofStrategyRunner {
 		}
 		IProofTreeNode[] children = node.getChildNodes();
 		for (IProofTreeNode child : children) {
-			Predicate predicate = PredicateUtils.parserPredicate(child, pred);
 			Predicate predInNode = PredicateUtils.getPredicate(child, pred);
-			Predicate goal = child.getSequent().goal();
 			if (predInNode != null) {
 				result = instantiation(pred, instantiations, child);
 				if (result == null) {
 					applyPostTactic(child);
 				}
-			} else if (goal.toString().equals(predicate.toString())) {
-				// hyp in goal
-				applySMT(child);
 			} else {
-				applyPostTactic(child);
+				applySMT(child);
 			}
 		}
 

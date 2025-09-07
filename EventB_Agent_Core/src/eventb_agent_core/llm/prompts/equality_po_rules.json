@@ -1,0 +1,12 @@
+[
+	{
+		"id": "1",
+		"sub_id": "",
+		"rule": "If the goal `G` is an equality expression, i.e. `x=y`, and there is a hypothesis `H` similar to `G`, then use `addHypothesesToContext` to add hypothesis `H \\\\implies G`."
+	},
+	{
+		"id": "1",
+		"sub_id": "a",
+		"rule": "e.g. If the goal is `x=y`, and there is a hypothesis `f(x)=f(y)`, then add the definition of injectivity for function `f`: `\\\\forall x,y \\\\cdot x \\\\in dom(f) \\\\land y \\\\in dom(f) \\\\land f(x)=f(y) \\\\implies x=y`."
+	}
+]
