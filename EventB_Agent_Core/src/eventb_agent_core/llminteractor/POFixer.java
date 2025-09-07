@@ -327,6 +327,13 @@ public class POFixer extends AbstractLLMInteractor {
 			return ProofScenarioType.EQL_PO;
 		}
 
+		IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(tree);
+		String predicateString = node.getSequent().goal().toString();
+		predicateString = ParserUtils.reverseLex(predicateString);
+		if (predicateString.equals("\\bot")) {
+			return ProofScenarioType.CONTRADICT_GOAL;
+		}
+
 		String[] entries = poName.split("/");
 		if (entries.length == 2) {
 			if (entries[1].equals("WD")) {
@@ -357,10 +364,7 @@ public class POFixer extends AbstractLLMInteractor {
 						}
 					}
 				}
-				IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(tree);
 				if (node != null) {
-					String predicateString = node.getSequent().goal().toString();
-					predicateString = ParserUtils.reverseLex(predicateString);
 					Set<String> applicableTactics = getApplicableProofTacticsOfGoal(node);
 					boolean onlyRmApplicable = applicableTactics.contains(ProofFixingStrategies.removeMembership.name())
 							&& applicableTactics.size() == 1;
@@ -464,7 +468,7 @@ public class POFixer extends AbstractLLMInteractor {
 		if (this.proofAttempt != null && (this.proofAttempt.isBroken() || this.proofAttempt.isDisposed())) {
 			this.proofAttempt.dispose();
 		}
-		while (this.proofAttempt == null || this.proofAttempt.isBroken() || this.proofAttempt.isDisposed()) {
+		while (this.proofAttempt != null && (this.proofAttempt.isBroken() || this.proofAttempt.isDisposed())) {
 			Thread.sleep(1000);
 			this.proofAttempt = fixer.getProofAttempt();
 		}

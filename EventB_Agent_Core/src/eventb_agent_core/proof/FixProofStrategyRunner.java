@@ -276,6 +276,9 @@ public class FixProofStrategyRunner {
 
 	public void applyAutoTactic() throws CoreException {
 		IProofAttempt proofAttempt = getProofAttempt();
+		if (proofAttempt == null) {
+			return;
+		}
 		IProofTreeNode node = proofAttempt.getProofTree().getRoot();
 
 		applyAutoTactic(node);

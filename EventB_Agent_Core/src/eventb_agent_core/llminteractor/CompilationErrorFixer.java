@@ -37,7 +37,6 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 	public JSONObject solveCompilationErrors(String projectName, final String machineFileName,
 			final String contextFileName, IProgressMonitor monitor) throws CoreException, ReachMaxAttemptException {
 
-		monitor.beginTask("Fixing compilation errors in " + machineFileName, 2);
 		IRodinProject rodinProject = RodinUtils.getRodinProject(projectName);
 
 		JSONObject newModel = null;

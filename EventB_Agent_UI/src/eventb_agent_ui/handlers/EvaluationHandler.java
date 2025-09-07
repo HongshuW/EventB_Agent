@@ -13,10 +13,13 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.eclipse.ui.progress.IProgressConstants;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -96,70 +99,80 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 
 		getVisitedProjects();
 
-		File[] files = datasetFolder.listFiles();
-		if (files != null) {
-			for (File file : files) {
+		Job job = Job.create("Event-B Agent", (IProgressMonitor monitor) -> {
 
-				EvaluationManager.resetDefaultInstance();
-				EvaluationManager.startTimer();
+			File[] files = datasetFolder.listFiles();
+			if (files != null) {
+				for (File file : files) {
 
-				IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+					EvaluationManager.resetDefaultInstance();
+					EvaluationManager.startTimer();
 
-				final String projectName = file.getName().split(".json")[0];
-				if (visitedProjects.contains(projectName)) {
-					continue;
-				}
-				System.out.println("==========\nEvaluating `" + projectName + "`\n==========\n");
+					IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
 
-				/* refinement */
-				EvaluationManager.addAndStartNewAction(ComponentType.REFINE, 0);
-
-				RefinementStrategyPlanner refinementStrategyPlanner = new RefinementStrategyPlanner(llmRequestSender,
-						llmResponseParser);
-				SystemRequirements systemReqs = new SystemRequirements(file.toPath());
-				JSONArray refinementSteps = new JSONArray();
-				try {
-					if (enableRefinement) {
-						refinementSteps = refinementStrategyPlanner.getRefinementSteps(systemReqs.toString());
-					} else {
-						refinementSteps = refinementStrategyPlanner.getSingleRefinementStep(systemReqs.toString());
+					final String projectName = file.getName().split(".json")[0];
+					if (visitedProjects.contains(projectName)) {
+						continue;
 					}
-				} catch (ReachMaxAttemptException e) {
-					EvaluationManager.setErrorToLatestAction(e.getMessage());
-				}
+					System.out.println("==========\nEvaluating `" + projectName + "`\n==========\n");
 
-				EvaluationManager.endLatestAction();
+					/* refinement */
+					EvaluationManager.addAndStartNewAction(ComponentType.REFINE, 0);
 
-				/* synthesis and repair loop */
-				ModelInfo previousModel = null;
-				for (int i = 0; i < refinementSteps.length(); i++) {
-					JSONObject refStepJSON = refinementSteps.getJSONObject(i);
-					RefinementStep refinementStep = llmResponseParser.getRefinementStep(refStepJSON, systemReqs);
-
+					RefinementStrategyPlanner refinementStrategyPlanner = new RefinementStrategyPlanner(
+							llmRequestSender, llmResponseParser);
+					SystemRequirements systemReqs = new SystemRequirements(file.toPath());
+					JSONArray refinementSteps = new JSONArray();
 					try {
-						ModelWorkspaceInteractor modelWorkspaceInteractor = new ModelWorkspaceInteractor(
-								llmRequestSender, llmResponseParser, enableFixStrategy, maxAttemptsSynth,
-								maxAttemptsProof, window);
-						previousModel = modelWorkspaceInteractor.createModel(projectName, refinementStep,
-								previousModel);
+						if (enableRefinement) {
+							refinementSteps = refinementStrategyPlanner.getRefinementSteps(systemReqs.toString());
+						} else {
+							refinementSteps = refinementStrategyPlanner.getSingleRefinementStep(systemReqs.toString());
+						}
 					} catch (ReachMaxAttemptException e) {
-						e.printStackTrace();
-						EvaluationManager
-								.setErrorToLatestAction(e.getMessage() == null ? e.toString() : e.getMessage());
-						EvaluationManager.endLatestAction();
-					} catch (InterruptedException | InvocationTargetException | CoreException e) {
-						e.printStackTrace();
-						EvaluationManager
-								.setErrorToLatestAction(e.getMessage() == null ? e.toString() : e.getMessage());
-						EvaluationManager.endLatestAction();
-						i--; // retry
+						EvaluationManager.setErrorToLatestAction(e.getMessage());
 					}
-				}
 
-				EvaluationManager.endTimer();
-				EvaluationManager.write(resultsPath, projectName);
+					EvaluationManager.endLatestAction();
+
+					/* synthesis and repair loop */
+					ModelInfo previousModel = null;
+					for (int i = 0; i < refinementSteps.length(); i++) {
+						JSONObject refStepJSON = refinementSteps.getJSONObject(i);
+						RefinementStep refinementStep = llmResponseParser.getRefinementStep(refStepJSON, systemReqs);
+
+						try {
+							ModelWorkspaceInteractor modelWorkspaceInteractor = new ModelWorkspaceInteractor(
+									llmRequestSender, llmResponseParser, enableFixStrategy, maxAttemptsSynth,
+									maxAttemptsProof, window);
+							previousModel = modelWorkspaceInteractor.createModel(projectName, refinementStep,
+									previousModel);
+						} catch (ReachMaxAttemptException e) {
+							e.printStackTrace();
+							EvaluationManager
+									.setErrorToLatestAction(e.getMessage() == null ? e.toString() : e.getMessage());
+							EvaluationManager.endLatestAction();
+						} catch (InterruptedException | InvocationTargetException | CoreException e) {
+							e.printStackTrace();
+							EvaluationManager
+									.setErrorToLatestAction(e.getMessage() == null ? e.toString() : e.getMessage());
+							EvaluationManager.endLatestAction();
+							i--; // retry
+						}
+					}
+
+					EvaluationManager.endTimer();
+					EvaluationManager.write(resultsPath, projectName);
+				}
 			}
-		}
+		});
+
+		// hide all “job failed” prompts
+		job.setUser(false);
+		job.setSystem(true);
+		job.setProperty(IProgressConstants.NO_IMMEDIATE_ERROR_PROMPT_PROPERTY, Boolean.TRUE);
+
+		job.schedule();
 
 		return null;
 	}

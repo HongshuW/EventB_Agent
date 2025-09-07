@@ -214,61 +214,45 @@ public class ModelWorkspaceInteractor {
 				+ contextFileType;
 		String machineFileName = machineJSON.getString(SchemaKeys.MACHINE) + "." + machineFileType;
 
-		// save model
-		IRunnableWithProgress saveModelOperation = new IRunnableWithProgress() {
-			@Override
-			public void run(IProgressMonitor monitor) throws InvocationTargetException {
-
-				// context
-				if (!isEmptyContext) {
-					try {
-						doFinish(projectName, contextFileName, monitor, contextJSON, null);
-					} catch (CoreException e) {
-						throw new InvocationTargetException(e);
-					} finally {
-						monitor.done();
-					}
-					// save and wait for compilation error markers
-					try {
-						IRodinProject rodinProject = getRodinProject(projectName);
-						IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
-						buildAndWaitForMarkers(contextFile.getResource(), monitor);
-					} catch (CoreException e) {
-						e.printStackTrace();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					} finally {
-						monitor.done();
-					}
-				}
-
-				// machine
-				try {
-					if (isEmptyContext) {
-						doFinish(projectName, machineFileName, monitor, machineJSON, Arrays.asList(seenContext));
-					} else {
-						doFinish(projectName, machineFileName, monitor, machineJSON, null);
-					}
-				} catch (CoreException e) {
-					throw new InvocationTargetException(e);
-				} finally {
-					monitor.done();
-				}
-				// save and wait for compilation error markers
-				try {
-					IRodinProject rodinProject = getRodinProject(projectName);
-					IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
-					buildAndWaitForMarkers(machineFile.getResource(), monitor);
-				} catch (CoreException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} finally {
-					monitor.done();
-				}
+		// context
+		if (!isEmptyContext) {
+			try {
+				doFinish(projectName, contextFileName, null, contextJSON, null);
+			} catch (CoreException e) {
+				throw new InvocationTargetException(e);
 			}
-		};
-		runnableContext.run(false, false, saveModelOperation);
+			// save and wait for compilation error markers
+			try {
+				IRodinProject rodinProject = getRodinProject(projectName);
+				IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
+				buildAndWaitForMarkers(contextFile.getResource(), null);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		// machine
+		try {
+			if (isEmptyContext) {
+				doFinish(projectName, machineFileName, null, machineJSON, Arrays.asList(seenContext));
+			} else {
+				doFinish(projectName, machineFileName, null, machineJSON, null);
+			}
+		} catch (CoreException e) {
+			throw new InvocationTargetException(e);
+		}
+		// save and wait for compilation error markers
+		try {
+			IRodinProject rodinProject = getRodinProject(projectName);
+			IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+			buildAndWaitForMarkers(machineFile.getResource(), null);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
 		return new String[] { contextFileName, machineFileName };
 	}
@@ -457,39 +441,32 @@ public class ModelWorkspaceInteractor {
 		final String machineFileName = fileNames[1];
 
 		// fix compilation errors
-		IRunnableWithProgress fixCompilationErrorOperation = new IRunnableWithProgress() {
-			@Override
-			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-				try {
-					CompilationErrorFixer compilationErrorFixer = new CompilationErrorFixer(llmRequestSender,
-							llmResponseParser);
-					JSONObject newModel = compilationErrorFixer.solveCompilationErrors(projectName, machineFileName,
-							contextFileName, monitor);
-					EvaluationManager.endLatestAction();
+		try {
+			CompilationErrorFixer compilationErrorFixer = new CompilationErrorFixer(llmRequestSender,
+					llmResponseParser);
+			JSONObject newModel = compilationErrorFixer.solveCompilationErrors(projectName, machineFileName,
+					contextFileName, null);
+			EvaluationManager.endLatestAction();
 
-					if (newModel != null) {
-						String[] newFileNames = saveModel(projectName, newModel);
-						fixCompilationErrors(projectName, newFileNames);
-					}
-				} catch (CoreException e) {
-					throw new InvocationTargetException(e);
-				} catch (ReachMaxAttemptException e) {
-					System.out.println(e.getMessage());
-					EvaluationManager.setErrorToLatestAction(e.getMessage());
-				} finally {
-					// save file without modification
-					try {
-						IRodinProject rodinProject = getRodinProject(projectName);
-						final IRodinFile rodinFile = rodinProject.getRodinFile(machineFileName);
-						rodinFile.save(null, true);
-					} catch (CoreException e) {
-						throw new InvocationTargetException(e);
-					}
-					monitor.done();
-				}
+			if (newModel != null) {
+				String[] newFileNames = saveModel(projectName, newModel);
+				fixCompilationErrors(projectName, newFileNames);
 			}
-		};
-		runnableContext.run(false, false, fixCompilationErrorOperation);
+		} catch (CoreException e) {
+			throw new InvocationTargetException(e);
+		} catch (ReachMaxAttemptException e) {
+			System.out.println(e.getMessage());
+			EvaluationManager.setErrorToLatestAction(e.getMessage());
+		} finally {
+			// save file without modification
+			try {
+				IRodinProject rodinProject = getRodinProject(projectName);
+				final IRodinFile rodinFile = rodinProject.getRodinFile(machineFileName);
+				rodinFile.save(null, true);
+			} catch (CoreException e) {
+				throw new InvocationTargetException(e);
+			}
+		}
 
 		return new String[] { contextFileName, machineFileName };
 	}
@@ -501,43 +478,38 @@ public class ModelWorkspaceInteractor {
 		final String contextFileName = fileNames[0];
 		final String machineFileName = fileNames[1];
 
-		IRunnableWithProgress countCompilationErrorsOperation = new IRunnableWithProgress() {
-			@Override
-			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-				try {
-					IRodinProject rodinProject = RodinUtils.getRodinProject(projectName);
+		try {
+			IRodinProject rodinProject = RodinUtils.getRodinProject(projectName);
 
-					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
-					final IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
-					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
-					IContextRoot contextRoot = (IContextRoot) contextFile.getRoot();
+			final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+			final IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
+			IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
+			IContextRoot contextRoot = (IContextRoot) contextFile.getRoot();
 
-					((IConfigurationElement) machineRoot).setConfiguration(DEFAULT_CONFIGURATION, null);
-					((IConfigurationElement) contextRoot).setConfiguration(DEFAULT_CONFIGURATION, null);
+			((IConfigurationElement) machineRoot).setConfiguration(DEFAULT_CONFIGURATION, null);
+			((IConfigurationElement) contextRoot).setConfiguration(DEFAULT_CONFIGURATION, null);
 
-					IResource machineResource = machineRoot.getResource();
-					IResource contextResource = contextRoot.getResource();
-					IMarker[] machineMarkers = machineResource.findMarkers("org.rodinp.core.problem", true,
-							IResource.DEPTH_INFINITE);
-					IMarker[] contextMarkers = contextResource.findMarkers("org.rodinp.core.problem", true,
-							IResource.DEPTH_INFINITE);
+			IResource machineResource = machineRoot.getResource();
+			IResource contextResource = contextRoot.getResource();
+			IMarker[] machineMarkers = machineResource.findMarkers("org.rodinp.core.problem", true,
+					IResource.DEPTH_INFINITE);
+			IMarker[] contextMarkers = contextResource.findMarkers("org.rodinp.core.problem", true,
+					IResource.DEPTH_INFINITE);
 
-					int compilationErrorCount = getCompilationErrorCount(machineMarkers, contextMarkers,
-							IMarker.SEVERITY_ERROR);
-					int compilationWarningCount = getCompilationErrorCount(machineMarkers, contextMarkers,
-							IMarker.SEVERITY_WARNING);
-					System.out.println("Compilation Errors:" + String.valueOf(compilationErrorCount));
-					System.out.println("Compilation Warnings:" + String.valueOf(compilationWarningCount));
+			int compilationErrorCount = getCompilationErrorCount(machineMarkers, contextMarkers,
+					IMarker.SEVERITY_ERROR);
+			int compilationWarningCount = getCompilationErrorCount(machineMarkers, contextMarkers,
+					IMarker.SEVERITY_WARNING);
+			System.out.println("Compilation Errors:" + String.valueOf(compilationErrorCount));
+			System.out.println("Compilation Warnings:" + String.valueOf(compilationWarningCount));
 
-					EvaluationManager.setErrorToLatestAction(
-							String.valueOf(compilationErrorCount) + "/" + String.valueOf(compilationWarningCount));
-					EvaluationManager.endLatestAction();
-				} catch (CoreException e) {
-					e.printStackTrace();
-				}
-			}
-		};
-		runnableContext.run(false, false, countCompilationErrorsOperation);
+			EvaluationManager.setErrorToLatestAction(
+					String.valueOf(compilationErrorCount) + "/" + String.valueOf(compilationWarningCount));
+			EvaluationManager.endLatestAction();
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	private int getCompilationErrorCount(IMarker[] machineMarkers, IMarker[] contextMarkers, int severity)
@@ -568,42 +540,36 @@ public class ModelWorkspaceInteractor {
 		final String contextFileName = fileNames[0];
 		final String machineFileName = fileNames[1];
 
-		IRunnableWithProgress modelCheckingOperation = new IRunnableWithProgress() {
-			@Override
-			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-				try {
-					IRodinProject rodinProject = RodinUtils.getRodinProject(projectName);
+		try {
+			IRodinProject rodinProject = RodinUtils.getRodinProject(projectName);
 
-					final IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
-					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
-					IContextRoot contextRoot = (IContextRoot) contextFile.getRoot();
-					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
+			final IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
+			final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+			IContextRoot contextRoot = (IContextRoot) contextFile.getRoot();
+			IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
 
-					ModelCheckingFixer fixer = new ModelCheckingFixer(llmRequestSender, llmResponseParser);
-					JSONObject newModel = fixer.fixModelBasedOnProBResults(contextRoot, machineRoot);
-					EvaluationManager.endLatestAction();
+			ModelCheckingFixer fixer = new ModelCheckingFixer(llmRequestSender, llmResponseParser);
+			JSONObject newModel = fixer.fixModelBasedOnProBResults(contextRoot, machineRoot);
+			EvaluationManager.endLatestAction();
 
-					if (newModel != null) {
-						String[] newFileNames = saveModel(projectName, newModel);
-						fixBasedOnModelCheckingResults(projectName, newFileNames);
-					}
-				} catch (CoreException | ReachMaxAttemptException e) {
-					System.out.println(e.getMessage());
-					EvaluationManager.setErrorToLatestAction(e.getMessage());
-				} finally {
-					// save file without modification
-					try {
-						IRodinProject rodinProject = getRodinProject(projectName);
-						final IRodinFile rodinFile = rodinProject.getRodinFile(machineFileName);
-						rodinFile.save(null, true);
-					} catch (CoreException e) {
-						throw new InvocationTargetException(e);
-					}
-					monitor.done();
-				}
+			if (newModel != null) {
+				String[] newFileNames = saveModel(projectName, newModel);
+				fixBasedOnModelCheckingResults(projectName, newFileNames);
 			}
-		};
-		runnableContext.run(false, false, modelCheckingOperation);
+		} catch (CoreException | ReachMaxAttemptException e) {
+			System.out.println(e.getMessage());
+			EvaluationManager.setErrorToLatestAction(e.getMessage());
+		} finally {
+			// save file without modification
+			try {
+				IRodinProject rodinProject = getRodinProject(projectName);
+				final IRodinFile rodinFile = rodinProject.getRodinFile(machineFileName);
+				rodinFile.save(null, true);
+			} catch (CoreException e) {
+				throw new InvocationTargetException(e);
+			}
+		}
+
 	}
 
 	private IPOSequent getPO(List<IPOSequent> pos, String poName) {
@@ -634,46 +600,35 @@ public class ModelWorkspaceInteractor {
 		final String machineFileName = fileNames[1];
 
 		// fix POs
-		IRunnableWithProgress fixPOsOperation = new IRunnableWithProgress() {
-			@Override
-			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-				try {
-					IRodinProject rodinProject = getRodinProject(projectName);
-					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
-					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
+		try {
+			IRodinProject rodinProject = getRodinProject(projectName);
+			final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+			IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
 
-					// wait for bps file to be generated
-					try {
-						buildAndWaitForPOs(machineFile, monitor);
-					} finally {
-						monitor.done();
-					}
+			// wait for bps file to be generated
+			buildAndWaitForPOs(machineFile, null);
 
-					POManager poManager = new POManager();
+			POManager poManager = new POManager();
 
-					EvaluationManager.addAndStartNewAction(ComponentType.PO_CHECKER, 0);
+			EvaluationManager.addAndStartNewAction(ComponentType.PO_CHECKER, 0);
 
-					int totalPOCount = poManager.getAllPOs(machineRoot).length;
-					int undischargedPOCount = poManager.getOpenPOs(machineRoot).size();
-					System.out.println(totalPOCount);
-					System.out.println(undischargedPOCount);
+			int totalPOCount = poManager.getAllPOs(machineRoot).length;
+			int undischargedPOCount = poManager.getOpenPOs(machineRoot).size();
+			System.out.println(totalPOCount);
+			System.out.println(undischargedPOCount);
 
-					poManager.runAutoProvers(machineRoot);
+			poManager.runAutoProvers(machineRoot);
 
-					int updatedUndischargedPOCount = poManager.getOpenPOs(machineRoot).size();
-					System.out.println(updatedUndischargedPOCount);
+			int updatedUndischargedPOCount = poManager.getOpenPOs(machineRoot).size();
+			System.out.println(updatedUndischargedPOCount);
 
-					EvaluationManager.setErrorToLatestAction(String.valueOf(totalPOCount) + "/"
-							+ String.valueOf(undischargedPOCount) + "/" + String.valueOf(updatedUndischargedPOCount));
-					EvaluationManager.endLatestAction();
-				} catch (Exception e) {
-					throw new InvocationTargetException(e);
-				} finally {
-					monitor.done();
-				}
-			}
-		};
-		runnableContext.run(false, false, fixPOsOperation);
+			EvaluationManager.setErrorToLatestAction(String.valueOf(totalPOCount) + "/"
+					+ String.valueOf(undischargedPOCount) + "/" + String.valueOf(updatedUndischargedPOCount));
+			EvaluationManager.endLatestAction();
+		} catch (Exception e) {
+			throw new InvocationTargetException(e);
+		}
+
 	}
 
 	private static String poName;
@@ -688,95 +643,82 @@ public class ModelWorkspaceInteractor {
 		final String machineFileName = fileNames[1];
 
 		// fix POs
-		IRunnableWithProgress fixPOsOperation = new IRunnableWithProgress() {
-			@Override
-			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-				try {
-					IRodinProject rodinProject = getRodinProject(projectName);
-					final IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
-					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
-					IContextRoot contextRoot = (IContextRoot) contextFile.getRoot();
-					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
+		try {
+			IRodinProject rodinProject = getRodinProject(projectName);
+			final IRodinFile contextFile = rodinProject.getRodinFile(contextFileName);
+			final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+			IContextRoot contextRoot = (IContextRoot) contextFile.getRoot();
+			IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
 
-					// wait for bps file to be generated
-					try {
-						buildAndWaitForPOs(machineFile, monitor);
-					} finally {
-						monitor.done();
+			// wait for bps file to be generated
+			buildAndWaitForPOs(machineFile, null);
+
+			POManager poManager = new POManager();
+			POFixer poFixer = new POFixer(llmRequestSender, llmResponseParser);
+
+			poManager.runAutoProvers(machineRoot);
+			List<IPOSequent> pos = poManager.getOpenPOs(machineRoot);
+
+			if (pos.isEmpty()) {
+				EvaluationManager.addAndStartNewAction(ComponentType.FIX_PROOF, newAttemptID);
+				EvaluationManager.setErrorToLatestAction("All POs checked.");
+				EvaluationManager.endLatestAction();
+			}
+
+			IPOSequent undischargedPO = getPO(pos, poName);
+			if (undischargedPO != null) {
+				String undischargedPOName = undischargedPO.getElementName();
+				ModelWorkspaceInteractor.poName = undischargedPOName;
+
+				System.out.println(undischargedPOName);
+
+				EvaluationManager.addAndStartNewAction(ComponentType.FIX_PROOF, newAttemptID);
+				EvaluationManager.setPONameToLatestAction(undischargedPOName);
+				EvaluationManager.setLastPOActionIndex();
+
+				// record model before fixing
+				if (newAttemptID == 0) {
+					previousModel = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
+				}
+
+				if (enableFixStrategy) {
+					poFixer.autoFixPO(machineRoot, undischargedPO, new ArrayList<>());
+					EvaluationManager.endLatestAction();
+
+					if (ProofUtils.isDischarged(machineRoot, undischargedPOName)) {
+						visitedPOs.add(undischargedPOName);
+						EvaluationManager.copyActionForInfoRecording("PO discharged");
+						fixPOs(projectName, fileNames, null);
+					} else {
+						fixPOs(projectName, fileNames, undischargedPOName);
 					}
-
-					POManager poManager = new POManager();
-					POFixer poFixer = new POFixer(llmRequestSender, llmResponseParser);
-
-					poManager.runAutoProvers(machineRoot);
-					List<IPOSequent> pos = poManager.getOpenPOs(machineRoot);
-
-					if (pos.isEmpty()) {
-						EvaluationManager.addAndStartNewAction(ComponentType.FIX_PROOF, newAttemptID);
-						EvaluationManager.setErrorToLatestAction("All POs checked.");
+				} else {
+					JSONObject newModel = poFixer.autoFixPOWithoutStrategy(machineRoot, undischargedPO);
+					if (newModel != null) {
+						saveModel(projectName, newModel);
 						EvaluationManager.endLatestAction();
-					}
 
-					IPOSequent undischargedPO = getPO(pos, poName);
-					if (undischargedPO != null) {
-						String undischargedPOName = undischargedPO.getElementName();
-						ModelWorkspaceInteractor.poName = undischargedPOName;
+						// rebuild PO
+						FixProofStrategyRunner fixer = new FixProofStrategyRunner(undischargedPOName, machineRoot);
+						poFixer.waitForPORebuild(fixer);
+						fixer.applyAutoTactic();
 
-						System.out.println(undischargedPOName);
-
-						EvaluationManager.addAndStartNewAction(ComponentType.FIX_PROOF, newAttemptID);
-						EvaluationManager.setPONameToLatestAction(undischargedPOName);
-						EvaluationManager.setLastPOActionIndex();
-
-						// record model before fixing
-						if (newAttemptID == 0) {
-							previousModel = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
-						}
-
-						if (enableFixStrategy) {
-							poFixer.autoFixPO(machineRoot, undischargedPO, new ArrayList<>());
-							EvaluationManager.endLatestAction();
-
-							if (ProofUtils.isDischarged(machineRoot, undischargedPOName)) {
-								visitedPOs.add(undischargedPOName);
-								EvaluationManager.copyActionForInfoRecording("PO discharged");
-								fixPOs(projectName, fileNames, null);
-							} else {
-								fixPOs(projectName, fileNames, undischargedPOName);
-							}
+						if (ProofUtils.isDischarged(machineRoot, undischargedPOName)) {
+							visitedPOs.add(undischargedPOName);
+							EvaluationManager.copyActionForInfoRecording("PO discharged");
+							fixPOs(projectName, fileNames, null);
 						} else {
-							JSONObject newModel = poFixer.autoFixPOWithoutStrategy(machineRoot, undischargedPO);
-							if (newModel != null) {
-								saveModel(projectName, newModel);
-								EvaluationManager.endLatestAction();
-
-								// rebuild PO
-								FixProofStrategyRunner fixer = new FixProofStrategyRunner(undischargedPOName,
-										machineRoot);
-								poFixer.waitForPORebuild(fixer);
-								fixer.applyAutoTactic();
-
-								if (ProofUtils.isDischarged(machineRoot, undischargedPOName)) {
-									visitedPOs.add(undischargedPOName);
-									EvaluationManager.copyActionForInfoRecording("PO discharged");
-									fixPOs(projectName, fileNames, null);
-								} else {
-									fixPOs(projectName, fileNames, undischargedPOName);
-								}
-							}
+							fixPOs(projectName, fileNames, undischargedPOName);
 						}
 					}
-
-				} catch (ReachMaxAttemptException e) {
-					reattemptFixPO(e, projectName, fileNames, poName);
-				} catch (Exception e) {
-					reattemptFixPO(null, projectName, fileNames, ModelWorkspaceInteractor.poName);
-				} finally {
-					monitor.done();
 				}
 			}
-		};
-		runnableContext.run(false, false, fixPOsOperation);
+
+		} catch (ReachMaxAttemptException e) {
+			reattemptFixPO(e, projectName, fileNames, poName);
+		} catch (Exception e) {
+			reattemptFixPO(null, projectName, fileNames, ModelWorkspaceInteractor.poName);
+		}
 
 		return new String[] { contextFileName, machineFileName };
 	}
@@ -801,41 +743,29 @@ public class ModelWorkspaceInteractor {
 			throws InvocationTargetException, InterruptedException {
 		final String machineFileName = fileNames[1];
 
-		IRunnableWithProgress countPOsOperation = new IRunnableWithProgress() {
-			@Override
-			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-				try {
-					IRodinProject rodinProject = getRodinProject(projectName);
-					final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
-					IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
+		try {
+			IRodinProject rodinProject = getRodinProject(projectName);
+			final IRodinFile machineFile = rodinProject.getRodinFile(machineFileName);
+			IMachineRoot machineRoot = (IMachineRoot) machineFile.getRoot();
 
-					// wait for bps file to be generated
-					try {
-						buildAndWaitForPOs(machineFile, monitor);
-					} finally {
-						monitor.done();
-					}
+			// wait for bps file to be generated
+			buildAndWaitForPOs(machineFile, null);
 
-					POManager poManager = new POManager();
+			POManager poManager = new POManager();
 
-					EvaluationManager.addAndStartNewAction(ComponentType.PO_CHECKER, 0);
+			EvaluationManager.addAndStartNewAction(ComponentType.PO_CHECKER, 0);
 
-					int totalPOCount = poManager.getAllPOs(machineRoot).length;
-					int undischargedPOCount = poManager.getOpenPOs(machineRoot).size();
-					System.out.println(totalPOCount);
-					System.out.println(undischargedPOCount);
+			int totalPOCount = poManager.getAllPOs(machineRoot).length;
+			int undischargedPOCount = poManager.getOpenPOs(machineRoot).size();
+			System.out.println(totalPOCount);
+			System.out.println(undischargedPOCount);
 
-					EvaluationManager.setErrorToLatestAction(
-							String.valueOf(totalPOCount) + "/" + String.valueOf(undischargedPOCount));
-					EvaluationManager.endLatestAction();
-				} catch (Exception e) {
-					throw new InvocationTargetException(e);
-				} finally {
-					monitor.done();
-				}
-			}
-		};
-		runnableContext.run(false, false, countPOsOperation);
+			EvaluationManager
+					.setErrorToLatestAction(String.valueOf(totalPOCount) + "/" + String.valueOf(undischargedPOCount));
+			EvaluationManager.endLatestAction();
+		} catch (Exception e) {
+			throw new InvocationTargetException(e);
+		}
 	}
 
 	/**
@@ -851,31 +781,21 @@ public class ModelWorkspaceInteractor {
 	private void doFinish(String projectName, final String fileName, IProgressMonitor monitor, JSONObject json,
 			List<String> seenContexts) throws CoreException {
 
-		monitor.setTaskName("Creating " + fileName);
 		IRodinProject rodinProject = getRodinProject(projectName);
 
-		RodinCore.run(new IWorkspaceRunnable() {
-
-			@Override
-			public void run(IProgressMonitor pMonitor) throws CoreException {
-				final IRodinFile rodinFile = rodinProject.getRodinFile(fileName);
-				rodinFile.create(true, pMonitor);
-				final IInternalElement rodinRoot = rodinFile.getRoot();
-				((IConfigurationElement) rodinRoot).setConfiguration(DEFAULT_CONFIGURATION, pMonitor);
-				if (rodinRoot instanceof IMachineRoot) {
-					/* machine */
-					CreateModelUtils.initiateMachine(rodinRoot, pMonitor, llmResponseParser, json, seenContexts);
-				} else {
-					/* context */
-					CreateModelUtils.initiateContext(rodinRoot, pMonitor, llmResponseParser, json);
-				}
-				rodinFile.save(pMonitor, true);
-				ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
-			}
-
-		}, monitor);
-
-		monitor.worked(1);
+		final IRodinFile rodinFile = rodinProject.getRodinFile(fileName);
+		rodinFile.create(true, null);
+		final IInternalElement rodinRoot = rodinFile.getRoot();
+		((IConfigurationElement) rodinRoot).setConfiguration(DEFAULT_CONFIGURATION, null);
+		if (rodinRoot instanceof IMachineRoot) {
+			/* machine */
+			CreateModelUtils.initiateMachine(rodinRoot, null, llmResponseParser, json, seenContexts);
+		} else {
+			/* context */
+			CreateModelUtils.initiateContext(rodinRoot, null, llmResponseParser, json);
+		}
+		rodinFile.save(null, true);
+		ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
 
 		if (enableDisplay()) {
 			monitor.setTaskName("Opening file for editing...");

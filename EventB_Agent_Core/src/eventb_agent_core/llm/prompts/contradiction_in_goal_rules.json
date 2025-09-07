@@ -1,0 +1,7 @@
+[
+	{
+		"id": "1",
+		"sub_id": "",
+		"rule": "If the goal is `\\\\bot` or contains contraditions, and if the proof obligation is about an event, use `updateAction` or `strengthenInvariant` to fix the contradition."
+	}
+]

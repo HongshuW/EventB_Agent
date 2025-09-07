@@ -23,6 +23,7 @@ import org.eventb.internal.core.pm.ProofManager;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.RodinDBException;
 
+import eventb_agent_core.evaluation.EvaluationManager;
 import eventb_agent_core.proof.ProofAttemptWrapper;
 import eventb_agent_core.proof.ProofNodeWrapper;
 
@@ -95,16 +96,21 @@ public class ProofUtils {
 		return null;
 	}
 
-	public static IProofAttempt getProofAttempt(String poName, IMachineRoot machineRoot, String poOwnerName)
-			throws RodinDBException {
+	public static IProofAttempt getProofAttempt(String poName, IMachineRoot machineRoot, String poOwnerName) {
 		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
 
 		IProofAttempt proofAttempt = proofComponent.getProofAttempt(poName, poOwnerName);
-		if (proofAttempt == null) {
-			proofAttempt = proofComponent.createProofAttempt(poName, poOwnerName, null);
-		} else if (proofAttempt.isBroken()) {
-			proofAttempt.dispose();
-			proofAttempt = proofComponent.createProofAttempt(poName, poOwnerName, null);
+		try {
+			if (proofAttempt == null) {
+				proofAttempt = proofComponent.createProofAttempt(poName, poOwnerName, null);
+			} else if (proofAttempt.isBroken()) {
+				proofAttempt.dispose();
+				proofAttempt = proofComponent.createProofAttempt(poName, poOwnerName, null);
+			}
+		} catch (RodinDBException e) {
+			// PO is discharged, do nothing
+			EvaluationManager.setErrorToLatestAction("PO discharged");
+			EvaluationManager.endLatestAction();
 		}
 
 		return proofAttempt;
@@ -140,7 +146,7 @@ public class ProofUtils {
 				return st.getConfidence() >= IConfidence.DISCHARGED_MAX;
 			}
 		}
-		return false;
+		return true;
 	}
 
 	public static boolean isDischargedWithRefresh(IMachineRoot machineRoot, String poName) throws RodinDBException {

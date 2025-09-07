@@ -8,7 +8,6 @@ import org.eventb.core.IMachineRoot;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.rodinp.core.RodinDBException;
-
 import de.prob.core.Animator;
 import de.prob.core.command.GetFullTraceCommand;
 import de.prob.core.command.GetFullTraceCommand.TraceResult;
