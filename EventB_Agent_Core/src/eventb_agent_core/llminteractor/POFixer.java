@@ -253,7 +253,7 @@ public class POFixer extends AbstractLLMInteractor {
 			fixer.runAutoProvers();
 			break;
 		case addAbstractExpression:
-			String expression = args.getString(SchemaKeys.EXPR);
+			String expression = args.getJSONObject(SchemaKeys.EXPR).getString(SchemaKeys.EXPR);
 			String expr = ParserUtils.lex(expression);
 			result = fixer.addAbstractExpression(expr);
 			finish(result, fixer);
