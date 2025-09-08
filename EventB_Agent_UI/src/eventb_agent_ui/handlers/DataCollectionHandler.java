@@ -53,8 +53,8 @@ import eventb_agent_core.utils.proof.ProofUtils;
 
 public class DataCollectionHandler extends AbstractHandler implements IHandler {
 
-	private String GROUP = "ablation_refine_proofstrategy";
-	private String DATASET_NAME = "textbook";
+//	private String GROUP = "ablation_norefine_proofstrategy";
+	private String GROUP = "test";
 
 	public DataCollectionHandler() {
 		super();
@@ -189,7 +189,7 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					System.out.println();
 
 					String outputPath = "C:\\Users\\admin\\Downloads\\data_analysis\\" + GROUP + ".txt";
-					write(outputPath, DATASET_NAME, project.getName(), totalPOCount, dischargedPOCount,
+					write(outputPath, project.getName(), totalPOCount, dischargedPOCount,
 							totalRequirementCount, coveredRequirementCount, fulfilledRequirementCount);
 
 //					int allPOsAboutRequirements = 0;
@@ -214,10 +214,10 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 		return null;
 	}
 
-	private void write(String path, String datasetName, String projectName, int totalPOCount, int dischargedPOCount,
+	private void write(String path, String projectName, int totalPOCount, int dischargedPOCount,
 			int totalRequirementCount, int coveredRequirementCount, int fulfilledRequirementCount) {
 		StringBuilder contents = new StringBuilder();
-		contents.append(datasetName + ",");
+		contents.append("" + ",");
 		contents.append(projectName + ",");
 		contents.append(String.valueOf(totalPOCount) + ",");
 		contents.append(String.valueOf(dischargedPOCount) + ",");
