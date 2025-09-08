@@ -211,6 +211,8 @@ public class ParserUtils {
 		specialCharsMap.put("\top", String.valueOf(TRUE));
 		specialCharsMap.put("\bot", String.valueOf(FALSE));
 		specialCharsMap.put("\bcmeq", String.valueOf(ASSIGN));
+		specialCharsMap.put("\bmod", "mod");
+		specialCharsMap.put("\bij", String.valueOf(EQUIVALENCE));
 		specialCharsMap.put("{}", String.valueOf(EMPTY_SET));
 		specialCharsMap.put("|", String.valueOf(SUCH_THAT));
 		specialCharsMap.put("!=", String.valueOf(NOT_EQ));
@@ -222,8 +224,11 @@ public class ParserUtils {
 		specialCharsMap.put(".", String.valueOf(DOT));
 		specialCharsMap.put("#", String.valueOf(EXISTS));
 		specialCharsMap.put("\\pow(", String.valueOf(POW) + "(");
+		specialCharsMap.put("\\pow1(", String.valueOf(POW) + "1(");
 		specialCharsMap.put("POW(", String.valueOf(POW) + "(");
 		specialCharsMap.put("POW1(", String.valueOf(POW) + "1(");
+		specialCharsMap.put("\\power(", String.valueOf(POW) + "(");
+		specialCharsMap.put("\\power1(", String.valueOf(POW) + "1(");
 		specialCharsMap.put("P(", String.valueOf(POW) + "(");
 		specialCharsMap.put("P1(", String.valueOf(POW) + "1(");
 		specialCharsMap.put("><", String.valueOf(DIRECT_PRODUCT));
@@ -241,7 +246,7 @@ public class ParserUtils {
 		Map<String, String> regexMap = new HashMap<>();
 //		regexMap.put("\\|(?!->)([^|]+)\\|(?!->)", "card($1)"); // replace |...| with card(...)
 //		regexMap.put("\\∣([^∣]+)\\∣", "card($1)"); // replace ∣...∣ with card(...)
-		regexMap.put("\\\\math(bb|bf|cal|rm|it|frak|tt)\\{([^}]*)\\}", "$2"); // replace \mathXX{...} with ...
+		regexMap.put("\\\\math(bb|bf|cal|rm|it|frak|tt|bin)\\{([^}]*)\\}", "$2"); // replace \mathXX{...} with ...
 		regexMap.put("\\\\text(|bf|it|tt|sf|rm|sc|sl|normal|up)\\{([^}]*)\\}", "$2"); // replace \textXX{...} with ...
 		regexMap.put("\\\\operatorname\\{([^}]*)\\}", "$2"); // replace \operatorname{...} with ...
 		regexMap.put("\\s*//.*$", ""); // remove comments
@@ -259,7 +264,7 @@ public class ParserUtils {
 		regexMap.put(">->(?![>])", String.valueOf(TOTAL_INJECTION)); // replace ">->" with "↣"
 		regexMap.put("-->(?![>])", String.valueOf(TOTAL_FUNCTION)); // replace "-->" with "→"
 		regexMap.put("\\|->(?![>])", String.valueOf(MAP_LET)); // replace "|->" with "↦"
-		regexMap.put("/(?![=:<])", String.valueOf(DIVISION)); // replace "/" with DIVISION
+		regexMap.put("(?<![\\\\])/(?![=:<\\\\])", String.valueOf(DIVISION)); // replace "/" with DIVISION
 		regexMap.put("\\\\+pfun", String.valueOf(PARTIAL_FUNCTION));
 		regexMap.put("\\\\+subseteq", String.valueOf(SUBSET));
 		regexMap.put("\\\\+subset(?!e)", String.valueOf(STRICT_SUBSET));
@@ -275,6 +280,7 @@ public class ParserUtils {
 		regexMap.put("\\\\+noteq", String.valueOf(NOT_EQ));
 		regexMap.put("\\\\+times", String.valueOf(CARTESIAN_PRODUCT));
 		regexMap.put("\\\\+land", String.valueOf(AND));
+		regexMap.put("\\\\+lnot", String.valueOf(NOT));
 		regexMap.put("\\\\+bullet", String.valueOf(DOT));
 		regexMap.put("\\\\+not=", String.valueOf(NOT_EQ));
 		regexMap.put("\\\\+cup", String.valueOf(UNION));
@@ -332,6 +338,13 @@ public class ParserUtils {
 		regexMap.put("\\\\+parallel", String.valueOf(PARALLEL_PRODUCT));
 		regexMap.put("\\\\+bcmeq", String.valueOf(ASSIGN));
 		regexMap.put("\\\\+div", String.valueOf(DIVISION));
+		regexMap.put("\\\\+Longrightarrow", String.valueOf(IMPLIES));
+		regexMap.put("\\\\+varnothing", String.valueOf(EMPTY_SET));
+		regexMap.put("\\\\+NAT", String.valueOf(NAT));
+		regexMap.put("\\\\+INT", String.valueOf(INT));
+		regexMap.put("\\\\+BOOL", "BOOL");
+		regexMap.put("\\\\+bmod", "mod");
+		regexMap.put("\\\\+bij", String.valueOf(EQUIVALENCE));
 		regexMap.put("\\\\\\{", "{");
 		regexMap.put("\\\\\\}", "}");
 

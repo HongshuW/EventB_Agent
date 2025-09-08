@@ -109,7 +109,7 @@ public class ProofUtils {
 			}
 		} catch (RodinDBException e) {
 			// PO is discharged, do nothing
-			EvaluationManager.setErrorToLatestAction("PO discharged");
+			EvaluationManager.setErrorToLatestAction("PO not found");
 			EvaluationManager.endLatestAction();
 		}
 
