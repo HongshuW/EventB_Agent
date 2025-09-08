@@ -33,26 +33,7 @@ public class GPTResponseParser extends LLMResponseParser {
 	public JSONObject getResponseWithTools(String response) {
 		JSONObject result = new JSONObject();
 
-		JSONArray results = new JSONArray();
-		JSONArray resultFromResponse = new JSONObject(response).getJSONArray("output");
-		if (isGPT4()) {
-			results = resultFromResponse;
-		} else {
-			for (int i = 1; i < resultFromResponse.length(); i++) {
-				JSONObject entry = resultFromResponse.getJSONObject(i);
-				if (entry.has("content")) {
-					JSONArray contents = entry.getJSONArray("content");
-					for (int j = 0; j < contents.length(); j++) {
-						Object text = contents.getJSONObject(j).get("text");
-						if (text instanceof JSONObject) {
-							results.put((JSONObject) text);
-						}
-					}
-				} else {
-					results.put(entry);
-				}
-			}
-		}
+		JSONArray results = new JSONObject(response).getJSONArray("output");
 		result.put("result", results);
 		return result;
 	}

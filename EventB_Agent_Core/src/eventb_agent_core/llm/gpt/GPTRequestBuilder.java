@@ -217,4 +217,16 @@ public class GPTRequestBuilder extends RequestBuilder {
 		}
 	}
 
+	@Override
+	public void addReasoningHistory(List<LinkedHashMap<String, Object>> history, JSONObject reasoning) {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			LinkedHashMap<String, Object> reaoningMap = mapper.readValue(reasoning.toString(),
+					LinkedHashMap.class);
+			history.add(reaoningMap);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+	}
+
 }

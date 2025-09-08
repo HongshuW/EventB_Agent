@@ -155,12 +155,29 @@ public class POFixer extends AbstractLLMInteractor {
 				if (poType == ProofScenarioType.CARD_WD) {
 					limit = 2;
 				}
-				for (int i = 0; i < Math.min(limit, answer.length()); i++) {
+
+				int start = 1; // assume reasoning
+				for (int i = 0; i < Math.min(start + limit, answer.length()); i++) {
 					JSONObject functionCall = answer.getJSONObject(i);
-					modifyModel(functionCall, machineRoot, contextRoot, poSequent, tree, poType);
-					llmRequestSender.getRequestBuilder().addRequestHistory(
-							"The PO is not discharged. The Event-B model and proof tree are updated. What to do next?",
-							reasonerMessage, requestHistory, functionCall);
+					if (functionCall.get("type").equals("function_call")) {
+						start = i;
+						if (functionCall.has("content")) {
+							JSONArray contents = functionCall.getJSONArray("content");
+							for (int j = 0; j < contents.length(); j++) {
+								Object text = contents.getJSONObject(j).get("text");
+								if (text instanceof JSONObject) {
+									modifyModel((JSONObject) text, machineRoot, contextRoot, poSequent, tree, poType);
+								}
+							}
+						} else {
+							modifyModel(functionCall, machineRoot, contextRoot, poSequent, tree, poType);
+						}
+						llmRequestSender.getRequestBuilder().addRequestHistory(
+								"The PO is not discharged. The Event-B model and proof tree are updated. What to do next?",
+								reasonerMessage, requestHistory, functionCall);
+					} else {
+						llmRequestSender.getRequestBuilder().addReasoningHistory(requestHistory, functionCall);
+					}
 				}
 				if (!ProofUtils.isDischarged(machineRoot, poName)) {
 					EvaluationManager.endLatestAction();

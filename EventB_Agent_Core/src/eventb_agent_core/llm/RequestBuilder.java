@@ -57,6 +57,8 @@ public abstract class RequestBuilder {
 	public abstract void addRequestHistory(String prompt, String message, List<LinkedHashMap<String, Object>> history,
 			JSONObject functionCall);
 
+	public abstract void addReasoningHistory(List<LinkedHashMap<String, Object>> history, JSONObject reasoning);
+
 	public abstract String getRequestPlain(String prompt) throws IOException;
 
 	public abstract HttpURLConnection getURLConnection(String apiEndpoint, String apiKey) throws IOException;
