@@ -34,8 +34,8 @@ public class Constants {
 	public static final double TOP_P = 1;
 	public static final int TOKEN_LIMIT = 4096;
 
-	public static final String VERBOSITY = "medium";
-	public static final String REASONING = "low";
+	public static final String VERBOSITY = "low";
+	public static final String REASONING = "medium";
 
 	public static final String DEFAULT_PLACE_HOLDER = "{{default}}";
 	public static final String REFINEMENT_ID_PLACE_HOLDER = "{{refinement_id}}";

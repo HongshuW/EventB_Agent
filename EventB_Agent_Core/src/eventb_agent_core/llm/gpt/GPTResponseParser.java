@@ -32,8 +32,9 @@ public class GPTResponseParser extends LLMResponseParser {
 	@Override
 	public JSONObject getResponseWithTools(String response) {
 		JSONObject result = new JSONObject();
+		JSONObject responseJSON = new JSONObject(response);
 
-		JSONArray results = new JSONObject(response).getJSONArray("output");
+		JSONArray results = responseJSON.getJSONArray("output");
 		result.put("result", results);
 		return result;
 	}

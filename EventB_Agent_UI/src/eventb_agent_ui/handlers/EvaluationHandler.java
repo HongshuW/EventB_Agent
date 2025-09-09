@@ -152,7 +152,7 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 							EvaluationManager
 									.setErrorToLatestAction(e.getMessage() == null ? e.toString() : e.getMessage());
 							EvaluationManager.endLatestAction();
-						} catch (InterruptedException | InvocationTargetException | CoreException e) {
+						} catch (Exception e) {
 							e.printStackTrace();
 							EvaluationManager
 									.setErrorToLatestAction(e.getMessage() == null ? e.toString() : e.getMessage());

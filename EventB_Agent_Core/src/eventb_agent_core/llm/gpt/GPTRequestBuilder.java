@@ -77,21 +77,31 @@ public class GPTRequestBuilder extends RequestBuilder {
 		request.put("input", Arrays.asList(requestMessage));
 
 		Map<String, Object> jsonSchema = getSchema(requestType);
-		LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
-		textFormat.put("format", jsonSchema);
-		if (!isGPT4()) {
-			textFormat.put("verbosity", Constants.VERBOSITY);
-		}
-		request.put("text", textFormat);
-
 		if (isGPT4()) {
-			request.put("temperature", Constants.TEMPERATURE);
-			request.put("top_p", Constants.TOP_P);
-			request.put("max_output_tokens", Constants.TOKEN_LIMIT);
+			LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
+			textFormat.put("format", jsonSchema);
+			request.put("text", textFormat);
 		} else {
+			String schemaString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonSchema);
+			prompt += "\nYou must return a ***json*** according to the JSON Schema below, do not include extra explanation.\n"
+					+ schemaString;
+			content.put("text", prompt);
+			LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
+			textFormat.put("verbosity", Constants.VERBOSITY);
+			LinkedHashMap<String, Object> type = new LinkedHashMap<>();
+			type.put("type", "json_object");
+			textFormat.put("format", type);
+			request.put("text", textFormat);
+		}
+
+		if (!isGPT4()) {
 			LinkedHashMap<String, Object> reasoningEffort = new LinkedHashMap<>();
 			reasoningEffort.put("effort", Constants.REASONING);
 			request.put("reasoning", reasoningEffort);
+		} else {
+			request.put("temperature", Constants.TEMPERATURE);
+			request.put("top_p", Constants.TOP_P);
+			request.put("max_output_tokens", Constants.TOKEN_LIMIT);
 		}
 
 		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
@@ -221,8 +231,7 @@ public class GPTRequestBuilder extends RequestBuilder {
 	public void addReasoningHistory(List<LinkedHashMap<String, Object>> history, JSONObject reasoning) {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			LinkedHashMap<String, Object> reaoningMap = mapper.readValue(reasoning.toString(),
-					LinkedHashMap.class);
+			LinkedHashMap<String, Object> reaoningMap = mapper.readValue(reasoning.toString(), LinkedHashMap.class);
 			history.add(reaoningMap);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
