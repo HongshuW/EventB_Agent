@@ -42,36 +42,48 @@ public class CompilationErrorInfoExtractor {
 	}
 
 	private void extractInfoFromHandle(String handle) {
-		// <path to file>|
-		// <machineFile OR contextFile>#<machine name OR context name>|
-		// <internal element type>#<default id>
-		// if element is event : <internal element type>#<default id>
-		String[] entries = handle.split("\\|");
+		try {
+			// <path to file>|
+			// <machineFile OR contextFile>#<machine name OR context name>|
+			// <internal element type>#<default id>
+			// if element is event : <internal element type>#<default id>
+			String[] entries = handle.split("\\|");
 
-		filePath = entries[0];
+			filePath = entries[0];
 
-		String fileTypeAndName = entries[1];
-		String[] fileTypeAndNameEntries = fileTypeAndName.split("#");
-		fileType = fileTypeAndNameEntries[0];
-		componentName = fileTypeAndNameEntries[1];
+			String fileTypeAndName = entries[1];
+			String[] fileTypeAndNameEntries = fileTypeAndName.split("#");
+			fileType = fileTypeAndNameEntries[0];
+			componentName = fileTypeAndNameEntries[1];
 
-		String elementTypeAndID = entries[2];
-		String[] elementTypeAndIDEntries = elementTypeAndID.split("#");
-		firstElementType = RodinCore.getInternalElementType(elementTypeAndIDEntries[0]);
-		firstElementID = elementTypeAndIDEntries[1].length() == 1 ? elementTypeAndIDEntries[1]
-				: elementTypeAndIDEntries[1].substring(1);
-
-		if (entries.length > 3) {
-			elementTypeAndID = entries[3];
-			elementTypeAndIDEntries = elementTypeAndID.split("#");
-			secondElementType = RodinCore.getInternalElementType(elementTypeAndIDEntries[0]);
-			secondElementID = elementTypeAndIDEntries[1].length() == 1 ? elementTypeAndIDEntries[1]
+			String elementTypeAndID = entries[2];
+			String[] elementTypeAndIDEntries = elementTypeAndID.split("#");
+			firstElementType = RodinCore.getInternalElementType(elementTypeAndIDEntries[0]);
+			firstElementID = elementTypeAndIDEntries[1].length() == 1 ? elementTypeAndIDEntries[1]
 					: elementTypeAndIDEntries[1].substring(1);
+
+			if (entries.length > 3) {
+				elementTypeAndID = entries[3];
+				elementTypeAndIDEntries = elementTypeAndID.split("#");
+				secondElementType = RodinCore.getInternalElementType(elementTypeAndIDEntries[0]);
+				secondElementID = elementTypeAndIDEntries[1].length() == 1 ? elementTypeAndIDEntries[1]
+						: elementTypeAndIDEntries[1].substring(1);
+			}
+		} catch (Exception e) {
+			//skip
+			firstElementType = null;
+			firstElementID = "";
+			secondElementType = null;
+			secondElementID = "";
 		}
+
 	}
 
 	public List<IInternalElement> getErroneousElementsFromContext(IContextRoot contextRoot) {
 		List<IInternalElement> results = new ArrayList<>();
+		if (firstElementType == null) {
+			return results;
+		}
 		if (firstElementType.equals(ICarrierSet.ELEMENT_TYPE)) {
 			results.add(contextRoot.getCarrierSet(firstElementID));
 		} else if (firstElementType.equals(IConstant.ELEMENT_TYPE)) {
@@ -84,6 +96,9 @@ public class CompilationErrorInfoExtractor {
 
 	public List<IInternalElement> getErroneousElementsFromMachine(IMachineRoot machineRoot) {
 		List<IInternalElement> results = new ArrayList<>();
+		if (firstElementType == null) {
+			return results;
+		}
 		if (firstElementType.equals(IVariable.ELEMENT_TYPE)) {
 			results.add(machineRoot.getVariable(firstElementID));
 		} else if (firstElementType.equals(IInvariant.ELEMENT_TYPE)) {
