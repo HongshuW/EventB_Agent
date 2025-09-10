@@ -9,6 +9,7 @@ Do not include comments.
 Try to use latex commands to represent special symbols, make sure that only commands with a corresponding symbol in Event-B are included, e.g. exclude commands like \\bcmin, \\quad, etc.
 Clauses such as "if...else..." are not supported by Event-B, use two events with different guards to represent the logic.
 (x,y) is not supported and you must use x |-> y.
+If a boolean value is required, use BOOL instead of BOOLEAN.
 
 The context name should be <ContextName>_<ID>, and the machine name should be <MachineName>_<ID>.
 

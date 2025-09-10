@@ -78,53 +78,59 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 
 				String handle = (String) marker.getAttribute("element", null);
 				if (handle != null) {
-					CompilationErrorInfoExtractor infoExtractor = new CompilationErrorInfoExtractor(handle);
-					List<IInternalElement> erroneousElements = new ArrayList<>();
-					if (isContext) {
-						erroneousElements = infoExtractor.getErroneousElementsFromContext((IContextRoot) componentRoot);
-					} else {
-						erroneousElements = infoExtractor.getErroneousElementsFromMachine((IMachineRoot) componentRoot);
-					}
+					try {
+						CompilationErrorInfoExtractor infoExtractor = new CompilationErrorInfoExtractor(handle);
+						List<IInternalElement> erroneousElements = new ArrayList<>();
+						if (isContext) {
+							erroneousElements = infoExtractor
+									.getErroneousElementsFromContext((IContextRoot) componentRoot);
+						} else {
+							erroneousElements = infoExtractor
+									.getErroneousElementsFromMachine((IMachineRoot) componentRoot);
+						}
 
-					if (erroneousElements == null) {
-						messages.add(message);
-						continue;
-					} else if (erroneousElements.size() == 1) {
-						// one element with error
-						IInternalElement element = erroneousElements.get(0);
-						String type = element.getElementType().getName();
+						if (erroneousElements == null) {
+							messages.add(message);
+							continue;
+						} else if (erroneousElements.size() == 1) {
+							// one element with error
+							IInternalElement element = erroneousElements.get(0);
+							String type = element.getElementType().getName();
 
-						int markerStart = (int) marker.getAttribute(IMarker.CHAR_START, -1);
-						int markerEnd = (int) marker.getAttribute(IMarker.CHAR_END, -1);
-						String jsonStr = RetrieveModelUtils.getComponentJSON(element, markerStart, markerEnd);
+							int markerStart = (int) marker.getAttribute(IMarker.CHAR_START, -1);
+							int markerEnd = (int) marker.getAttribute(IMarker.CHAR_END, -1);
+							String jsonStr = RetrieveModelUtils.getComponentJSON(element, markerStart, markerEnd);
 
-						StringBuilder messageBuilder = new StringBuilder();
-						messageBuilder.append(type + ": ");
-						messageBuilder.append(jsonStr + " has the issue:\n");
-						messageBuilder.append(message);
-						messageBuilder.append("\n");
+							StringBuilder messageBuilder = new StringBuilder();
+							messageBuilder.append(type + ": ");
+							messageBuilder.append(jsonStr + " has the issue:\n");
+							messageBuilder.append(message);
+							messageBuilder.append("\n");
 
-						messages.add(messageBuilder.toString());
-					} else if (erroneousElements.size() == 2) {
-						// one element from event has error
-						IEvent event = (IEvent) erroneousElements.get(0);
-						String eventName = event.getLabel();
+							messages.add(messageBuilder.toString());
+						} else if (erroneousElements.size() == 2) {
+							// one element from event has error
+							IEvent event = (IEvent) erroneousElements.get(0);
+							String eventName = event.getLabel();
 
-						IInternalElement element = erroneousElements.get(1);
-						String type = element.getElementType().getName();
+							IInternalElement element = erroneousElements.get(1);
+							String type = element.getElementType().getName();
 
-						int markerStart = (int) marker.getAttribute(IMarker.CHAR_START, -1);
-						int markerEnd = (int) marker.getAttribute(IMarker.CHAR_END, -1);
-						String jsonStr = RetrieveModelUtils.getComponentJSON(element, markerStart, markerEnd);
+							int markerStart = (int) marker.getAttribute(IMarker.CHAR_START, -1);
+							int markerEnd = (int) marker.getAttribute(IMarker.CHAR_END, -1);
+							String jsonStr = RetrieveModelUtils.getComponentJSON(element, markerStart, markerEnd);
 
-						StringBuilder messageBuilder = new StringBuilder();
-						messageBuilder.append(type + ": ");
-						messageBuilder.append(jsonStr + " from event `");
-						messageBuilder.append(eventName + "` has the issue:\n");
-						messageBuilder.append(message);
-						messageBuilder.append("\n");
+							StringBuilder messageBuilder = new StringBuilder();
+							messageBuilder.append(type + ": ");
+							messageBuilder.append(jsonStr + " from event `");
+							messageBuilder.append(eventName + "` has the issue:\n");
+							messageBuilder.append(message);
+							messageBuilder.append("\n");
 
-						messages.add(messageBuilder.toString());
+							messages.add(messageBuilder.toString());
+						}
+					} catch (Exception e) {
+						// skip
 					}
 
 				} else {

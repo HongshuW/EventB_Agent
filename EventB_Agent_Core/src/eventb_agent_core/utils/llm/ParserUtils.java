@@ -28,6 +28,7 @@ public class ParserUtils {
 	private static char CARTESIAN_PRODUCT = '\u00D7';
 	private static char MINUS = '\u2212';
 	private static char DOT = '\u00B7';
+	private static char TIMES = '\u2217';
 	private static char DIRECT_PRODUCT = '\u2297';
 	private static char RANGE_RESTRICTION = '\u25B7';
 	private static char DOMAIN_RESTRICTION = '\u25C1';
@@ -83,6 +84,7 @@ public class ParserUtils {
 	}
 
 	public static void main(String[] args) {
+		show("∗");
 	}
 
 	private static void initMap() {
@@ -145,6 +147,7 @@ public class ParserUtils {
 		reverseLexMap.put(EXPONENTIATION, "^");
 		reverseLexMap.put(DIVISION, "/");
 		reverseLexMap.put(OF_TYPE, "\\oftype");
+		reverseLexMap.put(TIMES, "*");
 	}
 
 	public static String addEscape(String originalString) {
@@ -242,6 +245,7 @@ public class ParserUtils {
 		specialCharsMap.put("<+", String.valueOf(RELATIONAL_OVERRIDING));
 		specialCharsMap.put("~", String.valueOf(TILDE));
 		specialCharsMap.put("^", String.valueOf(EXPONENTIATION));
+		specialCharsMap.put("*", String.valueOf(TIMES));
 
 		Map<String, String> regexMap = new HashMap<>();
 //		regexMap.put("\\|(?!->)([^|]+)\\|(?!->)", "card($1)"); // replace |...| with card(...)
@@ -253,7 +257,7 @@ public class ParserUtils {
 		regexMap.put("(?<![|<>+\\\\-])-(?![|<>+\\\\-])", String.valueOf(MINUS)); // replace "-" with "−"
 		regexMap.put("(?<![<])=>", String.valueOf(IMPLIES)); // replace "=>" with "⇒"
 		regexMap.put("!(?![=])", String.valueOf(FOR_ALL)); // replace "!" with "∀"
-		regexMap.put("\\*{1,2}", String.valueOf(CARTESIAN_PRODUCT)); // replace "*|**" with "×"
+		regexMap.put("\\*{2}", String.valueOf(CARTESIAN_PRODUCT)); // replace "**" with "×"
 		regexMap.put("<=(?![>])", String.valueOf(LEQ)); // replace "<=" with "≤"
 		regexMap.put("(?<![<])<->(?![>])", String.valueOf(RELATION)); // replace "<->" with "↔"
 		regexMap.put("(?<![<])<\\|", String.valueOf(DOMAIN_RESTRICTION)); // replace "<|" with "◁"
