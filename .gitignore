@@ -2,8 +2,6 @@
 *.project
 resources/
 
-*/1PAT_Pipeline/
-*/existing_problems.txt
 */generated_code/
 */ProB/
 */__pycache__/
@@ -11,8 +9,3 @@ resources/
 */workspace/
 */history/
 */run_time_record/
-*.out
-*.txt
-*/database-rag-claude-real.json
-PAT_Pipeline_Adaption_version1/
-PAT_Pipeline_Adaption_version2/
