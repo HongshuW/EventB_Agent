@@ -37,5 +37,5 @@ The plug-in that includes core functionalities.
 **EventB_Agent_UI** <br>
 The plug-in for UI.
 
-### Proof States and Repair Rules
-![Proof States and Repair Rules](./Proof_States_and_Repair_Rules.png)
+**PAT_Pipeline_Adaption** <br>
+The adapted PAT-Agent pipeline for generating Event-B models. For instructions, please refer to the README file in the respective folder.

@@ -40,8 +40,8 @@ def get_LLM_answers(question, context, history):
         try:
             # Get model response
             completion = client.chat.completions.create(
-                model="o3-mini-2025-01-31",
-                reasoning_effort="high",
+                model="gpt-5",
+                reasoning_effort="medium",
                 messages=[
                     {
                         "role": "user",
@@ -118,17 +118,20 @@ def save_run_time(model_name, stage,run_time, hasMismatch=None, codegenFailed=No
 
 # save same foloder save in piple
 def gen_context(structuredData):
-    # modelDescription = structuredData['description'] # read in the description from structuredData
-    functionalities = " ".join(v for k, v in structuredData.items() if k.startswith("FUN-"))
-    eqp_requirements    = " ".join(v for k, v in structuredData.items() if k.startswith("EQP-"))
-    env_requirements    = " ".join(v for k, v in structuredData.items() if k.startswith("ENV-"))
-    saf_requirements    = " ".join(v for k, v in structuredData.items() if k.startswith("SAF-"))
-
+    # modelDescription = structuredData['description'] # read in the description from structuredData\
+    functionalities = " ".join(f"{k}: {v}" for k, v in structuredData.items() if k.startswith("FUN-"))
+    eqp_requirements    = " ".join(f"{k}: {v}" for k, v in structuredData.items() if k.startswith("EQP-"))
+    env_requirements    = " ".join(f"{k}: {v}" for k, v in structuredData.items() if k.startswith("ENV-"))
+    saf_requirements    = " ".join(f"{k}: {v}" for k, v in structuredData.items() if k.startswith("SAF-"))
+    deg_requirements    = " ".join(f"{k}: {v}" for k, v in structuredData.items() if k.startswith("DEG-"))
+    del_requirements    = " ".join(f"{k}: {v}" for k, v in structuredData.items() if k.startswith("DEL-"))
     modelDescription = (
-        f"Functionality: {functionalities}\n"
+        f"Functionality Requirements: {functionalities}\n"
         f"Equipment Requirements: {eqp_requirements}\n"
         f"Environment Requirements: {env_requirements}\n"
         f"Safety Requirements: {saf_requirements}\n"
+        f"Termination and Convergence Requirements: {deg_requirements}\n"
+        f"Delay Requirements: {del_requirements}\n"
     )
     
     prompt_gen_context = f"""As an expert in Event-B context modeling, can you extract all the constants from the following description?
@@ -188,15 +191,19 @@ def _get_last_context_json():
 def gen_machine(structured_data):
     contextJSON = _get_last_context_json()
 
-    functionalities = " ".join(v for k, v in structured_data.items() if k.startswith("FUN-"))
-    eqp_requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("EQP-"))
-    env_requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("ENV-"))
-    saf_requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("SAF-"))
+    functionalities = " ".join(f"{k}: {v}" for k, v in structured_data.items() if k.startswith("FUN-"))
+    eqp_requirements    = " ".join(f"{k}: {v}" for k, v in structured_data.items() if k.startswith("EQP-"))
+    env_requirements    = " ".join(f"{k}: {v}" for k, v in structured_data.items() if k.startswith("ENV-"))
+    saf_requirements    = " ".join(f"{k}: {v}" for k, v in structured_data.items() if k.startswith("SAF-"))
+    deg_requirements    = " ".join(f"{k}: {v}" for k, v in structured_data.items() if k.startswith("DEG-"))
+    del_requirements    = " ".join(f"{k}: {v}" for k, v in structured_data.items() if k.startswith("DEL-"))
     modelDescription = (
-        f"Functionality: {functionalities}\n"
+        f"Functionality Requirements: {functionalities}\n"
         f"Equipment Requirements: {eqp_requirements}\n"
         f"Environment Requirements: {env_requirements}\n"
         f"Safety Requirements: {saf_requirements}\n"
+        f"Termination and Convergence Requirements: {deg_requirements}\n"
+        f"Delay Requirements: {del_requirements}\n"
     )
 
     prompt_gen_machine = f"""As an expert in Event-B machine modeling, analyze the following system description and previously extracted context (constants), then produce the machine components: variables, invariants, and events.
@@ -220,7 +227,14 @@ Output a single JSON object with this exact schema:
     ],
     "invariants": [
       {{
+        "name": "inv1",
         "predicate": "carsOnBridge >= 0"
+      }}
+    ],
+    "variants": [
+      {{
+        "name": "",
+        "expression": ""
       }}
     ],
     "events": [
@@ -237,6 +251,8 @@ Requirements:
 - machineName: a descriptive name for the machine (e.g. `counterMachine`).
 - Variables: each has name, type (must be one of Event-B's basic types), and initialValue.
 - Invariants: Use only declared variables/constants to specify the predicate.
+- For each **FUN (Functionality) and SAF (Safety) requirement** in the System description, there **must** be one or more **invariants** with the following naming convention: same name of the requirement appended by invariant numbering for this requirement, e.g. FUN_1_inv_1 (for FUN-1), FUN_1_inv_2, FUN_2_inv_1 (For FUN-2), ...
+- For each **DEG (Termination and Convergence) and DEL (Delay) requirement** in the System description, there **must** be one or more **invariants or variants** with the following naming convention: same name of the requirement appended by invariant/variant numbering for this requirement, e.g. DEG_1_var_1 (for DEG-1), DEG_1_var_2, DEG_2_var_1 (For DEG-2), ...
 - Events: fields = name, guards[], actions[]; guards are state predicates (conditions for the event to occur); actions are assignments to declared variables.
 - Consistency: initialValue should satisfy invariants; events should preserve typing; output JSON only, no extra fields.
 
@@ -293,24 +309,22 @@ def load_eventb_schema():
 
 def generate_eventb_baseline(prompt):
     schema = load_eventb_schema()
+
     response = client.responses.create(
-        model="o3-mini-2025-01-31",
-        reasoning={"effort": "high"},
+        model="gpt-5",
+        reasoning={"effort": "medium"},
         input=[
             {
                 "role": "system",
                 "content": (
-                    "You are an Event-B assistant. Respond ONLY with JSON that "
-                    "validates against the provided schema."
+                    "You are an Event-B assistant. You **MUST**"
+                    " return a ***json*** according to the JSON Schema below, ***do not*** include extra explanation."
+                    f" Here is the JSON **Schema** format that you should adhere to:\n{json.dumps(schema)}"
                 ),
             },
             {"role": "user", "content": prompt},
         ],
-        text={
-            "format": schema
-        },
     )
-
     answer = response.output_text
     return answer
 
@@ -323,15 +337,19 @@ def gen_schema(structured_data):
     # 1. RAG: Get most relevant example
     print("Retrieving RAG example...")
     
-    functionalities = " ".join(v for k, v in structured_data.items() if k.startswith("FUN-"))
-    eqp_requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("EQP-"))
-    env_requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("ENV-"))
-    saf_requirements    = " ".join(v for k, v in structured_data.items() if k.startswith("SAF-"))
+    functionalities = " ".join(f"{k}: {v}" for k, v in structured_data.items() if k.startswith("FUN-"))
+    eqp_requirements    = " ".join(f"{k}: {v}" for k, v in structured_data.items() if k.startswith("EQP-"))
+    env_requirements    = " ".join(f"{k}: {v}" for k, v in structured_data.items() if k.startswith("ENV-"))
+    saf_requirements    = " ".join(f"{k}: {v}" for k, v in structured_data.items() if k.startswith("SAF-"))
+    deg_requirements    = " ".join(f"{k}: {v}" for k, v in structured_data.items() if k.startswith("DEG-"))
+    del_requirements    = " ".join(f"{k}: {v}" for k, v in structured_data.items() if k.startswith("DEL-"))
     modelDescription = (
-        f"Functionality: {functionalities}\n"
+        f"Functionality Requirements: {functionalities}\n"
         f"Equipment Requirements: {eqp_requirements}\n"
         f"Environment Requirements: {env_requirements}\n"
         f"Safety Requirements: {saf_requirements}\n"
+        f"Termination and Convergence Requirements: {deg_requirements}\n"
+        f"Delay Requirements: {del_requirements}\n"
     )
     instruction = _process_instruction_helper(modelDescription, context, machine)
     print("instruction", instruction)
@@ -380,10 +398,13 @@ Now, generate the Event-B schema for the **following instruction**:
 --- Additional **Mandatory** Rules (not explicitly stated in the instruction) ---
 1. **Context**:
    - Each constant **must** have a corresponding axiom specifying its type (use the type from the analysis of constants in the instruction).
+   - For each **Equipment Requirement and Environment Requirement** within the System Description, there **must** be one or more **axioms** with the label that follows the same name of the requirement appended by axiom numbering for this requirement, e.g. EQP_1_axm_1 (for EQP-1), EQP_1_axm_2, EQP_2_axm_1 (for EQP-2), ...
 2. **Machine**:
    - The machine **must** reference the context using its `contextName`.
    - Each variable **must** have a corresponding invariant specifying its type (use the type from the analysis of machine variables in the instruction).
    - For each variable, there **must** be an initialization event in `Events` that sets the variable to its analyzed `initialValue`.
+3. **Schema Structure**:
+   - The output **must** be a valid JSON object that strictly adheres to the provided schema format.
 
 ### Response:"""
     print("Generating schema...")
@@ -519,26 +540,28 @@ You are an Event-B schema generator. The last generation produced errors.
 ## Previous Schema (JSON)
 {json.dumps(prev_schema, ensure_ascii=False, indent=2)}
 
-## Converter Errors (errors.txt)
+## Compilation Errors
 {errors_text}
 
 ## Task
-Regenerate a corrected Event-B **schema JSON** that resolves the converter errors.
-- Keep identifiers and intent when possible.
-- Ensure the schema validates structurally (all required fields present).
-- Output **ONLY** the repaired schema as pure JSON.
+Regenerate a corrected Event-B **schema JSON** that resolves the compilation errors.
+- Focus on adding missing type declarations in axioms ("AXIOMS" in "context") and invariants ("INVARIANTS" in "machine"), especially those reported not declared in Compilation Errors. **EACH** constant **MUST** have a type declaration axiom, and **EACH** variable **MUST** have a type declaration invariant.
+- The output **must** be a valid JSON object that strictly adheres to the provided schema format, and nothing else.
 """.strip()
 
 def _llm_regenerate_schema_from_errors(prev_schema: dict, errors_text: str) -> dict | None:
+    start_time = time.perf_counter()
     prompt = _build_regen_prompt_from_errors(prev_schema, errors_text)
     regenerated = generate_eventb_baseline(prompt)  # returns text
+    end_time = time.perf_counter()
+    run_time = end_time - start_time
     if not regenerated:
-        return None
+        return None, run_time
     try:
-        return json.loads(regenerated) if isinstance(regenerated, str) else regenerated
+        return json.loads(regenerated) if isinstance(regenerated, str) else regenerated, run_time
     except json.JSONDecodeError:
         print("[regen] LLM returned non-JSON; skipping this attempt.")
-        return None
+        return None, run_time
 
 def gen_code(structured_data):
     start = time.perf_counter()
@@ -598,12 +621,35 @@ def gen_code(structured_data):
     while has_err and regen_attempts < 3:
         regen_attempts += 1
         print(f"[regen] errors.txt detected. Regeneration attempt {regen_attempts}/3")
+        print(f"[regen] Errors text:", err_text)
 
-        new_schema = gen_schema(structured_data)
-
+        prev_schema = _get_last_schema_json()
+        new_schema, run_time = _llm_regenerate_schema_from_errors(prev_schema, err_text)
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        save_run_time(model_name, f're-genschema-time_{timestamp}', run_time)
         if not new_schema:
-            print("[regen] No valid regenerated schema returned.")
-            continue
+            print("[regen] No valid regenerated schema returned; stopping regeneration loop.")
+            break
+        else:
+            # save the generated schema
+            path = './history/3schema.json'
+            current_time = datetime.datetime.now()
+            formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+            interaction = {
+                'timestamp': formatted_time,
+                'answerGPT': new_schema,
+            }
+            try:
+                with open(path, 'r') as file:
+                    history = json.load(file)
+            except FileNotFoundError:
+                history = []
+
+            history.append(interaction)
+
+            with open(path, 'w') as file:
+                json.dump(history, file, indent=4)
+
         # run converter again
         result = _run_converter_once()
 
@@ -651,7 +697,8 @@ def gen_code(structured_data):
             f"Please use the flattened B files (.bcm/.mch)."
         )
 
-    raise FileNotFoundError(f"No .bcm/.mch (or .bum) files found in {model_path}")
+    print(f"[codegen] No .eventb/.mch produced for '{model_name}' after regeneration attempts. Skipping this entry.")
+    return "skipped"
 
 def _load_mc_tool_schema(path: str = "./gpt_model_checking.json"):
     with open(path, "r", encoding="utf-8") as f:
@@ -691,25 +738,26 @@ def _infer_prob_parameters_from_model(model_text: str) -> list[str]:
     """
     Returns a list like ["MAXINT=5","MAXSEQ=5"] (may be empty on failure).
     """
-    _MC_PROMPT_TMPL = (
-        "Given the Event-B model below, analyze the "
-        "suitable parameters to set up bound for model checking. "
-        "Each parameter must be one of the forms 'NAME=VALUE', 'NAME<VALUE', or 'NAME>VALUE'. "
-        "NAME must be a constant name or set."
-        "The parameters array should be specific to the model.\n\n"
-        "Model:\n{model}\n"
-    )
     try:
         tool_schema = _load_mc_tool_schema("./gpt_model_checking.json")
     except Exception as e:
         print(f"[bounds] Could not load gpt_model_checking.json: {e}")
         return []
-
-    prompt = _MC_PROMPT_TMPL.format(model=model_text)
+    
+    prompt = (
+        "Given the Event-B model below, analyze the "
+        "suitable parameters to set up bound for model checking. "
+        "Each parameter must be one of the forms 'NAME=VALUE', 'NAME<VALUE', or 'NAME>VALUE'. "
+        "NAME must be a constant name or set. "
+        "The parameters array should be specific to the model.\n\n"
+        f"Model:\n{model_text}\n"
+        "The output **MUST** be a valid JSON object that adheres to the following schema:\n"
+        f"{json.dumps(tool_schema, ensure_ascii=False, indent=2)}\n"
+    )
 
     resp = client.responses.create(
-        model="o3-mini-2025-01-31",
-        reasoning={"effort": "high"},
+        model="gpt-5",
+        reasoning={"effort": "medium"},
         input=[
             {
                 "role": "system",
@@ -720,9 +768,6 @@ def _infer_prob_parameters_from_model(model_text: str) -> list[str]:
             },
             {"role": "user", "content": prompt},
         ],
-        text={
-            "format": tool_schema
-        },
     )
 
     try:
@@ -780,6 +825,10 @@ def verify_code(model_file, prob_params: list[str] | None = None):
     target = p.name
 
     cmd = ["probcli", target, "--model_check"]
+
+    # Always add fixed exploration bounds
+    cmd.extend(["-mc", "10000", "--timeout", "300000"])
+
     if prob_params:
         cmd.extend(prob_params)   # <- inject our -p flags here
 
@@ -945,7 +994,7 @@ You are an Event-B expert. Your task is to REPAIR the following schema so that i
 {guidance_text}
 
 ## Output Requirements
-- Return ONLY the repaired schema as pure JSON (no markdown fences, no commentary).
+- The output **must** be a valid JSON object that strictly adheres to the provided schema format and nothing else.
 - Do NOT add or remove top-level fields; keep the schema structure unchanged.
 - Modify only what is necessary to address the issue.
 """.strip()
@@ -1022,14 +1071,14 @@ def _verification_ok(verification_result):
     )
 
 if __name__ == '__main__':
-    # read ./input-dataset.json
-    with open('./input-dataset.json', 'r') as file:
+    # read ./input-jra.json
+    with open('./input-jra.json', 'r') as file:
         structured_data_list = json.load(file)
         # assert len(structured_data_list) == 6, "The number of entries in the JSON file should be 6."
-        for i in range(len(structured_data_list)): # Iterate through all entries in the JSON
+        for i in range(2,len(structured_data_list)): # Iterate through all entries in the JSON
             current_structured_data = structured_data_list[i]
             model_name = current_structured_data.get('modelName', 'N/A')
-            print(f"Processing data entry {i} with model name: {model_name}")
+            print(f"Processing data entry {i+1}/{len(structured_data_list)} with model name: {model_name}")
 
             # Stage 1: Generate Context
             print(f"getting context for entry {i}")
@@ -1041,17 +1090,35 @@ if __name__ == '__main__':
 
             # Stage 3: Generate Schema
             print(f"generating schema for entry {i}")
-            gen_schema(current_structured_data)
+            try:
+                gen_schema(current_structured_data)
+            except Exception as e:
+                print(f"[schema] Exception during schema generation: {e}")
+                print(f"[{model_name}] Schema generation failed. Skipping this entry.")
+                continue
 
             # Stage 4: Converting Schema to Code
-            model_file = gen_code(current_structured_data)
+            try:
+                model_file = gen_code(current_structured_data)
+            except Exception as e:
+                print(f"[codegen] Exception during code generation: {e} \nSkipping this entry.")
+                continue
+            if model_file == "skipped":
+                print(f"[{model_name}] Code generation skipped due to missing .eventb/.mch output. Moving to next entry.")
+                continue
 
             try:
                 model_text = Path(model_file).read_text(encoding="utf-8", errors="ignore")
             except Exception:
                 model_text = ""
             print("has model text: ", model_text != "")
+            timing1 = time.perf_counter()
             bounds_pairs = _infer_prob_parameters_from_model(model_text)    # e.g., ["MAXINT=5","MAXSEQ=5"]
+            timing2 = time.perf_counter()
+            time_taken = timing2 - timing1
+            if time_taken > 120.0:
+                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                print(f"[bounds] Warning: Inference took {time_taken:.2f} seconds, which is longer than expected.")
             print(f"[{model_name}] Inferred bounds: {bounds_pairs}")
             prob_flags   = _params_to_probcli_flags(bounds_pairs)           # -> ["-p","MAXINT","5","-p","MAXSEQ","5"]
             print(f"[{model_name}] ProbCLI flags: {prob_flags}")
@@ -1079,14 +1146,27 @@ if __name__ == '__main__':
                 repaired_schema = repair_code(current_structured_data, verification_result)
                 print(f"Repaired schema for entry {i}, attempt {attempt}.")
 
-                code = gen_code(current_structured_data)
+                try:
+                    code = gen_code(current_structured_data)
+                except Exception as e:
+                    print(f"[codegen] Exception during code generation after repair: {e} \nSkipping this entry.")
+                    break
+                if code == "skipped":
+                    print(f"[{model_name}] Code generation skipped after repair due to missing .eventb/.mch output. Moving to next entry.")
+                    break
 
                 try:
                     model_text = Path(code).read_text(encoding="utf-8", errors="ignore")
                 except Exception:
                     model_text = ""
                 print("has model text: ", model_text != "")
+                timing1 = time.perf_counter()
                 bounds_pairs = _infer_prob_parameters_from_model(model_text)
+                timing2 = time.perf_counter()
+                time_taken = timing2 - timing1
+                if time_taken > 120.0:
+                    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                    print(f"[bounds] Warning: Inference took {time_taken:.2f} seconds, which is longer than expected.")
                 print(f"[{model_name}] Inferred bounds: {bounds_pairs}")
                 prob_flags   = _params_to_probcli_flags(bounds_pairs)
                 print(f"[{model_name}] ProbCLI flags: {prob_flags}")

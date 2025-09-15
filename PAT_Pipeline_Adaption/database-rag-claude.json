@@ -1,52 +1,82 @@
 [
     {
-        "nl": "",
+        "nl": "We are generating the Event-B schema necessary and sufficient to represent the following system:\nSystem description:\nFunctionality Requirements: FUN-1: The circuit has two boolean inputs i1 and i2 and two boolean outputs o1 and o2. FUN-2: A TRUE input means a user (associated with that input) is asking for a certain resource. FUN-3: The circuit reacts positively to a request by setting the corresponding output to TRUE. FUN-4: The circuit can react positively to one request only at a time (mutual exclusion). FUN-5: Each user frees the resource immediately. FUN-6: A requesting user cannot be postponed indefinitely. FUN-7: A user asking for a resource comtinues to ask for it as long as it is not served. FUN-8: The resource cannot be granted without a user asking for it.\nEquipment Requirements: \nEnvironment Requirements: \nSafety Requirements: \nTermination and Convergence Requirements: \nDelay Requirements: \n\n\nThrough our analysis, the **Context** contains the following constants:\n{\n  \"contextName\": \"CircuitCtx_1\",\n  \"constants\": []\n}\n\nThe **Machine** should contain the following variables, invariants, and events:\n{\n  \"machineName\": \"CircuitMch_1\",\n  \"machine\": {\n    \"variables\": [\n      {\n        \"name\": \"i1\",\n        \"type\": \"bool\",\n        \"initialValue\": false\n      },\n      {\n        \"name\": \"i2\",\n        \"type\": \"bool\",\n        \"initialValue\": false\n      },\n      {\n        \"name\": \"o1\",\n        \"type\": \"bool\",\n        \"initialValue\": false\n      },\n      {\n        \"name\": \"o2\",\n        \"type\": \"bool\",\n        \"initialValue\": false\n      }\n    ],\n    \"invariants\": [\n      {\n      \t\"name\" : \"FUN_1_inv_1\",\n      \t\"predicate\" : \"i1 \u2208 BOOL\"\n      }, {\n      \t\"name\" : \"FUN_1_inv_2\",\n      \t\"predicate\" : \"i2 \u2208 BOOL\"\n      }, {\n      \t\"name\" : \"FUN_1_inv_3\",\n      \t\"predicate\" : \"o1 \u2208 BOOL\"\n      }, {\n      \t\"name\" : \"FUN_1_inv_4\",\n      \t\"predicate\" : \"o2 \u2208 BOOL\"\n      }, {\n      \t\"name\" : \"FUN_4_inv_1\",\n      \t\"predicate\" : \"o1 = TRUE \u21d2 o2 = FALSE\"\n      }, {\n      \t\"name\" : \"FUN_4_inv_2\",\n      \t\"predicate\" : \"o2 = TRUE \u21d2 o1 = FALSE\"\n      }, {\n      \t\"name\" : \"FUN_8_inv_1\",\n      \t\"predicate\" : \"o1 = TRUE \u21d2 i1 = TRUE\"\n      }, {\n      \t\"name\" : \"FUN_8_inv_2\",\n      \t\"predicate\" : \"o2 = TRUE \u21d2 i2 = TRUE\"\n      }, {\n      \t\"name\" : \"FUN_7_inv_1\",\n      \t\"predicate\" : \"i1 = TRUE \u2227 o1 = FALSE \u21d2 i1 = TRUE\"\n      }, {\n      \t\"name\" : \"FUN_7_inv_2\",\n      \t\"predicate\" : \"i2 = TRUE \u2227 o2 = FALSE \u21d2 i2 = TRUE\"\n    \t}\n    ],\n    \"variants\": [],\n    \"events\": [\n      {\n      \t\"name\" : \"Grant_i1\",\n      \t\"guards\" : [\n\t  \"i1 = TRUE\",\n          \"o1 = FALSE\",\n          \"o2 = FALSE\"\n        ],\n        \"actions\" : [\n          \"o1 \u2254 TRUE\",\n          \"o2 \u2254 FALSE\"\n        ]\n      }, {\n        \"name\" : \"Grant_i2\",\n        \"guards\" : [\n          \"i2 = TRUE\",\n          \"o2 = FALSE\",\n          \"o1 = FALSE\"\n        ],\n        \"actions\" : [\n          \"o2 \u2254 TRUE\",\n          \"o1 \u2254 FALSE\"\n        ]\n      }, {\n        \"name\" : \"Release_i1\",\n        \"guards\" : [\n          \"o1 = TRUE\"\n        ],\n        \"actions\" : [\n          \"o1 \u2254 FALSE\",\n          \"i1 \u2254 FALSE\"\n        ]\n      }, {\n        \"name\" : \"Release_i2\",\n        \"guards\" : [\n          \"o2 = TRUE\"\n        ],\n        \"actions\" : [\n          \"o2 \u2254 FALSE\",\n          \"i2 \u2254 FALSE\"\n        ]\n      }, {\n        \"name\" : \"Request_i1\",\n        \"guards\" : [\n          \"i1 = FALSE\"\n        ],\n       \"actions\" : [\n          \"i1 \u2254 TRUE\"\n        ]\n      }, {\n        \"name\" : \"Request_i2\",\n        \"guards\" : [\n          \"i2 = FALSE\"\n        ],\n        \"actions\" : [\n          \"i2 \u2254 TRUE\"\n        ]\n      }\n    ]\n  }\n}",
         "code": {
             "context": {
-                "CONTEXT": "BridgeCtx",
-                "SETS": [
-                    "CAR"
-                ],
-                "CONSTANTS": [
-                    "MAX_BRIDGE",
-                    "MAX_ISLAND"
-                ],
+                "CONTEXT": "CircuitCtx_1",
+                "EXTENDS": [],
+                "SETS": [],
+                "CONSTANTS": [],
                 "AXIOMS": [
                     {
-                        "label_name": "axm1",
-                        "predicate": "MAX_BRIDGE ∈ ℕ1"
+                        "label_name": "EQP_1_axm_1",
+                        "predicate": "partition(BOOL, {TRUE}, {FALSE})"
                     },
                     {
-                        "label_name": "axm2",
-                        "predicate": "MAX_ISLAND ∈ ℕ1"
+                        "label_name": "EQP_2_axm_1",
+                        "predicate": "TRUE ∈ BOOL"
+                    },
+                    {
+                        "label_name": "EQP_2_axm_2",
+                        "predicate": "FALSE ∈ BOOL"
                     }
                 ]
             },
             "machine": {
-                "MACHINE": "BridgeMch",
+                "MACHINE": "CircuitMch_1",
+                "REFINES": [],
                 "SEES": [
-                    "BridgeCtx"
+                    "CircuitCtx_1"
                 ],
                 "VARIABLES": [
-                    "cars_on_bridge",
-                    "cars_on_island"
+                    "i1",
+                    "i2",
+                    "o1",
+                    "o2"
                 ],
                 "INVARIANTS": [
                     {
-                        "label_name": "inv1",
-                        "predicate": "cars_on_bridge ∈ ℕ ∧ cars_on_bridge ≤ MAX_BRIDGE"
+                        "label_name": "FUN_1_inv_1",
+                        "predicate": "i1 ∈ BOOL"
                     },
                     {
-                        "label_name": "inv2",
-                        "predicate": "cars_on_island ∈ ℕ ∧ cars_on_island ≤ MAX_ISLAND"
-                    }
-                ],
-                "VARIANTS": [
+                        "label_name": "FUN_1_inv_2",
+                        "predicate": "i2 ∈ BOOL"
+                    },
                     {
-                        "label_name": "var1",
-                        "expression": "cars_on_bridge + cars_on_island"
+                        "label_name": "FUN_1_inv_3",
+                        "predicate": "o1 ∈ BOOL"
+                    },
+                    {
+                        "label_name": "FUN_1_inv_4",
+                        "predicate": "o2 ∈ BOOL"
+                    },
+                    {
+                        "label_name": "FUN_4_inv_1",
+                        "predicate": "o1 = TRUE ⇒ o2 = FALSE"
+                    },
+                    {
+                        "label_name": "FUN_4_inv_2",
+                        "predicate": "o2 = TRUE ⇒ o1 = FALSE"
+                    },
+                    {
+                        "label_name": "FUN_8_inv_1",
+                        "predicate": "o1 = TRUE ⇒ i1 = TRUE"
+                    },
+                    {
+                        "label_name": "FUN_8_inv_2",
+                        "predicate": "o2 = TRUE ⇒ i2 = TRUE"
+                    },
+                    {
+                        "label_name": "FUN_7_inv_1",
+                        "predicate": "i1 = TRUE ∧ o1 = FALSE ⇒ i1 = TRUE"
+                    },
+                    {
+                        "label_name": "FUN_7_inv_2",
+                        "predicate": "i2 = TRUE ∧ o2 = FALSE ⇒ i2 = TRUE"
                     }
                 ],
+                "VARIANTS": [],
                 "EVENTS": [
                     {
                         "event_name": "INITIALISATION",
@@ -56,74 +86,160 @@
                         "WITH": [],
                         "THEN": [
                             {
-                                "label_name": "init1",
-                                "assignment": "cars_on_bridge := 0"
+                                "label_name": "init_i1",
+                                "assignment": "i1 ≔ FALSE"
                             },
                             {
-                                "label_name": "init2",
-                                "assignment": "cars_on_island := 0"
+                                "label_name": "init_i2",
+                                "assignment": "i2 ≔ FALSE"
+                            },
+                            {
+                                "label_name": "init_o1",
+                                "assignment": "o1 ≔ FALSE"
+                            },
+                            {
+                                "label_name": "init_o2",
+                                "assignment": "o2 ≔ FALSE"
                             }
                         ]
                     },
                     {
-                        "event_name": "CarEntersBridge",
+                        "event_name": "Grant_i1",
                         "REFINES": [],
                         "ANY": [],
                         "WHERE": [
                             {
-                                "label_name": "grd1",
-                                "predicate": "cars_on_bridge < MAX_BRIDGE"
+                                "label_name": "gr_i1_grd1",
+                                "predicate": "i1 = TRUE"
+                            },
+                            {
+                                "label_name": "gr_i1_grd2",
+                                "predicate": "o1 = FALSE"
+                            },
+                            {
+                                "label_name": "gr_i1_grd3",
+                                "predicate": "o2 = FALSE"
                             }
                         ],
                         "WITH": [],
                         "THEN": [
                             {
-                                "label_name": "act1",
-                                "assignment": "cars_on_bridge := cars_on_bridge + 1"
+                                "label_name": "gr_i1_act1",
+                                "assignment": "o1 ≔ TRUE"
+                            },
+                            {
+                                "label_name": "gr_i1_act2",
+                                "assignment": "o2 ≔ FALSE"
                             }
                         ]
                     },
                     {
-                        "event_name": "CarLeavesBridgeToIsland",
+                        "event_name": "Grant_i2",
                         "REFINES": [],
                         "ANY": [],
                         "WHERE": [
                             {
-                                "label_name": "grd1",
-                                "predicate": "cars_on_bridge > 0"
+                                "label_name": "gr_i2_grd1",
+                                "predicate": "i2 = TRUE"
                             },
                             {
-                                "label_name": "grd2",
-                                "predicate": "cars_on_island < MAX_ISLAND"
+                                "label_name": "gr_i2_grd2",
+                                "predicate": "o2 = FALSE"
+                            },
+                            {
+                                "label_name": "gr_i2_grd3",
+                                "predicate": "o1 = FALSE"
                             }
                         ],
                         "WITH": [],
                         "THEN": [
                             {
-                                "label_name": "act1",
-                                "assignment": "cars_on_bridge := cars_on_bridge - 1"
+                                "label_name": "gr_i2_act1",
+                                "assignment": "o2 ≔ TRUE"
                             },
                             {
-                                "label_name": "act2",
-                                "assignment": "cars_on_island := cars_on_island + 1"
+                                "label_name": "gr_i2_act2",
+                                "assignment": "o1 ≔ FALSE"
                             }
                         ]
                     },
                     {
-                        "event_name": "CarLeavesIsland",
+                        "event_name": "Release_i1",
                         "REFINES": [],
                         "ANY": [],
                         "WHERE": [
                             {
-                                "label_name": "grd1",
-                                "predicate": "cars_on_island > 0"
+                                "label_name": "rel_i1_grd1",
+                                "predicate": "o1 = TRUE"
                             }
                         ],
                         "WITH": [],
                         "THEN": [
                             {
-                                "label_name": "act1",
-                                "assignment": "cars_on_island := cars_on_island - 1"
+                                "label_name": "rel_i1_act1",
+                                "assignment": "o1 ≔ FALSE"
+                            },
+                            {
+                                "label_name": "rel_i1_act2",
+                                "assignment": "i1 ≔ FALSE"
+                            }
+                        ]
+                    },
+                    {
+                        "event_name": "Release_i2",
+                        "REFINES": [],
+                        "ANY": [],
+                        "WHERE": [
+                            {
+                                "label_name": "rel_i2_grd1",
+                                "predicate": "o2 = TRUE"
+                            }
+                        ],
+                        "WITH": [],
+                        "THEN": [
+                            {
+                                "label_name": "rel_i2_act1",
+                                "assignment": "o2 ≔ FALSE"
+                            },
+                            {
+                                "label_name": "rel_i2_act2",
+                                "assignment": "i2 ≔ FALSE"
+                            }
+                        ]
+                    },
+                    {
+                        "event_name": "Request_i1",
+                        "REFINES": [],
+                        "ANY": [],
+                        "WHERE": [
+                            {
+                                "label_name": "req_i1_grd1",
+                                "predicate": "i1 = FALSE"
+                            }
+                        ],
+                        "WITH": [],
+                        "THEN": [
+                            {
+                                "label_name": "req_i1_act1",
+                                "assignment": "i1 ≔ TRUE"
+                            }
+                        ]
+                    },
+                    {
+                        "event_name": "Request_i2",
+                        "REFINES": [],
+                        "ANY": [],
+                        "WHERE": [
+                            {
+                                "label_name": "req_i2_grd1",
+                                "predicate": "i2 = FALSE"
+                            }
+                        ],
+                        "WITH": [],
+                        "THEN": [
+                            {
+                                "label_name": "req_i2_act1",
+                                "assignment": "i2 ≔ TRUE"
                             }
                         ]
                     }
