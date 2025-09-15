@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +38,8 @@ import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPOSequent;
 import org.eventb.core.ISeesContext;
 import org.eventb.core.IVariant;
+import org.rodinp.core.IAttributeType;
+import org.rodinp.core.IAttributeValue;
 import org.rodinp.core.IInternalElement;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
@@ -48,17 +51,20 @@ import eventb_agent_core.proof.POManager;
 import eventb_agent_core.refinement.Requirement;
 import eventb_agent_core.refinement.SystemRequirements;
 import eventb_agent_core.utils.Constants;
+import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.RodinUtils;
 import eventb_agent_core.utils.proof.ProofUtils;
 
 public class DataCollectionHandler extends AbstractHandler implements IHandler {
 
-//	private String GROUP = "ablation_norefine_proofstrategy";
-	private String GROUP = "test";
+	private String GROUP = "ablation_refine_noproofstrategy";
+//	private String GROUP = "EventBAgent";
 
 	public DataCollectionHandler() {
 		super();
 	}
+
+	private final Set<String> REFINEMENT_KINDS = Set.of("GRD", "SIM", "WFD", "VAR", "EQL", "WIT", "MRG");
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -83,12 +89,26 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 				/* Data */
 				int dischargedPOCount = 0;
 				int totalPOCount = 0;
+				int undischargedRefinePOCount = 0;
+				int dischargedRefinePOCount = 0;
+				int totalRefinePOCount = 0;
 
 				int coveredRequirementCount = 0;
 				int fulfilledRequirementCount = 0;
 				int totalRequirementCount = 0;
 
 				List<IFile> machineFiles = getMachineFiles(project);
+				machineFiles.sort((Comparator<? super IFile>) new Comparator<IFile>() {
+					@Override
+					public int compare(IFile f1, IFile f2) {
+						String name1 = f1.getName().split("\\.")[0];
+						String name2 = f2.getName().split("\\.")[0];
+						int last1 = name1.charAt(name1.length() - 1);
+						int last2 = name2.charAt(name2.length() - 1);
+						return Integer.compare(last1, last2);
+					}
+				});
+
 				for (IFile file : machineFiles) {
 					// machine file
 					String machineFileName = file.getName();
@@ -106,7 +126,10 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 
 					/* ====== Important: Baseline Only ====== */
 					POManager poManager = new POManager();
-//					poManager.runAutoProvers(machineRoot);
+//					try {
+//						poManager.runAutoProvers(machineRoot);
+//					} catch (Exception e) {
+//					}
 
 					/* compilation errors */
 
@@ -138,6 +161,21 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					System.out.println("Total POs: " + String.valueOf(totalPOCount));
 					System.out.println();
 
+					for (IPOSequent po : undischargedPOs) {
+						if (isRefinementPO(po.getElementName())) {
+							undischargedRefinePOCount += 1; // total among all
+						}
+					}
+					for (IPOSequent po : POs) {
+						if (isRefinementPO(po.getElementName())) {
+							totalRefinePOCount += 1; // total among all
+						}
+					}
+					dischargedRefinePOCount = totalRefinePOCount - undischargedRefinePOCount;
+					System.out.println("Discharged Refinement POs: " + String.valueOf(dischargedRefinePOCount));
+					System.out.println("Total Refinement POs: " + String.valueOf(totalRefinePOCount));
+					System.out.println();
+
 					/* Requirement Coverage Rate & Fulfillment Rate */
 
 					/* 1. requirements have errors => not covered */
@@ -154,10 +192,14 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					addCoveredReqs(variants, requirements, coveredRequirements);
 
 					/* 3. No errors, POs generated => covered. */
+					System.out.println();
+
 					IPOSequent[] contextPOs = poManager.getAllPOs(contextRoot);
-					addUnfulfilledReqs(POs, requirements, coveredRequirements, coveredButNotDischarged, machineRoot);
+					Set<String> notDischargedSet = new HashSet<>();
+					addUnfulfilledReqs(POs, requirements, coveredRequirements, coveredButNotDischarged, machineRoot,
+							notDischargedSet);
 					addUnfulfilledReqs(contextPOs, requirements, coveredRequirements, coveredButNotDischarged,
-							contextRoot);
+							contextRoot, notDischargedSet);
 
 					/* Compute fulfilled requirements */
 					Map<String, Integer> finalCovered = new HashMap<>();
@@ -189,8 +231,9 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					System.out.println();
 
 					String outputPath = "C:\\Users\\admin\\Downloads\\data_analysis\\" + GROUP + ".txt";
-					write(outputPath, project.getName(), totalPOCount, dischargedPOCount,
-							totalRequirementCount, coveredRequirementCount, fulfilledRequirementCount);
+					write(outputPath, project.getName(), totalPOCount, dischargedPOCount, totalRequirementCount,
+							coveredRequirementCount, fulfilledRequirementCount, totalRefinePOCount,
+							dischargedRefinePOCount);
 
 //					int allPOsAboutRequirements = 0;
 //					int dischargedPOsAboutRequirements = 0;
@@ -215,7 +258,8 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 	}
 
 	private void write(String path, String projectName, int totalPOCount, int dischargedPOCount,
-			int totalRequirementCount, int coveredRequirementCount, int fulfilledRequirementCount) {
+			int totalRequirementCount, int coveredRequirementCount, int fulfilledRequirementCount,
+			int totalRefinePOCount, int dischargedRefinePOCount) {
 		StringBuilder contents = new StringBuilder();
 		contents.append("" + ",");
 		contents.append(projectName + ",");
@@ -223,7 +267,9 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 		contents.append(String.valueOf(dischargedPOCount) + ",");
 		contents.append(String.valueOf(totalRequirementCount) + ",");
 		contents.append(String.valueOf(coveredRequirementCount) + ",");
-		contents.append(String.valueOf(fulfilledRequirementCount) + ",\n");
+		contents.append(String.valueOf(fulfilledRequirementCount) + ",");
+		contents.append(String.valueOf(totalRefinePOCount) + ",");
+		contents.append(String.valueOf(dischargedRefinePOCount) + ",\n");
 
 		try (FileWriter writer = new FileWriter(path, true)) {
 			writer.append(contents.toString());
@@ -339,7 +385,15 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 	private void addCoveredReqs(ILabeledElement[] elements, List<Requirement> requirements,
 			Map<String, Integer> coveredRequirements) throws RodinDBException {
 		for (ILabeledElement element : elements) {
-			String matchingReqID = getRequirementID(((ILabeledElement) element).getLabel(), requirements);
+			String matchingReqID = null;
+			IAttributeValue[] values = element.getAttributeValues();
+			for (IAttributeValue value : values) {
+				matchingReqID = getRequirementID(value.getValue().toString(), requirements);
+				if (matchingReqID != null) {
+					break;
+				}
+			}
+
 			if (matchingReqID != null) {
 				// requirement is covered
 				addReqID(matchingReqID, coveredRequirements);
@@ -348,8 +402,8 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 	}
 
 	private void addUnfulfilledReqs(IPOSequent[] POs, List<Requirement> requirements, Map<String, Integer> covered,
-			Map<String, Integer> notDischarged, IEventBRoot root) throws RodinDBException {
-		Set<String> notDischargedSet = new HashSet<>();
+			Map<String, Integer> notDischarged, IEventBRoot root, Set<String> notDischargedSet)
+			throws RodinDBException {
 		for (IPOSequent po : POs) {
 			String poName = po.getElementName();
 			String matchingReqID = getRequirementID(poName, requirements);
@@ -370,5 +424,16 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 				notDischarged.remove(reqID);
 			}
 		}
+	}
+
+	public boolean isRefinementPO(String poName) {
+		if (poName == null)
+			return false;
+		for (String kind : REFINEMENT_KINDS) {
+			if (poName.contains(kind)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
