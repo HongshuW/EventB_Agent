@@ -1,0 +1,50 @@
+DEFINITIONS
+ // external functions and predicates that serve as annotations for ProB
+ 
+ 
+ EXTERNAL_FUNCTION_FORCE(T) == T --> T;
+ FORCE(value) == value;
+ // forces evaluation of symbolic set representations
+ // usage FORCE( { x | x:1..100 & x mod 2 = 0 } )
+ 
+ EXTERNAL_FUNCTION_COPY(T) == T --> T;
+ COPY(value_to_copy)==value_to_copy;
+ // can be used as an "enumeration barrier"; value is copied only once it is fully known
+
+ /* mark that identifier should not be enumerated; its value can be computed from other ids */
+ EXTERNAL_PREDICATE_DO_NOT_ENUMERATE(T) == T;
+ DO_NOT_ENUMERATE(identifier) == (1=1);
+ 
+ /* use to annotate set memberships for early enumeration */
+ /* example ENUM(x|->y) : SET */
+ EXTERNAL_FUNCTION_ENUM(T) == T --> T;
+ ENUM(expr_to_enum) == expr_to_enum;
+
+
+ EXTERNAL_PREDICATE_ASSERT_TRUE == BOOL*STRING;
+ ASSERT_TRUE(assert_bool_expr,str) == (1=1);
+ // usage ASSERT_TRUE(bool(Pred),"Error Message")
+ 
+ EXTERNAL_FUNCTION_ASSERT_EXPR(T) == BOOL*STRING*T --> T;
+ ASSERT_EXPR(assert_bool_expr,str,v) == v;
+
+
+  /* This external function converts a B data value to an integer if possible. */
+  /* supports integers, enumerated and deferred set elements and strings */
+  TO_INT(sss) == 0;
+  EXTERNAL_FUNCTION_TO_INT(TO_INT_TYPE) == (TO_INT_TYPE --> INTEGER);
+  INT_TO_ENUM(t,sss) ==({}(1));
+  EXTERNAL_FUNCTION_INT_TO_ENUM(INT_TO_ENUM_TYPE) == 
+      (POW(INT_TO_ENUM_TYPE)*INTEGER --> INT_TO_ENUM_TYPE);
+
+  /* can be used to instruct ProB to maximize a bounded integer expression */
+  /*  example usage: xx:1..10 & res=10*xx-xx*xx & MAXIMIZE_EXPR(res) */
+  EXTERNAL_PREDICATE_MAXIMIZE_EXPR == INTEGER;
+  MAXIMIZE_EXPR(x)==(1=1);
+  
+  /* can be used to instruct ProB to minimize a bounded integer expression */
+  EXTERNAL_PREDICATE_MINIMIZE_EXPR == INTEGER;
+  MINIMIZE_EXPR(x)==(1=1);
+
+  EXTERNAL_FUNCTION_MAXIMIZE(T) == POW(T) --> T;
+  MAXIMIZE(x)==1;

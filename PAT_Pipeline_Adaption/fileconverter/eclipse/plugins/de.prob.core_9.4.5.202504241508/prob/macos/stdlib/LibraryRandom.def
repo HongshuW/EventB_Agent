@@ -1,0 +1,30 @@
+DEFINITIONS
+ /* LibraryRandom.def */
+ 
+ // generate uniformly distributed random numbers between lower (included) and upper value (not included)
+ EXTERNAL_FUNCTION_RANDOM == INTEGER*INTEGER --> INTEGER;
+ RANDOM(rnd_low,rnd_up) == rnd_low;
+ 
+ // choose a random element from a set
+ random_element(x) == max(x);
+ EXTERNAL_FUNCTION_random_element(RANDOM_TYPE) == POW(RANDOM_TYPE) --> RANDOM_TYPE;
+ 
+ // choose a random subset from a set
+ random_subset(x) == x;
+ EXTERNAL_FUNCTION_random_subset(RANDOM_TYPE) == POW(RANDOM_TYPE) --> POW(RANDOM_TYPE);
+
+ // generate a random permutation sequence from a set
+ random_ordering(x) == [];
+ EXTERNAL_FUNCTION_random_ordering(RANDOM_TYPE) == POW(RANDOM_TYPE) --> seq(RANDOM_TYPE);
+ 
+ // generate a random permutation sequence from a sequence
+ random_permutation(x) == [];
+ EXTERNAL_FUNCTION_random_permutation(RANDOM_TYPE) == seq(RANDOM_TYPE) --> seq(RANDOM_TYPE);
+ 
+ // generate a random set of numbers drawn from low..up, each with probability p/q
+ random_numset(prob_numerator,prob_denominator,low,up) == low..up;
+ EXTERNAL_FUNCTION_random_numset == (INTEGER*INTEGER*INTEGER*INTEGER) --> POW(INTEGER);
+
+ // generate random numbers using normal (Gaussian) distribution with given mean and sigma
+ EXTERNAL_FUNCTION_NORMAL == INTEGER*INTEGER --> INTEGER;
+ NORMAL(mu_mean,sigma) == mu_mean;

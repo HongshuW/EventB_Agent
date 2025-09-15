@@ -1,0 +1,4 @@
+digraph module_hierarchy {
+  graph [page="8.5, 11",ratio=fill,size="7.5,10"];
+  1 [shape=record, style=bold, color=darkgreen, label="|{MACHINE DEFINITION_FILE\n}|"];
+}

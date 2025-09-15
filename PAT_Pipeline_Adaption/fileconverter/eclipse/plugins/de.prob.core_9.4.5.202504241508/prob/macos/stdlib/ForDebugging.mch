@@ -1,0 +1,3 @@
+MACHINE Test
+DEFINITIONS "LibraryIO.def"
+END

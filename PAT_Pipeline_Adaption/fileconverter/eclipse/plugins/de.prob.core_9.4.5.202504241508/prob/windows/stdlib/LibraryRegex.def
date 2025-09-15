@@ -1,0 +1,89 @@
+DEFINITIONS
+ // ProB external predicates and function for regular expression matching
+ // Syntax used is the ECMAScript syntax: http://www.cplusplus.com/reference/regex/ECMAScript/
+ 
+ // the following is the B version of the C++ function regex_match
+ // http://www.cplusplus.com/reference/regex/regex_match/
+ 
+ // check if a string matches (entirely) a regular expression
+ EXTERNAL_PREDICATE_REGEX_MATCH == (STRING*STRING);
+ REGEX_MATCH(re_str,re_pat) == (1=1);
+ EXTERNAL_PREDICATE_REGEX_IMATCH == (STRING*STRING);
+ REGEX_IMATCH(re_str,re_pat) == (1=1);
+ 
+ // synonym as external function to BOOL:
+ EXTERNAL_FUNCTION_GET_IS_REGEX_MATCH == (STRING*STRING --> BOOL);
+ GET_IS_REGEX_MATCH(re_str,re_pat) == FALSE;
+ EXTERNAL_FUNCTION_GET_IS_REGEX_IMATCH == (STRING*STRING --> BOOL);
+ GET_IS_REGEX_IMATCH(re_str,re_pat) == FALSE;
+ 
+ // check if a string is a valid regular expression
+ EXTERNAL_PREDICATE_IS_REGEX == (STRING);
+ IS_REGEX(re_pat) == (1=1);
+ // synonym as external function to BOOL:
+ EXTERNAL_FUNCTION_GET_IS_REGEX == (STRING --> BOOL);
+ GET_IS_REGEX(re_pat) == FALSE;
+ 
+ // replace all occurence of a regular expression pattern by a replacement string:
+ EXTERNAL_FUNCTION_REGEX_REPLACE == (STRING*STRING*STRING --> STRING);
+ REGEX_REPLACE(re_str,re_pat,re_subst) == re_str;
+ // a version which ignores case (icase option)
+ EXTERNAL_FUNCTION_REGEX_IREPLACE == (STRING*STRING*STRING --> STRING);
+ REGEX_IREPLACE(re_str,re_pat,re_subst) == re_str;
+ 
+ // find first match of a regular expression pattern:
+ EXTERNAL_FUNCTION_REGEX_SEARCH_STR == (STRING*STRING --> STRING);
+ REGEX_SEARCH_STR(re_str,re_pat) == re_str;
+ // a version which ignores case (icase option)
+ EXTERNAL_FUNCTION_REGEX_ISEARCH_STR == (STRING*STRING --> STRING);
+ REGEX_ISEARCH_STR(re_str,re_pat) == re_str;
+
+ // find first match of a regular expression pattern, return result as a record:
+ EXTERNAL_FUNCTION_REGEX_SEARCH == 
+    (STRING*INTEGER*STRING --> struct(length:INTEGER,position:INTEGER,
+                              string:STRING, submatches:seq(STRING)));
+ REGEX_SEARCH(re_str,re_from,re_pat) == rec(length:0,position:0,string:"",submatches:[]);
+ // a version which ignores case (icase option)
+ EXTERNAL_FUNCTION_REGEX_ISEARCH == 
+    (STRING*INTEGER*STRING --> struct(length:INTEGER,position:INTEGER,
+                              string:STRING, submatches:seq(STRING)));
+ REGEX_ISEARCH(re_str,re_from,re_pat) == rec(length:0,position:0,string:"",submatches:[]);
+
+
+ // find all matches of a regular expression pattern:
+ EXTERNAL_FUNCTION_REGEX_SEARCH_ALL == (STRING*STRING --> seq(STRING));
+ REGEX_SEARCH_ALL(re_str,re_pat) == [];
+ // a version which ignores case (icase option)
+ EXTERNAL_FUNCTION_REGEX_ISEARCH_ALL == (STRING*STRING --> seq(STRING));
+ REGEX_ISEARCH_ALL(re_str,re_pat) == []
+
+
+/*
+
+Some available classes:
+
+[:alnum:]	alpha-numerical character	isalnum
+[:alpha:]	alphabetic character	isalpha
+[:blank:]	blank character	isblank
+[:cntrl:]	control character	iscntrl
+[:digit:]	decimal digit character	isdigit
+[:graph:]	character with graphical representation	isgraph
+[:lower:]	lowercase letter	islower
+[:print:]	printable character	isprint
+[:punct:]	punctuation mark character	ispunct
+[:space:]	whitespace character	isspace
+[:upper:]	uppercase letter	isupper
+[:xdigit:]	hexadecimal digit character	isxdigit
+[:d:]	decimal digit character	isdigit
+[:w:]	word character	isalnum
+[:s:]	whitespace character	isspace
+
+
+A few example calls:
+REGEX_MATCH("abc","[a-z]+")
+REGEX_REPLACE("a01b23c4d56","[^0-9]+","X")
+REGEX_REPLACE("1abd00abc2","([a-z]+).*?([a-z]+)","<<$2--$1>>")
+REGEX_SEARCH_STR("abcdef000234daf","[[:alpha:]]+$")
+REGEX_SEARCH("abcdef000234daf",1,"[[:alpha:]]+")
+REGEX_SEARCH_ALL("abcdef000234daf567","([1-9])([0-9]*)")
+*/

@@ -1,0 +1,13 @@
+DEFINITIONS
+ /* EXTERNAL FUNCTIONS for accessing HASHING functions */
+ 
+ /* compute the SHA hash of a B value; represented as a sequence of bytes */
+ EXTERNAL_FUNCTION_SHA_HASH(T) == T --> seq(INTEGER);
+ SHA_HASH(value_for_sha) == [0];
+ 
+ /* compute the SHA hash of a B value; represented as a hexadecimal string */
+ EXTERNAL_FUNCTION_SHA_HASH_HEX(T) == T --> STRING;
+ SHA_HASH_HEX(value_for_sha) == "0";
+ 
+ EXTERNAL_FUNCTION_HASH(T) == T --> INTEGER;
+ HASH(value_to_hash) == 0;

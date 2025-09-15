@@ -1,0 +1,9 @@
+DEFINITIONS
+  EXTERNAL_FUNCTION_SCCS(T) == (T<->T) --> POW(POW(T));
+  SCCS(relation) == {};
+  // an external function to compute the Strongly Connected Components of a graph/relation
+  //  example: SCCS({1|->2,2|->1,2|->3,3|->4,4|->3}) = {{1,2}, {3,4}};
+ 
+  // an alternative implementation of the closure1 operator of classical B:
+  EXTERNAL_FUNCTION_CLOSURE1(T) == (T<->T) --> (T<->T);
+  CLOSURE1(relation) == {}

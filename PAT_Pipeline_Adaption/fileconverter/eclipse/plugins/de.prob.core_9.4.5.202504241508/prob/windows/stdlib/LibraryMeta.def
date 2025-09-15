@@ -1,0 +1,103 @@
+DEFINITIONS
+ /* EXTERNAL PREDICATES AND FUNCTIONS for accessing META Information */
+ /* i.e., reification/reflection of ProB's status and interface */
+ 
+ /* general information */
+ EXTERNAL_FUNCTION_PROB_INFO_STR == STRING --> STRING;
+ PROB_INFO_STR(info_field_name) == "";
+ // values for info_field: "prob-version", "parser-version", "prolog-version", "prob-revision", 
+ //  "prob-last-changed-date", "java-version", "current-time", ...
+ EXTERNAL_FUNCTION_PROB_STATISTICS == STRING --> INTEGER;
+ PROB_STATISTICS(info_field_name) == 0;
+ // values for info_field_name: "states", "transitions", "processed-states", "now-timestamp", 
+ //  "prolog-walltime", "prolog-memory-bytes-used", ...
+ 
+ EXTERNAL_FUNCTION_PROJECT_INFO == STRING --> POW(STRING);
+ PROJECT_INFO(info_field_name) == {};
+ // values for info_field_name: "absolute-files", "main-file", "main-machine", "sha-hash",
+ // "variables", "constants", "sets", "operations", "assertion_labels", "invariant_labels"
+ EXTERNAL_FUNCTION_PROJECT_STATISTICS == STRING --> INTEGER;
+ PROJECT_STATISTICS(info_field_name) == 0;
+ // values for info_field_name: "files", "deferred_sets", "enumerated_sets", "definitions",
+ // "variables", "constants", "properties", "operations", "invariants", "static_assertions", "dynamic_assertions"
+ EXTERNAL_FUNCTION_MACHINE_INFO == STRING * STRING --> STRING;
+ MACHINE_INFO(info_field_name,machine) == "";
+ // values for info_field_name: "TYPE"
+ 
+ /* interface to preferences */
+ EXTERNAL_FUNCTION_GET_PREF == STRING --> STRING;
+ GET_PREF(preference_name) == "";
+ EXTERNAL_FUNCTION_GET_PREF_DEFAULT == STRING --> STRING;
+ GET_PREF_DEFAULT(preference_name) == "";
+ /* this is also in LibraryIO.def: */
+ EXTERNAL_PREDICATE_SET_PREF == STRING*STRING;
+ SET_PREF(preference_name,preference_new_value) == (1=1);
+ 
+  
+ /* interface to bvisual2 */
+ EXTERNAL_FUNCTION_FORMULA_INFOS == STRING --> POW(INTEGER*STRING);
+ FORMULA_INFOS(formula_string) == [];
+ EXTERNAL_FUNCTION_FORMULA_VALUES == STRING --> POW(INTEGER*STRING);
+ FORMULA_VALUES(formula_string) == [];
+ 
+ /* state space */
+ EXTERNAL_FUNCTION_HISTORY == POW(INTEGER*INTEGER);
+ HISTORY == [];
+ EXTERNAL_FUNCTION_STATE_AS_STRING == INTEGER --> STRING;
+ STATE_AS_STRING(prob_state_id) == "";
+ 
+ EXTERNAL_PREDICATE_STATE_SUCC == INTEGER * INTEGER;
+ STATE_SUCC(prob_state_id1,prob_state_id2) == 1=1;
+ 
+ // checking if there is a transition from one state to another via an operation name
+ EXTERNAL_PREDICATE_STATE_TRANS == INTEGER * STRING * INTEGER;
+ STATE_TRANS(prob_state_id1,operation_name,prob_state_id2) == 1=1;
+ 
+ // this version also takes additional arguments
+ EXTERNAL_PREDICATE_STATE_TRANS_ARGS(ArgsType) == INTEGER * STRING * ArgsType * INTEGER;
+ STATE_TRANS_ARGS(prob_state_id1,operation_name,operation_args,prob_state_id2) == 1=1;
+ 
+ EXTERNAL_PREDICATE_STATE_SAT == INTEGER * STRING;
+ STATE_SAT(prob_state_id,b_predicate) == 1=1;
+ EXTERNAL_FUNCTION_EVAL(X) == INTEGER * STRING --> X;
+ EVAL(prob_state_id,b_formula) == {};
+ CURRENT_STATE_ID == PROB_STATISTICS("current-state-id");
+ 
+ // utility to check if an operation is enabled in the current state:
+ EXTERNAL_PREDICATE_ENABLED == STRING;
+ ENABLED(operation_name) == 1=1;
+ // synonym as external function to BOOL:
+ EXTERNAL_FUNCTION_GET_IS_ENABLED == (STRING --> BOOL);
+ GET_IS_ENABLED(operation_name) == FALSE;
+ 
+// a variation of ENABLED where we also provide arguments and check if the operation is enabled for the given arguments
+ EXTERNAL_PREDICATE_ENABLED_TRANSITION == STRING;
+ ENABLED_TRANSITION(operation_name) == 1=1;
+ // synonym as external function to BOOL:
+ EXTERNAL_FUNCTION_GET_IS_ENABLED_TRANSITION == (STRING --> BOOL);
+ GET_IS_ENABLED_TRANSITION(operation_name) == FALSE;
+ 
+ // NON_DET_STATE checks if an operation is non-deterministic in the current state
+ // in the sense that with same arguments you reach a different target state
+ EXTERNAL_FUNCTION_NON_DET_STATE == (BOOL);
+ NON_DET_STATE == FALSE;
+ // NON_DET_OUTPUT_STATE checks if an operation has non-deterministic outputs
+ // in the sense that with same arguments you have different operation results in current states
+ EXTERNAL_FUNCTION_NON_DET_OUTPUT_STATE == (BOOL);
+ NON_DET_OUTPUT_STATE == FALSE;
+  EXTERNAL_FUNCTION_NON_DET_OUTPUT_OPERATIONS == (POW(STRING));
+ NON_DET_OUTPUT_OPERATIONS == FALSE;
+ 
+ // check if operation is deterministic in current state, i.e., reaches same target state with same arguments
+ EXTERNAL_FUNCTION_GET_IS_DET == (STRING --> BOOL);
+ GET_IS_DET(operation_name) == FALSE;
+ 
+ // check if operation produces deterministic output in current state, i.e., has same output for same arguments
+ EXTERNAL_FUNCTION_GET_IS_DET_OUTPUT == (STRING --> BOOL);
+ GET_IS_DET_OUTPUT(operation_name) == FALSE;
+ 
+ 
+EXTERNAL_FUNCTION_STATE_VALUES(T) == T --> POW(INTEGER*INTEGER*T);
+STATE_VALUES(x) == {};
+// get set of triples (Count,WitnessID,Value) for all possible Values for an expression in the state space
+

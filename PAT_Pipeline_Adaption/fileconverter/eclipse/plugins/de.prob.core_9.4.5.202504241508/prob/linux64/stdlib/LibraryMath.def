@@ -1,0 +1,32 @@
+DEFINITIONS
+ "LibraryRandom.def";
+ EXTERNAL_FUNCTION_COS == INTEGER --> INTEGER;
+ EXTERNAL_FUNCTION_SIN == INTEGER --> INTEGER;
+ EXTERNAL_FUNCTION_TAN == INTEGER --> INTEGER;
+ EXTERNAL_FUNCTION_SINx == INTEGER*INTEGER --> INTEGER;
+ EXTERNAL_FUNCTION_COSx == INTEGER*INTEGER --> INTEGER;
+ EXTERNAL_FUNCTION_TANx == INTEGER*INTEGER --> INTEGER;
+ EXTERNAL_FUNCTION_LOGx == INTEGER*INTEGER*INTEGER --> INTEGER;
+
+ EXTERNAL_FUNCTION_GCD == INTEGER*INTEGER --> INTEGER;
+ EXTERNAL_FUNCTION_MSB == INTEGER --> INTEGER;
+ EXTERNAL_FUNCTION_ABS == INTEGER --> INTEGER;
+ EXTERNAL_FUNCTION_FDIV == INTEGER*INTEGER --> INTEGER; // floored division TLA Style (differs for negative numbers)
+ EXTERNAL_FUNCTION_CDIV == INTEGER*INTEGER --> INTEGER; // ceiling division
+ EXTERNAL_FUNCTION_SQRT == INTEGER --> INTEGER; // computes integer square root; will produce rounding error for very large numbers; but these are detected and an error message is generated
+ EXTERNAL_FUNCTION_FACTORIAL == INTEGER --> INTEGER; 
+ COS(x) == cos(x); /* These macro get overriden by EXTERNAL_FUNCTION_ declarations */
+ SIN(x) == sin(x);
+ TAN(x) == tan(x);
+ SINx(m,x) == sinx(m,x); 
+ COSx(m,x) == cosx(m,x);
+ TANx(m,x) == tanx(m,x);
+ LOGx(m,b,x) == logx(m,b,x);
+ GCD(m,x) == gcd(m,x);
+ MSB(x) == msb(x);
+ ABS(x) == abs(x);
+ FDIV(x,y) == x/y;
+ CDIV(x,y) == x/y;
+ SQRT(x) == 0;
+ FACTORIAL(x) == 0;
+ 

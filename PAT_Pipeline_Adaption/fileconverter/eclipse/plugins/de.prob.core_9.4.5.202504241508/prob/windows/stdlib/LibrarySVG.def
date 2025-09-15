@@ -1,0 +1,42 @@
+DEFINITIONS
+  
+/* SVG, VISB UTILITIES */
+
+// generate a SVG "points" attribute string (e.g. for polygons or polylines) from a sequence of pairs of numbers:
+// example: svg_points([(1,2),(11,22)]) = "1,2 11,22 "
+EXTERNAL_FUNCTION_svg_points(T1,T2) == seq(T1*T2) --> STRING; // T1 and T2 should be either INTEGER or REAL
+svg_points(SequenceOfPairs) == "1.0,2.0 3.0,4.0 ";
+
+ // draw an axis from 0 to MaxX with TickMarks of height Height at the TickMarks positions
+ // the TickMarks set values are multiplied by XScale (for convenience, e.g., for B models without reals)
+ // result is a string to be used for a SVG polyline or polygon points attribute
+ // Note: polylines start at 0,0
+ // examples: svg_axis({50},1,100,1) = "50,0 50,0.5 50,-0.5 50,0 100,0 "
+ //           svg_axis({50},1.5,100.0,2.0) = "75.0,0 75.0,1.0 75.0,-1.0 75.0,0 100.0,0 "
+EXTERNAL_FUNCTION_svg_axis(T1,T2) == (POW(T1)*T2*T2*T2) --> STRING; // T1 and T2 should be either INTEGER or REAL
+svg_axis(SetOfNrs,XScale,MaxX,Height) == "50.0,0.0  50.0,1.0  50.0,-1.0  50.0,0.0  100.0,0.0 ";
+
+ // shows an integer set as a step-function/polygon of given height
+ //  result is a string to be used for a SVG polyline or polygon points attribute
+ // B example:   svg_set_polygon({50,51,52,55},1.0,100.0,2.0) =
+ //             "50.0,0 50.0,2.0 53.0,2.0 53.0,0 55.0,0 55.0,2.0 56.0,2.0 56.0,0 100.0,0 "
+ //  (0,0) *------*  *------*  *-------
+ //  (0,height)   *--*      *--*
+EXTERNAL_FUNCTION_svg_set_polygon(T2) == (POW(INTEGER)*T2*T2*T2) --> STRING; // T2 should be either INTEGER or REAL
+svg_set_polygon(SetOfNrs,XScale,MaxX,Height) == "50.0,0.0  50.0,1.0  51.0,1.0  51.0,0.0  100.0,0.0 ";
+
+EXTERNAL_FUNCTION_svg_set_polygon_auto(T2) == (POW(INTEGER)*T2*T2) --> STRING; // T2 should be either INTEGER or REAL
+svg_set_polygon_auto(SetOfNrs,XScale,Height) == "50.0,0.0  50.0,1.0  51.0,1.0  51.0,0.0 ";
+
+
+// render a simple train as a polygon
+// XScale is applied to start and length
+// B Example: svg_train(10,5,1.0,2.0,3.0) = "10.0,3.0 15.0,3.0 13.0,0 10.0,0 10.0,3.0 "
+EXTERNAL_FUNCTION_svg_train(T1,T2) == (T1*T1*T2*T2*T2) --> STRING; // T1, T2 should be either INTEGER or REAL
+svg_train(start,length,XScale,slant,height) == "10.0,3.0 15.0,3.0 13.0,0 10.0,0 10.0,3.0 ";
+
+// equivalent to following definition; but above is slightly more flexible as far as integer/real typing concerned
+// svg_train(start,length,XScale,slant,height) ==
+//   LET x1,x2 BE x1 = real(start)*XScale & x2 = real(start+length)*XScale IN
+//      svg_points([(x1,height), (x2,height), (x2-slant,0.0), (x1,0.0), (x1,height)])
+//   END;

@@ -1,0 +1,113 @@
+DEFINITIONS
+  // LibraryReals.def : access to floating point operations
+  EXTERNAL_FUNCTION_RADD == REAL*REAL --> REAL;
+  RADD(x,y) == 0.0;
+  EXTERNAL_FUNCTION_RSUB == REAL*REAL --> REAL;
+  RSUB(x,y) == 0.0;
+  EXTERNAL_FUNCTION_RMUL == REAL*REAL --> REAL;
+  RMUL(x,y) == 0.0;
+  EXTERNAL_FUNCTION_RDIV == REAL*REAL --> REAL;
+  RDIV(x,y) == 0.0;
+  
+  EXTERNAL_FUNCTION_RSIN == REAL --> REAL;
+  RSIN(x) == 0.0;
+  EXTERNAL_FUNCTION_RCOS == REAL --> REAL;
+  RCOS(x) == 0.0;
+  EXTERNAL_FUNCTION_RTAN == REAL --> REAL;
+  RTAN(x) == 0.0;
+  EXTERNAL_FUNCTION_RCOT == REAL --> REAL;
+  RCOT(x) == 0.0;
+  EXTERNAL_FUNCTION_RSINH == REAL --> REAL;
+  RSINH(x) == 0.0;
+  EXTERNAL_FUNCTION_RCOSH == REAL --> REAL;
+  RCOSH(x) == 0.0;
+  EXTERNAL_FUNCTION_RTANH == REAL --> REAL;
+  RTANH(x) == 0.0;
+  EXTERNAL_FUNCTION_RCOTH == REAL --> REAL;
+  RCOTH(x) == 0.0;
+  EXTERNAL_FUNCTION_RASIN == REAL --> REAL;
+  RASIN(x) == 0.0;
+  EXTERNAL_FUNCTION_RACOS == REAL --> REAL;
+  RACOS(x) == 0.0;
+  EXTERNAL_FUNCTION_RATAN == REAL --> REAL;
+  RATAN(x) == 0.0;
+  EXTERNAL_FUNCTION_RACOT == REAL --> REAL;
+  RACOT(x) == 0.0;
+  EXTERNAL_FUNCTION_RASINH == REAL --> REAL;
+  RASINH(x) == 0.0;
+  EXTERNAL_FUNCTION_RACOSH == REAL --> REAL;
+  RACOSH(x) == 0.0;
+  EXTERNAL_FUNCTION_RATANH == REAL --> REAL;
+  RATANH(x) == 0.0;
+  EXTERNAL_FUNCTION_RACOTH == REAL --> REAL;
+  RACOTH(x) == 0.0;
+  EXTERNAL_FUNCTION_RADIANS == REAL --> REAL;
+  RADIANS(x) == 0.0;
+  EXTERNAL_FUNCTION_DEGREE == REAL --> REAL;
+  DEGREE(x) == 0.0;
+  
+  EXTERNAL_FUNCTION_REXP == REAL --> REAL;
+  REXP(x) == 0.0;
+  EXTERNAL_FUNCTION_RLOGe == REAL --> REAL;
+  RLOGe(x) == 0.0;
+  EXTERNAL_FUNCTION_RSQRT == REAL --> REAL;
+  RSQRT(x) == 0.0;
+  EXTERNAL_FUNCTION_RABS == REAL --> REAL;
+  RABS(x) == 0.0;
+  EXTERNAL_FUNCTION_ROUND == REAL --> INTEGER;
+  ROUND(x) == 0;
+  EXTERNAL_FUNCTION_RSIGN == REAL --> REAL;
+  RSIGN(x) == x;
+  EXTERNAL_FUNCTION_RFRACTION == REAL --> REAL;
+  RFRACTION(x) == x;
+  EXTERNAL_FUNCTION_RINTEGER == REAL --> REAL;
+  RINTEGER(x) == x;
+  
+  EXTERNAL_FUNCTION_RMAX == REAL*REAL --> REAL;
+  RMAX(x,y) == 0.0;
+  EXTERNAL_FUNCTION_RMIN == REAL*REAL --> REAL;
+  RMIN(x,y) == 0.0;
+  EXTERNAL_FUNCTION_RPOW == REAL*REAL --> REAL;
+  RPOW(x,y) == 0.0;
+  EXTERNAL_FUNCTION_RLOG == REAL*REAL --> REAL;
+  RLOG(x,y) == 0.0;
+  
+  EXTERNAL_FUNCTION_RPI == REAL;
+  RPI == 3.14;
+  EXTERNAL_FUNCTION_RZERO == REAL;
+  RZERO == 0.0;
+  EXTERNAL_FUNCTION_RONE == REAL;
+  RONE == 1.0;
+  EXTERNAL_FUNCTION_REULER == REAL;
+  REULER == 2.718281828459045;
+
+  EXTERNAL_PREDICATE_RLEQ == REAL*REAL;
+  RLEQ(x,y) == btrue;
+  EXTERNAL_PREDICATE_RGEQ == REAL*REAL;
+  RGEQ(x,y) == btrue;
+  EXTERNAL_PREDICATE_RLT == REAL*REAL;
+  RLT(x,y) == btrue;
+  EXTERNAL_PREDICATE_RGT == REAL*REAL;
+  RGT(x,y) == btrue;
+  
+  EXTERNAL_PREDICATE_REQ == REAL*REAL;
+  REQ(x,y) == btrue;
+  EXTERNAL_PREDICATE_RNEQ == REAL*REAL;
+  RNEQ(x,y) == btrue;
+
+  EXTERNAL_FUNCTION_RMAXIMUM == POW(REAL) --> REAL;
+  RMAXIMUM(set_of_reals) == 0.0;
+  EXTERNAL_FUNCTION_RMINIMUM == POW(REAL) --> REAL;
+  RMINIMUM(set_of_reals) == 0.0;
+
+ // will probably move to LibraryRandom.def in the future:
+ // versions working with REAL numbers:
+ EXTERNAL_FUNCTION_RNORMAL == REAL*REAL --> REAL;
+ RNORMAL(r_mu,r_sigma) == 0.0;
+
+ // generate uniformly distributed random numbers between lower and upper value (not included)
+ EXTERNAL_FUNCTION_RAND == REAL*REAL --> REAL;
+ RAND(rnd_low,rnd_up) == rnd_low;
+ 
+ // Softmax for an array of reals:
+ SOFTMAX(zz) == LET zi BE zi=zz IN %ism.(ism:dom(zi)|REXP(zi(ism)) / SIGMA(jsm).(jsm:dom(zi)|REXP(zi(jsm)))) END
