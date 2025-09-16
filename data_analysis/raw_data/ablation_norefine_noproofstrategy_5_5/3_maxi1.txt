@@ -1,0 +1,72 @@
+REFINE,null,0,111878,5009,,
+SYNTHESIS,null,0,102055,9204,,
+FIX_COMPILATION,null,0,145758,8423,,
+FIX_COMPILATION,null,1,1,0,,
+COMPILATION_CHECKER,null,5,1,0,0/0,
+FIX_MODEL_CHECKING,null,0,28676,3109,ok_not_all_nodes_considered,
+PO_CHECKER,null,0,16064,0,10/6/4,
+FIX_PROOF,FUN_1_inv_1/WD,0,112684,10236,,
+FIX_PROOF,FUN_1_inv_1/WD,1,210067,14609,,
+FIX_PROOF,FUN_1_inv_1/WD,2,127588,0,llm returns invalid json, try again...,
+FIX_PROOF,FUN_1_inv_1/WD,3,184867,12251,,
+FIX_PROOF,FUN_1_inv_1/WD,3,150925,11624,,
+FIX_PROOF,FUN_1_inv_1/WD,4,86734,9183,,
+FIX_PROOF,FUN_1_inv_1/WD,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,choose_max_index/grd4/WD,0,102844,13148,,
+FIX_PROOF,choose_max_index/grd4/WD,1,0,0,PO discharged,
+FIX_PROOF,INITIALISATION/FUN_1_inv_1/INV,0,133351,12702,,
+FIX_PROOF,INITIALISATION/FUN_1_inv_1/INV,1,178308,0,llm returns invalid json, try again...,
+FIX_PROOF,INITIALISATION/FUN_1_inv_1/INV,2,158602,14747,,
+FIX_PROOF,INITIALISATION/FUN_1_inv_1/INV,2,107275,9996,,
+FIX_PROOF,INITIALISATION/FUN_1_inv_1/INV,3,155631,13552,,
+FIX_PROOF,null,4,0,0,All POs checked.,
+PO_CHECKER,null,0,13,0,9/0,
+SYNTHESIS,null,0,293616,16403,,
+FIX_COMPILATION,null,0,144899,10851,,
+FIX_COMPILATION,null,1,165973,10029,,
+FIX_COMPILATION,null,2,12,0,Index 2 out of bounds for length 2,
+SYNTHESIS,null,0,297036,16383,,
+FIX_COMPILATION,null,0,12,0,Index 2 out of bounds for length 2,
+SYNTHESIS,null,0,289810,17086,,
+FIX_COMPILATION,null,0,11,0,Index 2 out of bounds for length 2,
+SYNTHESIS,null,0,327120,0,llm returns invalid json, try again...,
+SYNTHESIS,null,1,260849,14992,,
+FIX_COMPILATION,null,0,11,0,Index 2 out of bounds for length 2,
+SYNTHESIS,null,0,300912,17428,,
+FIX_COMPILATION,null,0,11,0,Index 2 out of bounds for length 2,
+SYNTHESIS,null,0,290374,16718,,
+FIX_COMPILATION,null,0,11,0,Index 2 out of bounds for length 2,
+SYNTHESIS,null,0,263225,15289,,
+FIX_COMPILATION,null,0,10,0,Index 2 out of bounds for length 2,
+SYNTHESIS,null,0,282947,17066,,
+FIX_COMPILATION,null,0,160841,16420,,
+FIX_COMPILATION,null,1,82614,7898,,
+FIX_COMPILATION,null,2,2,0,,
+COMPILATION_CHECKER,null,5,3,0,1/0,
+FIX_MODEL_CHECKING,null,0,169758,15142,ProB reported errors:
+Internal Error; call failed:  topological_sort([event_b_context(none,'MaxiCtx_2',[extends(...),constants(...)|...])],_3855081)
+
+
+Checking Event-B Model failed; Please submit bug report. check_event_b_project(_3854703,_3854705,_3854707,_3854709)
+
+,
+FIX_MODEL_CHECKING,null,1,169070,15025,ProB reported errors:
+Internal Error; call failed:  topological_sort([event_b_context(none,'MaxiCtx_2',[extends(...),constants(...)|...])],_3973505)
+
+
+Checking Event-B Model failed; Please submit bug report. check_event_b_project(_3973127,_3973129,_3973131,_3973133)
+
+,
+FIX_MODEL_CHECKING,null,2,216619,16790,ProB reported errors:
+Internal Error; call failed:  topological_sort([event_b_context(none,'MaxiCtx_2',[extends(...),constants(...)|...])],_4091913)
+
+
+Checking Event-B Model failed; Please submit bug report. check_event_b_project(_4091535,_4091537,_4091539,_4091541)
+
+,
+FIX_MODEL_CHECKING,null,3,52574,5315,ok_not_all_nodes_considered,
+PO_CHECKER,null,0,12079,0,53/22/1,
+FIX_PROOF,improve_step/j/EQL,0,140902,18575,PO not found,
+FIX_PROOF,improve_step/j/EQL,1,0,0,Exception,
+PO_CHECKER,null,0,145,0,53/1,
+6162329

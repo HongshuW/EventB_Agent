@@ -1,0 +1,12 @@
+REFINE,null,0,18173,2044,,
+SYNTHESIS,null,0,112884,8997,,
+FIX_COMPILATION,null,0,121726,0,llm returns invalid json, try again...,
+FIX_COMPILATION,null,1,132302,9859,,
+FIX_COMPILATION,null,2,54693,5333,,
+FIX_COMPILATION,null,3,4,0,,
+COMPILATION_CHECKER,null,5,4,0,0/0,
+FIX_MODEL_CHECKING,null,0,14681,2129,ok_not_all_nodes_considered,
+PO_CHECKER,null,0,1365,0,23/9/0,
+FIX_PROOF,null,0,0,0,All POs checked.,
+PO_CHECKER,null,0,36,0,23/0,
+457588

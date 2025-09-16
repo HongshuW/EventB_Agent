@@ -1,0 +1,290 @@
+REFINE,null,0,82162,7586,,
+SYNTHESIS,null,0,87352,8575,,
+FIX_COMPILATION,null,0,36776,4750,,
+FIX_COMPILATION,null,1,24,0,,
+COMPILATION_CHECKER,null,5,18,0,0/0,
+FIX_MODEL_CHECKING,null,0,33853,3063,ok_not_all_nodes_considered,
+PO_CHECKER,null,0,2657,0,12/1/1,
+FIX_PROOF,INITIALISATION/FUN_1_inv_1/INV,0,65747,10885,addHypothesesToGuard:{"similar_hypothesis":" \\forall i \\cdot i \\in 0  ..  n  -  1 \\Rightarrow i \\in dom(f) \\land f \\in INT  \\rightharpoonup  INT","goal":" \\forall i \\cdot  \\neg (i \\in 0  ..  n  -  1 \\land f(i)=v)","guard":{"predicate":" \\forall i \\cdot i \\in 0  ..  n  -  1 \\Rightarrow f(i) \\neq v","label_name":"init_no_match"},"event_name":"INITIALISATION","instantiations":[],"node_id":5},
+FIX_PROOF,INITIALISATION/FUN_1_inv_1/INV,1,53644,9353,applySMT:{"node_id":7},
+FIX_PROOF,INITIALISATION/FUN_1_inv_1/INV,2,60572,10938,applyProofTactic:{"proof_tactic":"disjunctionToImplication","predicate_id":0,"node_id":7},
+FIX_PROOF,INITIALISATION/FUN_1_inv_1/INV,3,47049,11223,instantiation:{"predicate":" \\forall i \\cdot i \\in 0  ..  n  -  1 \\Rightarrow f(i) \\neq v","instantiations":["i"],"node_id":9},
+FIX_PROOF,INITIALISATION/FUN_1_inv_1/INV,4,76724,12652,addHypothesesToGuard:{"similar_hypothesis":"i \\in 0  ..  n  -  1","goal":" \\neg f(i)=v","guard":{"predicate":" \\forall i \\cdot i \\in 0  ..  n  -  1 \\Rightarrow f(i) \\neq v","label_name":"init_no_match"},"event_name":"INITIALISATION","instantiations":["i"],"node_id":9},
+FIX_PROOF,INITIALISATION/FUN_1_inv_1/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+PO_CHECKER,null,0,16,0,12/1,
+SYNTHESIS,null,0,214676,13677,,
+FIX_COMPILATION,null,0,55660,6796,,
+FIX_COMPILATION,null,1,16,0,,
+COMPILATION_CHECKER,null,5,18,0,0/0,
+FIX_MODEL_CHECKING,null,0,138490,12661,state_error,
+FIX_MODEL_CHECKING,null,1,165910,14702,state_error,
+FIX_MODEL_CHECKING,null,2,137456,13037,state_error,
+FIX_MODEL_CHECKING,null,3,252733,20276,state_error,
+FIX_MODEL_CHECKING,null,4,222296,19003,FIX_MODEL_CHECKING: reached maximum number of allowed attempts.,
+PO_CHECKER,null,0,5217,0,49/4/1,
+FIX_PROOF,found/r/EQL,0,73018,22421,addHypothesesToContext:{"similar_hypothesis":"f(i)=v","goal":"i=r","instantiations":["i","r"],"hypothesis":{"predicate":"\\forall x,y \\cdot (x \\in dom(f) \\land y \\in dom(f) \\land f(x)=f(y)) \\Rightarrow x=y","label_name":"INJ_f"},"node_id":13},
+FIX_PROOF,found/r/EQL,1,47948,75898,applySMT:{"node_id":0},
+FIX_PROOF,found/r/EQL,2,92429,99048,selectHypothesisFromContext:{"similar_hypothesis":"f(i)=v","goal":"i=r","instantiations":["i","r"],"axiom_label":"INJ_f","node_id":0},
+FIX_PROOF,found/r/EQL,3,85281,141773,applySMT:{"node_id":62},
+FIX_PROOF,found/r/EQL,4,135802,165196,applySMT:{"node_id":81},
+FIX_PROOF,found/r/EQL,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+PO_CHECKER,null,0,151,0,49/1,
+SYNTHESIS,null,0,304469,20084,,
+FIX_COMPILATION,null,0,107566,13093,,
+FIX_COMPILATION,null,1,102864,12510,,
+FIX_COMPILATION,null,2,18,0,,
+COMPILATION_CHECKER,null,5,18,0,0/0,
+FIX_MODEL_CHECKING,null,0,383975,30119,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_MODEL_CHECKING,null,1,437364,32499,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_MODEL_CHECKING,null,2,549514,32460,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:0
+
+,
+FIX_MODEL_CHECKING,null,3,464179,32438,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:0
+
+,
+FIX_MODEL_CHECKING,null,4,445755,34511,FIX_MODEL_CHECKING: reached maximum number of allowed attempts.,
+PO_CHECKER,null,0,229781,0,330/91/31,
+FIX_PROOF,progress_right/gluing_inv_1_2_IntervalRepresentsSearchState/INV,0,114701,63573,strengthenGuard:{"guard":{"predicate":"f(r) < v","label_name":"grd_lt_needed"},"event_name":"progress_right","node_id":25},
+FIX_PROOF,progress_right/gluing_inv_1_2_IntervalRepresentsSearchState/INV,1,141987,65193,addHypothesesToContext:{"similar_hypothesis":"v \\in f[p  ..  q]","goal":"v \\in f[r+1  ..  q]","instantiations":["p","q","r"],"hypothesis":{"predicate":"\\forall p,q,r \\cdot (p  ..  q \\subseteq dom(f) \\land r \\in p  ..  q \\land r<q \\land f(r) < v \\land v \\in f[p  ..  q]) \\Rightarrow v \\in f[r+1  ..  q]","label_name":"AXM_img_shift_right"},"node_id":25},
+FIX_PROOF,progress_right/gluing_inv_1_2_IntervalRepresentsSearchState/INV,2,46860,58601,selectHypothesisFromContext:{"similar_hypothesis":"v \\in f[p  ..  q]","goal":"v \\in f[r+1  ..  q]","instantiations":["p","q","r"],"axiom_label":"AXM_img_shift_right","node_id":25},
+FIX_PROOF,progress_right/gluing_inv_1_2_IntervalRepresentsSearchState/INV,3,64781,62001,selectHypothesisFromContext:{"similar_hypothesis":"v \\in f[p  ..  q]","goal":"v \\in f[r+1  ..  q]","instantiations":["p","q","r"],"axiom_label":"AXM_img_shift_right","node_id":25},
+FIX_PROOF,progress_right/gluing_inv_1_2_IntervalRepresentsSearchState/INV,4,104954,63527,selectHypothesisFromContext:{"similar_hypothesis":"v \\in f[p  ..  q]","goal":"v \\in f[r+1  ..  q]","instantiations":["p","q","r"],"axiom_label":"AXM_img_shift_right","node_id":25},
+FIX_PROOF,progress_right/gluing_inv_1_2_IntervalRepresentsSearchState/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,progress_left/gluing_inv_1_2_IntervalRepresentsSearchState/INV,0,128553,64603,strengthenGuard:{"guard":{"predicate":"f(r) > v","label_name":"grd_gt_needed"},"event_name":"progress_left","node_id":25},
+FIX_PROOF,progress_left/gluing_inv_1_2_IntervalRepresentsSearchState/INV,1,53009,0,llm returns invalid json, try again...,
+FIX_PROOF,progress_left/gluing_inv_1_2_IntervalRepresentsSearchState/INV,2,53666,62267,addHypothesesToContext:{"similar_hypothesis":"v \\in f[p  ..  q]","goal":"v \\in f[p  ..  r  -  1]","instantiations":["p","q","r","v"],"hypothesis":{"predicate":"\\forall p,q,r,v \\cdot (f \\in 0 .. n - 1 \\rightarrow VAL \\land v \\in VAL \\land (\\forall i,j \\cdot (i \\in 0 .. n - 1 \\land j \\in 0 .. n - 1 \\land i < j) \\Rightarrow f(i) \\leq f(j)) \\land p .. q \\subseteq dom(f) \\land r \\in p .. q \\land r > p \\land f(r) > v) \\Rightarrow (v \\in f[p .. q] \\Rightarrow v \\in f[p .. r - 1])","label_name":"AXM_monotone_cut_left"},"node_id":25},
+FIX_PROOF,progress_left/gluing_inv_1_2_IntervalRepresentsSearchState/INV,3,62649,59717,selectHypothesisFromContext:{"similar_hypothesis":"v \\in f[p  ..  q]","goal":"v \\in f[p  ..  r  -  1]","instantiations":["p","q","r","v"],"axiom_label":"AXM_monotone_cut_left","node_id":25},
+FIX_PROOF,progress_left/gluing_inv_1_2_IntervalRepresentsSearchState/INV,4,102948,63822,selectHypothesisFromContext:{"similar_hypothesis":"v \\in f[p  ..  q]","goal":"v \\in f[p  ..  r  -  1]","instantiations":[],"axiom_label":"AXM_f_monotone","node_id":25},
+FIX_PROOF,progress_left/gluing_inv_1_2_IntervalRepresentsSearchState/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,to_empty_right/gluing_inv_0_1_NotFoundMeaning/INV,0,76564,47032,selectHypothesisFromContext:{"similar_hypothesis":"v \\in ran(f) \\Rightarrow v \\in f[p  ..  q]","goal":" \\neg v \\in ran(f)","instantiations":[],"axiom_label":"AXM_f_monotone","node_id":16},
+FIX_PROOF,to_empty_right/gluing_inv_0_1_NotFoundMeaning/INV,1,66663,46031,strengthenGuard:{"guard":{"predicate":"v \\notin ran(f)","label_name":"grd_not_in_ran"},"event_name":"to_empty_right","node_id":16},
+FIX_PROOF,to_empty_right/gluing_inv_0_1_NotFoundMeaning/INV,2,17205,10660,applySMT:{"node_id":0},
+FIX_PROOF,to_empty_right/gluing_inv_0_1_NotFoundMeaning/INV,3,0,0,PO discharged,
+FIX_PROOF,to_empty_left/gluing_inv_0_1_NotFoundMeaning/INV,0,23583,38598,strengthenGuard:{"guard":{"predicate":"v \\notin ran(f)","label_name":"grd_not_in_ran"},"event_name":"to_empty_left","node_id":14},
+FIX_PROOF,to_empty_left/gluing_inv_0_1_NotFoundMeaning/INV,1,69038,40924,applySMT:{"node_id":14},
+FIX_PROOF,to_empty_left/gluing_inv_0_1_NotFoundMeaning/INV,2,60682,40543,addHypothesesToGuard:{"similar_hypothesis":"nf=TRUE \\Rightarrow \\neg v \\in ran(f)","goal":"\\neg v \\in ran(f)","guard":{"predicate":"v \\notin ran(f)","label_name":"grd_not_in_ran"},"event_name":"to_empty_left","instantiations":[],"node_id":14},
+FIX_PROOF,to_empty_left/gluing_inv_0_1_NotFoundMeaning/INV,3,130422,42269,addHypothesesToGuard:{"similar_hypothesis":"nf=TRUE \\Rightarrow \\neg v \\in ran(f)","goal":"\\neg v \\in ran(f)","guard":{"predicate":"\\forall i \\cdot (i \\in dom(f) \\Rightarrow f(i) \\neq v)","label_name":"grd_not_in_ran_univ"},"event_name":"to_empty_left","instantiations":[],"node_id":14},
+FIX_PROOF,to_empty_left/gluing_inv_0_1_NotFoundMeaning/INV,4,86237,39502,applySMT:{"node_id":14},
+FIX_PROOF,to_empty_left/gluing_inv_0_1_NotFoundMeaning/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,progress_right/p/EQL,0,128334,36480,applySMT:{"node_id":13},
+FIX_PROOF,progress_right/p/EQL,1,90959,36618,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_PROOF,progress_right/p/EQL,2,126332,43867,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_PROOF,progress_right/p/EQL,3,78898,38937,strengthenGuard:{"guard":{"predicate":"p = r+1","label_name":"grd_p_next"},"event_name":"progress_right","node_id":13},
+FIX_PROOF,progress_right/p/EQL,4,16264,10169,addHypothesesToContext:{"similar_hypothesis":"p = r+1","goal":"r+1 = p","instantiations":["r+1","p"],"hypothesis":{"predicate":"\\forall x,y \\cdot x = y \\Rightarrow y = x","label_name":"AXM_eq_sym"},"node_id":0},
+FIX_PROOF,progress_right/p/EQL,5,0,0,PO discharged,
+FIX_PROOF,progress_left/q/EQL,0,82852,36494,strengthenGuard:{"guard":{"predicate":"r - 1 = q","label_name":"grd_q_eq_r_minus_one"},"event_name":"progress_left","node_id":13},
+FIX_PROOF,progress_left/q/EQL,1,51959,35172,applySMT:{"node_id":13},
+FIX_PROOF,progress_left/q/EQL,2,0,0,PO discharged,
+FIX_PROOF,to_empty_left/q/EQL,0,96333,39720,updateAction:{"event_name":"to_empty_left","action":{"assignment":"q := p-1","label_name":"asg_q_make_empty"},"node_id":14},
+FIX_PROOF,to_empty_left/q/EQL,1,85092,12257,strengthenGuard:{"guard":{"predicate":"p - 1 = q","label_name":"grd_q_eq_p_minus_one"},"event_name":"to_empty_left","node_id":0},
+FIX_PROOF,to_empty_left/q/EQL,2,18508,9671,applySMT:{"node_id":0},
+FIX_PROOF,to_empty_left/q/EQL,3,0,0,PO discharged,
+FIX_PROOF,edge_not_found_low/p/EQL,0,177787,49167,applySMT:{"node_id":17},
+FIX_PROOF,edge_not_found_low/p/EQL,1,98283,45285,updateAction:{"event_name":"edge_not_found_low","action":{"assignment":"p := q+1","label_name":"asg_p_after_q"},"node_id":17},
+FIX_PROOF,edge_not_found_low/p/EQL,2,116360,15211,updateAction:{"event_name":"edge_not_found_low","action":{"assignment":"p := p+1","label_name":"asg_p_after_q"},"node_id":0},
+FIX_PROOF,edge_not_found_low/p/EQL,3,67925,39894,updateAction:{"event_name":"edge_not_found_low","action":{"assignment":"p := q+1","label_name":"asg_p_after_q"},"node_id":15},
+FIX_PROOF,edge_not_found_low/p/EQL,4,87360,40555,updateAction:{"event_name":"edge_not_found_low","action":{"assignment":"p := 1","label_name":"asg_p_after_q"},"node_id":15},
+FIX_PROOF,edge_not_found_low/p/EQL,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,edge_not_found_low/q/EQL,0,60397,44408,selectHypothesisFromContext:{"similar_hypothesis":"q=0","goal":"0=q","instantiations":["q","0"],"axiom_label":"AXM_eq_sym","node_id":17},
+FIX_PROOF,edge_not_found_low/q/EQL,1,73883,44744,strengthenGuard:{"guard":{"predicate":"q = 0","label_name":"grd_q_zero"},"event_name":"edge_not_found_low","node_id":17},
+FIX_PROOF,edge_not_found_low/q/EQL,2,17838,9941,applySMT:{"node_id":0},
+FIX_PROOF,edge_not_found_low/q/EQL,3,0,0,PO discharged,
+FIX_PROOF,edge_not_found_low/r/EQL,0,122662,53833,applySMT:{"node_id":20},
+FIX_PROOF,edge_not_found_low/r/EQL,1,98308,61990,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_PROOF,edge_not_found_low/r/EQL,2,127113,63623,applySMT:{"node_id":24},
+FIX_PROOF,edge_not_found_low/r/EQL,3,133140,67739,strengthenGuard:{"guard":{"predicate":"v \\notin ran(f)","label_name":"grd_v_notin_ran"},"event_name":"edge_not_found_low","node_id":26},
+FIX_PROOF,edge_not_found_low/r/EQL,4,70776,12832,applySMT:{"node_id":0},
+FIX_PROOF,edge_not_found_low/r/EQL,5,0,0,PO discharged,
+FIX_PROOF,edge_not_found_high/p/EQL,0,87148,36021,applySMT:{"node_id":13},
+FIX_PROOF,edge_not_found_high/p/EQL,1,107207,36999,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_PROOF,edge_not_found_high/p/EQL,2,151939,0,llm returns invalid json, try again...,
+FIX_PROOF,edge_not_found_high/p/EQL,3,153130,39671,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_PROOF,edge_not_found_high/p/EQL,4,112371,38286,selectHypothesisFromContext:{"similar_hypothesis":"p \\ NAT","goal":"q+1=p","instantiations":["p","q+1"],"axiom_label":"AXM_eq_sym","node_id":13},
+FIX_PROOF,edge_not_found_high/p/EQL,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,edge_not_found_high/r/EQL,0,62685,41628,applySMT:{"node_id":16},
+FIX_PROOF,edge_not_found_high/r/EQL,1,79939,42745,strengthenGuard:{"guard":{"predicate":"v \\notin ran(f)","label_name":"grd_v_not_in_ran"},"event_name":"edge_not_found_high","node_id":16},
+FIX_PROOF,edge_not_found_high/r/EQL,2,124998,44363,addHypothesesToContext:{"similar_hypothesis":"\\neg ( \\exists i \\cdot i \\in 0  ..  n  -  1 \\land f(i)=v) \\Rightarrow r=NF","goal":"NF=r","instantiations":["v"],"hypothesis":{"predicate":"\\forall x \\cdot (x \\notin ran(f) \\Rightarrow \\neg (\\exists i \\cdot (i \\in dom(f) \\land f(i) = x)))","label_name":"AXM_ran_not_exists"},"node_id":16},
+FIX_PROOF,edge_not_found_high/r/EQL,3,87366,13424,selectHypothesisFromContext:{"similar_hypothesis":"\\neg ( \\exists i \\cdot i \\in 0  ..  n  -  1 \\land f(i)=v) \\Rightarrow r=NF","goal":"NF=r","instantiations":["v"],"axiom_label":"AXM_ran_not_exists","node_id":0},
+FIX_PROOF,edge_not_found_high/r/EQL,4,0,0,PO discharged,
+FIX_PROOF,INITIALISATION/init_r/SIM,0,29303,12810,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_PROOF,INITIALISATION/init_r/SIM,1,55508,13694,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"r := NF","label_name":"init_r"},"node_id":6},
+FIX_PROOF,INITIALISATION/init_r/SIM,2,1,13773,PO not found,
+FIX_PROOF,INITIALISATION/init_r/SIM,3,0,0,PO discharged,
+FIX_PROOF,INITIALISATION/init_q/SIM,0,76322,13991,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_PROOF,INITIALISATION/init_q/SIM,1,23693,13019,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"q := 0","label_name":"init_q"},"node_id":7},
+FIX_PROOF,INITIALISATION/init_q/SIM,2,42119,14061,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"q := n-1","label_name":"init_q"},"node_id":7},
+FIX_PROOF,INITIALISATION/init_q/SIM,3,26773,13056,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"q := 0","label_name":"init_q"},"node_id":7},
+FIX_PROOF,INITIALISATION/init_q/SIM,4,20739,13010,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"q := n-1","label_name":"init_q"},"node_id":7},
+FIX_PROOF,INITIALISATION/init_q/SIM,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+PO_CHECKER,null,0,5107,0,330/2,
+SYNTHESIS,null,0,317260,0,llm returns invalid json, try again...,
+SYNTHESIS,null,1,319082,22780,,
+FIX_COMPILATION,null,0,183056,18154,,
+FIX_COMPILATION,null,1,223014,20647,,
+FIX_COMPILATION,null,2,18,0,,
+COMPILATION_CHECKER,null,5,19,0,0/0,
+FIX_MODEL_CHECKING,null,0,258308,28725,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_MODEL_CHECKING,null,1,312375,31317,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:0
+
+,
+FIX_MODEL_CHECKING,null,2,436526,35215,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_MODEL_CHECKING,null,3,393576,35332,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:0
+
+,
+FIX_MODEL_CHECKING,null,4,442926,38153,FIX_MODEL_CHECKING: reached maximum number of allowed attempts.,
+PO_CHECKER,null,0,165791,0,406/62/11,
+FIX_PROOF,INITIALISATION/gluing_inv_2_3_MidpointChoiceRefinesNondet/INV,0,89190,21558,addHypothesesToContext:{"similar_hypothesis":"n  -  1 \\in NAT","goal":"(n  -  1)  /  2 \\in 0  ..  n  -  1","instantiations":["n  -  1"],"hypothesis":{"predicate":"\\forall m \\cdot m \\in NAT \\Rightarrow m / 2 \\in 0 .. m","label_name":"AXM_div2_bounds"},"node_id":9},
+FIX_PROOF,INITIALISATION/gluing_inv_2_3_MidpointChoiceRefinesNondet/INV,1,31109,10837,instantiation:{"predicate":"\\forall m \\cdot m \\in NAT \\Rightarrow m  /  2 \\in 0  ..  m","instantiations":["n  -  1"],"node_id":0},
+FIX_PROOF,INITIALISATION/gluing_inv_2_3_MidpointChoiceRefinesNondet/INV,2,0,0,PO discharged,
+FIX_PROOF,choose_mid/gluing_inv_2_3_BoundsUpdatePreservation/INV,0,48855,162397,applyProofTactic:{"proof_tactic":"disjunctionToImplication","predicate_id":0,"node_id":21},
+FIX_PROOF,choose_mid/gluing_inv_2_3_BoundsUpdatePreservation/INV,1,39323,178648,applyProofTactic:{"proof_tactic":"disjunctionToImplication","predicate_id":0,"node_id":32},
+FIX_PROOF,choose_mid/gluing_inv_2_3_BoundsUpdatePreservation/INV,2,106012,192153,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":0,"node_id":24},
+FIX_PROOF,choose_mid/gluing_inv_2_3_BoundsUpdatePreservation/INV,3,74843,202581,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":0,"node_id":36},
+FIX_PROOF,choose_mid/gluing_inv_2_3_BoundsUpdatePreservation/INV,4,131084,218296,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":29,"node_id":25},
+FIX_PROOF,choose_mid/gluing_inv_2_3_BoundsUpdatePreservation/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,choose_mid/TYP_r_1/INV,0,61874,100413,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":0,"node_id":20},
+FIX_PROOF,choose_mid/TYP_r_1/INV,1,63721,106523,Illegal escape. at 26 [character 27 line 1],
+FIX_PROOF,choose_mid/TYP_r_1/INV,2,45181,105336,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":18,"node_id":21},
+FIX_PROOF,choose_mid/TYP_r_1/INV,3,74638,0,llm returns invalid json, try again...,
+FIX_PROOF,choose_mid/TYP_r_1/INV,4,63461,111346,selectHypothesisFromContext:{"similar_hypothesis":"p <= (p+q) / 2","goal":"0 <= (p+q) / 2","instantiations":["p+q"],"axiom_label":"AXM_div2_bounds","node_id":22},
+FIX_PROOF,choose_mid/TYP_r_1/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,choose_mid/TYP_r_2/INV,0,78815,101142,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":0,"node_id":20},
+FIX_PROOF,choose_mid/TYP_r_2/INV,1,39584,109882,applyProofTactic:{"proof_tactic":"removeInclusion","predicate_id":17,"node_id":22},
+FIX_PROOF,choose_mid/TYP_r_2/INV,2,40360,115570,instantiation:{"predicate":"\\forall x \\cdot x \\in p  ..  q \\Rightarrow x \\in dom(f)","instantiations":["(p+q)  /  2"],"node_id":23},
+FIX_PROOF,choose_mid/TYP_r_2/INV,3,0,0,PO discharged,
+FIX_PROOF,choose_mid/TYP_r_dom_when_fs/INV,0,26542,99632,applyProofTactic:{"proof_tactic":"removeInclusion","predicate_id":16,"node_id":20},
+FIX_PROOF,choose_mid/TYP_r_dom_when_fs/INV,1,45533,105268,instantiation:{"predicate":" \\forall x \\cdot x \\in p  ..  q \\Rightarrow x \\in dom(f)","instantiations":["(p+q)  /  2"],"node_id":21},
+FIX_PROOF,choose_mid/TYP_r_dom_when_fs/INV,2,0,0,PO discharged,
+FIX_PROOF,choose_mid/FUN_6_inv_1/INV,0,43973,100017,applyProofTactic:{"proof_tactic":"removeInclusion","predicate_id":16,"node_id":20},
+FIX_PROOF,choose_mid/FUN_6_inv_1/INV,1,43645,105333,instantiation:{"predicate":" \\forall x \\cdot x \\in p  ..  q \\Rightarrow x \\in dom(f)","instantiations":["(p+q)  /  2"],"node_id":21},
+FIX_PROOF,choose_mid/FUN_6_inv_1/INV,2,0,0,PO discharged,
+FIX_PROOF,choose_mid/SAF_3_inv_1/INV,0,85552,125647,applySMT:{"node_id":23},
+FIX_PROOF,choose_mid/SAF_3_inv_1/INV,1,98057,126169,caseDistinction:{"expression":"(p+q) / 2 < q","node_id":23},
+FIX_PROOF,choose_mid/SAF_3_inv_1/INV,2,62949,167126,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":29,"node_id":31},
+FIX_PROOF,choose_mid/SAF_3_inv_1/INV,3,227000,179461,applySMT:{"node_id":32},
+FIX_PROOF,choose_mid/SAF_3_inv_1/INV,4,167891,177231,addHypothesesToContext:{"similar_hypothesis":"fs=TRUE \\land r \\in dom(f) \\land f(r)  \\mapsto  v \\in LT \\Rightarrow r<q \\lor f(q)  \\mapsto  v \\in LT","goal":"f(q)  \\mapsto  v \\in LT","instantiations":["(p+q) / 2","q"],"hypothesis":{"predicate":"\\forall x,y \\cdot x \\in INT \\land y \\in INT \\land x \\leq y \\land y \\leq x \\Rightarrow x = y","label_name":"AXM_leq_antisym"},"node_id":32},
+FIX_PROOF,choose_mid/SAF_3_inv_1/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,choose_mid/SAF_3_inv_2/INV,0,56228,105113,addHypothesesToContext:{"similar_hypothesis":"(p+q)  /  2<q","goal":"(p+q)  /  2+1 \\leq q","instantiations":["(p+q)  /  2","q"],"hypothesis":{"predicate":"\\forall x,y \\cdot x \\in INT \\land y \\in INT \\land x < y \\Rightarrow x+1 \\leq y","label_name":"LEM_lt_succ_le"},"node_id":20},
+FIX_PROOF,choose_mid/SAF_3_inv_2/INV,1,0,0,PO discharged,
+FIX_PROOF,choose_mid/SAF_4_inv_1/INV,0,103084,123478,applyProofTactic:{"proof_tactic":"disjunctionToImplication","predicate_id":0,"node_id":22},
+FIX_PROOF,choose_mid/SAF_4_inv_1/INV,1,30271,162315,applySMT:{"node_id":30},
+FIX_PROOF,choose_mid/SAF_4_inv_1/INV,2,27374,162440,applySMT:{"node_id":30},
+FIX_PROOF,choose_mid/SAF_4_inv_1/INV,3,28960,162438,applySMT:{"node_id":30},
+FIX_PROOF,choose_mid/SAF_4_inv_1/INV,4,36918,162884,applySMT:{"node_id":30},
+FIX_PROOF,choose_mid/SAF_4_inv_1/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,choose_mid/SAF_4_inv_2/INV,0,33828,0,llm returns invalid json, try again...,
+FIX_PROOF,choose_mid/SAF_4_inv_2/INV,1,43067,0,llm returns invalid json, try again...,
+FIX_PROOF,choose_mid/SAF_4_inv_2/INV,2,66590,111576,instantiation:{"predicate":" \forall x,y \b7 x<y \b7 x+1 \b6 y","instantiations":["p","(p+q) / 2"],"node_id":21},
+FIX_PROOF,choose_mid/SAF_4_inv_2/INV,3,55124,110714,addHypothesesToContext:{"similar_hypothesis":"(p+q)  /  2>p","goal":"p \\leq (p+q)  /  2  -  1","instantiations":["p","(p+q) / 2"],"hypothesis":{"predicate":"\\forall x,y \\cdot x \\in INT \\land y \\in INT \\land x<y \\Rightarrow x \\leq y-1","label_name":"LEM_lt_le_pred"},"node_id":21},
+FIX_PROOF,choose_mid/SAF_4_inv_2/INV,4,0,0,PO discharged,
+FIX_PROOF,choose_mid/asg_r/SIM,0,40482,86738,applyProofTactic:{"proof_tactic":"equality","predicate_id":0,"node_id":17},
+FIX_PROOF,choose_mid/asg_r/SIM,1,35824,92124,applyProofTactic:{"proof_tactic":"equality","predicate_id":0,"node_id":18},
+FIX_PROOF,choose_mid/asg_r/SIM,2,31351,92089,applyProofTactic:{"proof_tactic":"equality","predicate_id":0,"node_id":18},
+FIX_PROOF,choose_mid/asg_r/SIM,3,50435,93462,applyProofTactic:{"proof_tactic":"equality","predicate_id":0,"node_id":18},
+FIX_PROOF,choose_mid/asg_r/SIM,4,36407,92467,applyProofTactic:{"proof_tactic":"equality","predicate_id":0,"node_id":18},
+FIX_PROOF,choose_mid/asg_r/SIM,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+PO_CHECKER,null,0,6261,0,406/5,
+SYNTHESIS,null,0,225848,21060,,
+FIX_COMPILATION,null,0,192356,17315,,
+FIX_COMPILATION,null,1,175440,17323,,
+FIX_COMPILATION,null,2,18,0,,
+COMPILATION_CHECKER,null,5,20,0,0/0,
+FIX_MODEL_CHECKING,null,0,61912,9191,ok_not_all_nodes_considered,
+PO_CHECKER,null,0,159321,0,394/49/11,
+FIX_PROOF,INITIALISATION/gluing_inv_2_3_MidpointChoiceRefinesNondet/INV,0,29955,21422,instantiation:{"predicate":" \\forall m \\cdot m \\in NAT \\Rightarrow m  /  2 \\in 0  ..  m","instantiations":["n - 1"],"node_id":9},
+FIX_PROOF,INITIALISATION/gluing_inv_2_3_MidpointChoiceRefinesNondet/INV,1,0,0,PO discharged,
+FIX_PROOF,choose_mid/gluing_inv_2_3_BoundsUpdatePreservation/INV,0,111150,189530,applyProofTactic:{"proof_tactic":"disjunctionToImplication","predicate_id":0,"node_id":22},
+FIX_PROOF,choose_mid/gluing_inv_2_3_BoundsUpdatePreservation/INV,1,48092,198671,applyProofTactic:{"proof_tactic":"disjunctionToImplication","predicate_id":0,"node_id":32},
+FIX_PROOF,choose_mid/gluing_inv_2_3_BoundsUpdatePreservation/INV,2,94683,213627,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":0,"node_id":24},
+FIX_PROOF,choose_mid/gluing_inv_2_3_BoundsUpdatePreservation/INV,3,87548,226731,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":30,"node_id":26},
+FIX_PROOF,choose_mid/gluing_inv_2_3_BoundsUpdatePreservation/INV,4,38657,230535,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":0,"node_id":37},
+FIX_PROOF,choose_mid/gluing_inv_2_3_BoundsUpdatePreservation/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,choose_mid/TYP_r_1/INV,0,59504,112091,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":0,"node_id":20},
+FIX_PROOF,choose_mid/TYP_r_1/INV,1,59324,117386,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":18,"node_id":21},
+FIX_PROOF,choose_mid/TYP_r_1/INV,2,37597,123142,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":6,"node_id":22},
+FIX_PROOF,choose_mid/TYP_r_1/INV,3,56771,128635,applySMT:{"node_id":23},
+FIX_PROOF,choose_mid/TYP_r_1/INV,4,83068,130934,selectHypothesisFromContext:{"similar_hypothesis":"(p+q)  /  2 \\in p  ..  q","goal":"0 \\leq (p+q)  /  2","instantiations":["p+q"],"axiom_label":"AXM_div2_bounds","node_id":23},
+FIX_PROOF,choose_mid/TYP_r_1/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,choose_mid/TYP_r_2/INV,0,40378,105661,applyProofTactic:{"proof_tactic":"removeInclusion","predicate_id":17,"node_id":19},
+FIX_PROOF,choose_mid/TYP_r_2/INV,1,32215,116552,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":0,"node_id":21},
+FIX_PROOF,choose_mid/TYP_r_2/INV,2,47913,129603,instantiation:{"predicate":"\\forall x \\cdot x \\in p  ..  q \\Rightarrow x \\in dom(f)","instantiations":["(p+q) / 2"],"node_id":23},
+FIX_PROOF,choose_mid/TYP_r_2/INV,3,0,0,PO discharged,
+FIX_PROOF,choose_mid/TYP_r_dom_when_fs/INV,0,19409,110670,applyProofTactic:{"proof_tactic":"removeInclusion","predicate_id":16,"node_id":20},
+FIX_PROOF,choose_mid/TYP_r_dom_when_fs/INV,1,40052,117557,instantiation:{"predicate":"\\forall x \\cdot x \\in p .. q \\Rightarrow x \\in dom(f)","instantiations":["(p+q) / 2"],"node_id":21},
+FIX_PROOF,choose_mid/TYP_r_dom_when_fs/INV,2,0,0,PO discharged,
+FIX_PROOF,choose_mid/FUN_6_inv_1/INV,0,39524,111375,applyProofTactic:{"proof_tactic":"removeInclusion","predicate_id":16,"node_id":20},
+FIX_PROOF,choose_mid/FUN_6_inv_1/INV,1,33415,117304,instantiation:{"predicate":"\\forall x \\cdot x \\in p  ..  q \\Rightarrow x \\in dom(f)","instantiations":["(p+q) / 2"],"node_id":21},
+FIX_PROOF,choose_mid/FUN_6_inv_1/INV,2,0,0,PO discharged,
+FIX_PROOF,choose_mid/SAF_3_inv_1/INV,0,129748,141372,applyProofTactic:{"proof_tactic":"disjunctionToImplication","predicate_id":0,"node_id":23},
+FIX_PROOF,choose_mid/SAF_3_inv_1/INV,1,47152,155238,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":30,"node_id":26},
+FIX_PROOF,choose_mid/SAF_3_inv_1/INV,2,65162,162284,applySMT:{"node_id":27},
+FIX_PROOF,choose_mid/SAF_3_inv_1/INV,3,90858,164060,addHypothesesToContext:{"similar_hypothesis":"f((p+q)  /  2)  \\mapsto  v \\in LT","goal":"f(q)  \\mapsto  v \\in LT","instantiations":["(p+q) / 2","q"],"hypothesis":{"predicate":"\\forall x,y \\cdot x \\in INT \\land y \\in INT \\land x \\leq y \\land y \\leq x \\Rightarrow x = y","label_name":"LEM_antisym_int"},"node_id":27},
+FIX_PROOF,choose_mid/SAF_3_inv_1/INV,4,40378,239026,applySMT:{"node_id":40},
+FIX_PROOF,choose_mid/SAF_3_inv_1/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,choose_mid/SAF_3_inv_2/INV,0,43123,114690,instantiation:{"predicate":"∀ x,y · x<y ⇒ x+1 ≤ y","instantiations":["(p+q) / 2","q"],"node_id":20},
+FIX_PROOF,choose_mid/SAF_3_inv_2/INV,1,0,0,PO discharged,
+FIX_PROOF,choose_mid/SAF_4_inv_1/INV,0,50057,137885,applyProofTactic:{"proof_tactic":"disjunctionToImplication","predicate_id":0,"node_id":23},
+FIX_PROOF,choose_mid/SAF_4_inv_1/INV,1,29217,178382,applySMT:{"node_id":30},
+FIX_PROOF,choose_mid/SAF_4_inv_1/INV,2,33896,178700,applySMT:{"node_id":30},
+FIX_PROOF,choose_mid/SAF_4_inv_1/INV,3,44051,179338,applySMT:{"node_id":30},
+FIX_PROOF,choose_mid/SAF_4_inv_1/INV,4,38600,178696,applySMT:{"node_id":30},
+FIX_PROOF,choose_mid/SAF_4_inv_1/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,choose_mid/SAF_4_inv_2/INV,0,43742,0,llm returns invalid json, try again...,
+FIX_PROOF,choose_mid/SAF_4_inv_2/INV,1,52814,121745,selectHypothesisFromContext:{"similar_hypothesis":"(p+q)  /  2>p","goal":"p \\leq (p+q)  /  2  -  1","instantiations":["p","(p+q) / 2"],"axiom_label":"LEM_lt_le_pred","node_id":21},
+FIX_PROOF,choose_mid/SAF_4_inv_2/INV,2,0,0,PO discharged,
+FIX_PROOF,choose_mid/FUN_8_inv_1/INV,0,35156,121864,instantiation:{"predicate":" \\forall x \\cdot x \\in dom(f) \\Rightarrow (v  \\mapsto  f(x) \\in LT \\Leftrightarrow  \\neg f(x)  \\mapsto  v \\in LT \\land  \\neg f(x)=v)","instantiations":["(p+q) / 2"],"node_id":21},
+FIX_PROOF,choose_mid/FUN_8_inv_1/INV,1,0,0,PO discharged,
+PO_CHECKER,null,0,6380,0,394/4,
+20823783

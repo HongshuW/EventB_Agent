@@ -1,0 +1,72 @@
+REFINE,null,0,89159,5486,,
+SYNTHESIS,null,0,144660,8626,,
+FIX_COMPILATION,null,0,55707,5143,,
+FIX_COMPILATION,null,1,5,0,,
+COMPILATION_CHECKER,null,5,5,0,0/0,
+FIX_MODEL_CHECKING,null,0,33189,2892,ok_not_all_nodes_considered,
+PO_CHECKER,null,0,2793,0,11/4/0,
+FIX_PROOF,null,0,0,0,All POs checked.,
+PO_CHECKER,null,0,13,0,11/0,
+SYNTHESIS,null,0,249725,15496,,
+FIX_COMPILATION,null,0,146791,10267,,
+FIX_COMPILATION,null,1,103547,9079,,
+FIX_COMPILATION,null,2,90322,8508,,
+FIX_COMPILATION,null,3,83370,7910,,
+FIX_COMPILATION,null,4,88869,6943,FIX_COMPILATION: reached maximum number of allowed attempts.,
+COMPILATION_CHECKER,null,5,6,0,2/0,
+FIX_MODEL_CHECKING,null,0,142794,13483,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:2
+
+,
+FIX_MODEL_CHECKING,null,1,179960,3661,llm returns invalid json, try again...,
+FIX_MODEL_CHECKING,null,2,158715,10814,,
+FIX_MODEL_CHECKING,null,3,156224,13003,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:1
+
+,
+FIX_MODEL_CHECKING,null,4,170803,14181,FIX_MODEL_CHECKING: reached maximum number of allowed attempts.,
+PO_CHECKER,null,0,25781,0,58/29/5,
+FIX_PROOF,step_left/j/EQL,0,20834,20893,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:2
+
+,
+FIX_PROOF,step_left/j/EQL,1,102123,24337,updateAction:{"event_name":"step_left","action":{"assignment":"j := j","label_name":"act1"},"node_id":9},
+FIX_PROOF,step_left/j/EQL,2,0,0,PO discharged,
+FIX_PROOF,step_row/i/EQL,0,34428,23998,updateAction:{"event_name":"step_row","action":{"assignment":"i := i","label_name":"act1"},"node_id":10},
+FIX_PROOF,step_row/i/EQL,1,0,0,PO discharged,
+FIX_PROOF,step_row/j/EQL,0,65940,25535,updateAction:{"event_name":"step_row","action":{"assignment":"j := 0","label_name":"act2"},"node_id":10},
+FIX_PROOF,step_row/j/EQL,1,0,0,PO discharged,
+FIX_PROOF,INITIALISATION/act1/SIM,0,74643,8926,updateAction,
+FIX_PROOF,INITIALISATION/act1/SIM,1,0,0,PO discharged,
+FIX_PROOF,INITIALISATION/act2/SIM,0,45020,7836,updateAction,
+FIX_PROOF,INITIALISATION/act2/SIM,1,0,0,PO discharged,
+FIX_PROOF,null,0,0,0,All POs checked.,
+PO_CHECKER,null,0,153,0,56/0,
+SYNTHESIS,null,0,132406,11281,,
+FIX_COMPILATION,null,0,95834,8722,,
+FIX_COMPILATION,null,1,93140,8517,,
+FIX_COMPILATION,null,2,87226,8261,,
+FIX_COMPILATION,null,3,90823,0,llm returns invalid json, try again...,
+FIX_COMPILATION,null,4,80888,7493,FIX_COMPILATION: reached maximum number of allowed attempts.,
+COMPILATION_CHECKER,null,5,6,0,2/0,
+FIX_MODEL_CHECKING,null,0,51586,4232,ok_not_all_nodes_considered,
+PO_CHECKER,null,0,17955,0,62/12/4,
+FIX_PROOF,INITIALISATION/gluing_inv_1_2_SearchRegion/INV,0,72068,14032,addHypothesesToContext:{"similar_hypothesis":" \\exists ii,jj \\cdot ii \\in 0  ..  m  -  1 \\land jj \\in 0  ..  n  -  1 \\land f(ii  \\mapsto  jj)=v","goal":"f(ii  \\mapsto  jj)=v \\Rightarrow ii=0 \\land jj \\in 0  ..  0","instantiations":["ii","jj"],"hypothesis":{"predicate":"\\forall ii,jj \\cdot ii \\in 0  ..  m  -  1 \\land jj \\in 0  ..  n  -  1 \\land f(ii  \\mapsto  jj)=v \\Rightarrow ii=0 \\land jj \\in 0  ..  0","label_name":"AXM_v_location_unique_00"},"node_id":7},
+FIX_PROOF,INITIALISATION/gluing_inv_1_2_SearchRegion/INV,1,0,0,PO discharged,
+FIX_PROOF,null,0,0,0,All POs checked.,
+PO_CHECKER,null,0,213,0,62/0,
+SYNTHESIS,null,0,157858,13525,,
+FIX_COMPILATION,null,0,106137,9806,,
+FIX_COMPILATION,null,1,95787,9230,,
+FIX_COMPILATION,null,2,105618,10022,llm returns invalid json, try again...,
+FIX_COMPILATION,null,3,136743,12050,,
+FIX_COMPILATION,null,4,88032,8654,FIX_COMPILATION: reached maximum number of allowed attempts.,
+COMPILATION_CHECKER,null,5,6,0,2/0,
+FIX_MODEL_CHECKING,null,0,53039,5403,ok_not_all_nodes_considered,
+PO_CHECKER,null,0,7370,0,94/18/0,
+FIX_PROOF,null,0,0,0,All POs checked.,
+PO_CHECKER,null,0,395,0,94/0,
+3820652
