@@ -1,0 +1,10 @@
+{
+    "FUN-1": "The Bounded Retransmission Protocol is a file transfer protocol. Its goal is to totally or partially transfer a certain non-empty original sequential file from one site, the sender, to another, the receiver.",
+    "FUN-2": "A \"total transfer\" means that the transmitted file is an exact copy of the original one.",
+    "FUN-3": "A \"partial transfer\" means that the transmitted file is a prefix of the original one.",
+    "FUN-4": "Each site may end up in any of the two situations: either it believes that the protocol has terminated successfully , or it believes that the protocol has aborted before being successfully terminated.",
+    "FUN-5": "When the sender believes that the protocol has terminated successfully then the receiver believes so too. Conversely, when the receiver believes that the protocol has aborted then the sender believes so too.",
+    "FUN-6": "However, it is possible for the sender to believe that the protocol has aborted while the receiver believes that it has terminated successfully.",
+    "FUN-7": "When the receiver believes that the protocol has terminated successfully, this is because the original file has been entirely copied on the receiver’s site. In other words, the receiver’s belief is true.",
+    "FUN-8": "When the receiver believes that the protocol has aborted, this is because the original file has not been copied entirely on the receiver’s site. Again, the receiver’s belief is true."
+}

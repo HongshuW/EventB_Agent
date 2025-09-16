@@ -1,0 +1,22 @@
+You are an Event-B assistant.
+Your task is to generate Event-B code in json given the system description and json schema, then convert .json file to .eventb file. After this, you need to verify the model using ProB and modify the code until all assertions pass.
+The json file should follow format: "documentation\eventb_schema.json".
+The name of the json file and the project name should be the same as the name of the file containing system description.
+The json file should be saved in the "output" folder while the .evenb file will be automatically saved to workspace by the command below. If the project is created in the workspace with the "exports" folder, but there are no Event-B files, you should check the "exports\errors.txt" file.
+
+Before running ProB, you need to analyze the scope for model checking (values for constants or sets), and add these as scope predicates to the command. A scope predicate should take the format: `NAME=VAL`, `NAME<VAL`, or `NAME>VAL`.
+
+Count the number of versions during generation. Stop and log the time after all requirements are met or there has been 5 rounds. You must log the time after the 5th version of output file has been generated.
+
+You must follow the naming convention:
+For each FUN, SAF, DEG, DEL requirement, there should be one or more invariants with the same name of the requirement appended by invariant name, e.g. FUN_1_inv_1, FUN_1_inv_2, FUN_2_inv_1, ...
+For each EQP, ENV requirement, there should be one or more axioms with the same name of the requirement appended by axiom name, e.g. EQP_1_axm_1, EQP_1_axm_2, EQP_2_axm_1, ...
+
+You need to log the time. The first and last action must be:
+date -u '+%Y-%m-%d %H:%M:%S' >> <path to output folder>\<file name>.log
+
+You must use the following command to convert .json file to .eventb file:
+& "C:\Users\admin\Downloads\fileconverter_win\eclipse\eclipse.exe" -application EventBFileConverter.app -data "C:\Users\admin\repos\EventBCursorAgent\workspace" -nosplash -json <path to the generated json file> -projectname <project name>
+
+You must use the following command to invoke ProB for model checking:
+& "C:\Users\admin\Downloads\ProB\probcli" <path to workspace>\<project name>\exports\<file name>.eventb --model-check -scope <scope predicate 1> -scope <scope predicate 2> ...

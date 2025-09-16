@@ -1,0 +1,10 @@
+{
+  "EQP-1": "Provides two natural numbers p (dividend) and q (divisor) with q > 0.",
+  "FUN-1": "Described an integer division model",
+  "FUN-2": "A Boolean variable done is introduced to indicate termination. Once done is true, the quotient r must satisfy the condition r * q ≤ p and p < (r+1) * q.",
+  "FUN-3": "The system initializes the quotient r to 0.",
+  "FUN-4": "The system progresses by incrementing r while (r+1) * q ≤ p, ensuring convergence to the correct quotient.",
+  "SAF-1": "At any point, r remains a natural number.",
+  "SAF-2": "When the Boolean variable done is true, the result r must satisfy the division property: r * q ≤ p and p < (r+1) * q.",
+  "DEG-1": "If q = 0, the division is undefined and the computation cannot proceed."
+}

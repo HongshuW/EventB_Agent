@@ -1,0 +1,12 @@
+{
+  "EQP-1": "Provides a natural number n as input.",
+  "FUN-1": "The system computes the integer square root of n by producing a result r such that r*r ≤ n < (r+1)*(r+1).",
+  "FUN-2": "In the abstract model m0, r is chosen nondeterministically as a natural number satisfying the square root property.",
+  "FUN-3": "In the refined model m1, the algorithm initializes r = 0, a = 1, b = 3. A Boolean variable progressing indicates that the computation is ongoing. While progressing is true, the system repeatedly updates r, a, and b.",
+  "FUN-4": "Variable a tracks (r+1)^2, and variable b tracks the increment (2*r + 3) to update a efficiently without recomputing squares.",
+  "SAF-1": "At all times, r remains a natural number.",
+  "SAF-2": "The invariants ensure a = (r+1)^2 and b = 2*r+3, maintaining consistency between variables.",
+  "SAF-3": "The invariant guarantees r*r ≤ n during the computation.",
+  "SAF-4": "A Boolean variable done indicates that the system has terminated. When done is true, the result r must satisfy r*r ≤ n < (r+1)*(r+1).",
+  "DEG-1": "If n < 0, the computation is undefined because no natural square root exists."
+}

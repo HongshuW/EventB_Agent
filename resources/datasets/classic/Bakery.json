@@ -1,0 +1,10 @@
+{
+  "FUN-1": "The model describes the Bakery algorithm for mutual exclusion between processes.",
+  "EQP-1": "Processes are represented as a set, and each process has a unique identifier given by a function Id.",
+  "EQP-2": "The maximum cycle count is a natural number that limits how many actions a process may perform.",
+  "FUN-2": "Each process may perform the following actions: request to start execution, request a ticket, enter the critical section if conditions allow, leave the critical section, or fail and stop execution.",
+  "FUN-3": "Ticket assignment follows the Bakery principle: a process receives a strictly positive ticket number greater than all currently active tickets.",
+  "SAF-1": "At any given time, at most one process is in the critical section, ensuring mutual exclusion.",
+  "SAF-2": "Any process in the critical section must hold a valid ticket number that is non-zero.",
+  "SAF-3": "If two processes both request entry, the one with the smaller ticket number will be granted entry first; if ticket numbers are equal, the one with the smaller Id enters first."
+}

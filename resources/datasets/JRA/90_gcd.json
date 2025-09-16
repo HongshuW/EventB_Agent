@@ -1,0 +1,15 @@
+{
+  "EQP-1": "The environment provides two integers A and B as input.",
+  "EQP-2": "It is assumed that a mathematical gcd function is defined for pairs of natural numbers.",
+  "FUN-1": "Boolean variables are introduced: fs indicates the gcd computation is in progress, fn indicates successful completion, and nf indicates abnormal termination. At any point, exactly one holds true.",
+  "FUN-2": "The system computes the greatest common divisor (GCD) of A and B.",
+  "FUN-3": "In the abstract model m0, the condition fn = true requires that variable a equals gcd(A,B).",
+  "FUN-4": "In the refined model m1, the algorithm implements Dijkstra’s subtraction-based method to compute gcd(A,B).",
+  "FUN-5": "Initialization sets a := A and b := B, and fs := true.",
+  "FUN-6": "While fs = true and a ≠ b: if a > b, then a is replaced by a−b; if b ≥ a, then b is replaced by b−a.",
+  "FUN-7": "When a = b, fs becomes false and fn becomes true, yielding gcd(A,B) = a = b.",
+  "SAF-1": "Variables a and b remain positive integers whenever fs = true.",
+  "SAF-2": "At every step, gcd(a,b) remains equal to gcd(A,B), so correctness is preserved.",
+  "SAF-3": "When fn = true, the result is a correct greatest common divisor of A and B.",
+  "DEG-1": "If either A or B is zero or negative, fs becomes false and nf becomes true, indicating invalid input outside the intended domain."
+}

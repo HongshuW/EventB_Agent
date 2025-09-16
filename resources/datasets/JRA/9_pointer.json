@@ -1,0 +1,22 @@
+{
+  "EQP-1": "The system provides core elements for pointer and mapping management: integer variable r, integer bijection g, pointer variables q and p, pointer mapping next, conversion function h, base mapping f, and fixed integer parameter n.",
+  "EQP-2": "Valid ranges are defined: r is an integer, g is an integer bijection, q and p are linked to r via h or directly, and next is consistent with g to ensure logical coherence.",
+  "FUN-1": "Boolean variables are introduced: fs indicates mapping is in progress, fn indicates mapping has completed successfully, and nf indicates abnormal termination. At any point, exactly one holds true.",
+  "FUN-2": "Initialization of r: in the base model, r is assigned arbitrarily; in refined models, r is explicitly set to 1. After initialization, fs = true.",
+  "FUN-3": "Initialization of g: in the base model, g is arbitrary; in refined models, g is constrained by f.",
+  "FUN-4": "Initialization of pointers and next: in models with h, q=h(1), p=h(0), and next is linked to g via h; in simplified models, q=1, p=0, and next is bound directly to g.",
+  "FUN-5": "Progression of r: while fs = true and r≠n, r is incremented by 1 and g(r) is updated to r−1, gradually transforming g toward the target mapping.",
+  "FUN-6": "Pointer movement: while fs = true and q≠h(n), q is updated to next(q), p is set to the new q, and next(q) is reset to p.",
+  "FUN-7": "Base model final state: fn = true when g maps 1..n−1 to 0..n−2 with g(i)=i−1 for all i∈1..n−1 and g=f⁻¹.",
+  "FUN-8": "Refined model final state: fn = true when r=n or q=h(n) or q=n, meaning all mappings and pointer moves are complete.",
+  "FUN-9": "Mapping conversion: in models with h, h links progress and pointer operations, converting r to q and r−1 to p, while transforming g’s integer mapping into next’s pointer mapping.",
+  "SAF-1": "r is restricted to 1..n in refined models to prevent out-of-bound progress.",
+  "SAF-2": "g’s mapping is restricted to 1..n−1 → 0..n, avoiding invalid or conflicting entries.",
+  "SAF-3": "Pointer consistency is maintained: p is always the predecessor of q.",
+  "SAF-4": "In the base model, g must equal f⁻¹ to preserve consistency with the base mapping rule.",
+  "SAF-5": "In refined models, g(i)=i−1 must hold for all i∈1..n−1, ensuring the mapping is corrected step by step.",
+  "SAF-6": "While fs = true, progress operations maintain invariants that guarantee eventual convergence to fn = true.",
+  "DEG-1": "If r=n or q=h(n)/n, fs becomes false and fn becomes true, halting further operations and preventing infinite loops.",
+  "DEG-2": "If next(q) is unavailable, fs becomes false and nf becomes true, preventing q from pointing to an illegal address.",
+  "DEG-3": "If r is initialized outside 1..n in refined models, it is reset to r=1 and fs continues, ensuring a legal starting point."
+}

@@ -1,0 +1,16 @@
+{
+  "EQP-1": "Provides a finite natural number function f defined on the domain {0..n−1}.",
+  "EQP-2": "Provides n as the size of the domain of f.",
+  "FUN-1": "The system must determine an index j such that f(j) = min(ran(f)).",
+  "FUN-2": "In the abstract model m0, the final condition requires j ∈ dom(f) and f(j) = min(ran(f)).",
+  "FUN-3": "In the refined model m1, the system introduces a Boolean variable searching to indicate whether the minimum has been fully identified. Two indices are maintained: i as the scanning index and j as the current candidate for the minimum.",
+  "FUN-4": "Initialization sets i = 1 and j = 0, with searching = true.",
+  "FUN-5": "While searching is true, if i ≠ n and f(i) < f(j), then update j := i and increment i.",
+  "FUN-6": "While searching is true, if i ≠ n and f(i) ≥ f(j), then keep j unchanged and increment i.",
+  "FUN-7": "When i = n, searching becomes false, marking that the index j now indicates the minimum value.",
+  "SAF-1": "During execution, j always points to the position of the minimum among the explored prefix f[0..i−1].",
+  "SAF-2": "At termination i=n, j is the index of the global minimum value.",
+  "SAF-3": "All updates maintain the invariant, ensuring the algorithm never loses the true minimum during iteration.",
+  "DEG-1": "If n=0, the domain is empty and no minimum can be defined.",
+  "DEG-2": "If n=1, initialization (i=1, j=0) directly satisfies the final condition without iteration."
+}

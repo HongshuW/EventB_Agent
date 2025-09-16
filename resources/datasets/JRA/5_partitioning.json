@@ -1,0 +1,19 @@
+{
+  "EQP-1": "Provides a finite array f: 0..n−1 ↣ ℕ.",
+  "EQP-2": "Provides n, the size of the array, and a pivot value x.",
+  "FUN-1": "The system must partition f into g such that all elements g(0..k) ≤ x and all elements g(k+1..n−1) > x.",
+  "FUN-2": "p_m0 specifies this partition property only in the guards of event final.",
+  "FUN-3": "p_m1 refines p_m0 by introducing a Boolean variable fp to indicate whether the array partitioning is still in progress. It also uses indices k and j to implement step-by-step partitioning.",
+  "FUN-4": "Initialization: k = −1, g = f, j = −1, and fp = true.",
+  "FUN-5": "While fp is true, scan elements with j from left to right. If g(j+1) > x, just increase j. If g(j+1) ≤ x, increment k and swap g(j+1) with g(k+1).",
+  "FUN-6": "When j = n−1, fp becomes false, marking that the partitioning is complete and the final event holds.",
+  "SAF-1": "Invariant ensures g is always a permutation of f (ran(g) = ran(f)).",
+  "SAF-2": "For indices ≤ k, all values are ≤ x (left partition).",
+  "SAF-3": "For indices k+1..j, all values are > x (middle scanned partition).",
+  "SAF-4": "For indices beyond j, elements are still unprocessed, ensuring safety of partitioning step.",
+  "SAF-5": "Invariant j ∈ −1..n−1 and k ∈ −1..j ensures indices stay in valid bounds.",
+  "DEG-1": "If n=0, then trivially g=f and j = −1 = n−1, so fp becomes false immediately, and the final condition holds without any processing.",
+  "DEG-2": "If all elements > x, then k remains = −1 and j simply increments until n−1, at which point fp becomes false, completing the partition with an empty left part.",
+  "DEG-3": "If all elements ≤ x, then k increments with each step, and g remains f but shifted by swaps; when j reaches n−1, fp becomes false, with the left part including all elements.",
+  "DEG-4": "Edge case: if pivot x is smaller than every element, partition gives empty left part (k = −1). If pivot is larger than all, partition gives full left part (k = n−1)."
+}

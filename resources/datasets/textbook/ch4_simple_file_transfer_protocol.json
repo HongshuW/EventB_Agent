@@ -1,0 +1,5 @@
+{
+    "FUN-1": "The protocol ensures the copy of a file from one site to another one.",
+    "FUN-2": "The file is supposed to be made of a sequence of items.",
+    "FUN-3": "The file is send piece by piece between the two sites."
+}

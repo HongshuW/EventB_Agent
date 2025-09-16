@@ -1,0 +1,15 @@
+{
+  "EQP-1": "Provides a two-dimensional matrix f of size m×n.",
+  "EQP-2": "Specifies a target value v to be searched within the matrix.",
+  "FUN-1": "The system must determine a pair of indices (i, j) such that f(i, j) = v.",
+  "FUN-2": "In the abstract model sm_m0, the final condition requires that i ∈ 0..m−1, j ∈ 0..n−1, and f(i, j) = v.",
+  "FUN-3": "In the refinement sm_m1, the system introduces a Boolean variable searching that indicates whether the search is still in progress. When searching is true, the procedure begins at the bottom-right corner (i = m−1, j = n−1).",
+  "FUN-4": "If searching is true and f(i, j) ≠ v with j = 0, then the algorithm updates i := i−1 and j := n−1, continuing the search in the previous row.",
+  "FUN-5": "If searching is true and f(i, j) ≠ v with j ≠ 0, then the algorithm decrements j by 1 and continues searching.",
+  "FUN-6": "The system introduces a Boolean variable found to represent whether the target value has been located. When found becomes true, it must hold that f(i, j) = v, and searching becomes false.",
+  "SAF-1": "As long as searching is true, the value v, if present in the matrix, must remain within the unexplored submatrix [(0..i−1)×(0..n−1)] ∪ ({i}×(0..j)).",
+  "SAF-2": "The algorithm ensures that no possible candidate position of v is skipped during the search.",
+  "SAF-3": "When found is true, the condition f(i, j) = v guarantees that the abstract requirement of sm_m0 is satisfied.",
+  "DEG-1": "If the value v is not present in the matrix, the algorithm will eventually exhaust all positions without success.",
+  "DEG-2": "If m or n is 0 (empty matrix), the initialization cannot guarantee a valid starting index."
+}

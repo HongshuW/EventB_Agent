@@ -1,0 +1,16 @@
+{
+  "EQP-1": "Provides a finite natural number function f defined over the domain {0..n−1}.",
+  "EQP-2": "Provides n as the size of the function’s domain.",
+  "FUN-1": "The system must determine an index p such that f(p) = max(ran(f)).",
+  "FUN-2": "In the abstract model maxi_m0, the final condition requires p ∈ dom(f) and f(p) = max(ran(f)).",
+  "FUN-3": "In the refined model maxi_m1, the system introduces a Boolean variable searching to indicate that the maximum has not yet been located. The search interval is delimited by two indices p and q.",
+  "FUN-4": "Initialization sets p = 0 and q = n−1, covering the entire domain and starting the search with searching = true.",
+  "FUN-5": "If searching is true, and p < q with f(p) < f(q), the algorithm increments p to shrink the interval from the left.",
+  "FUN-6": "If searching is true, and p < q with f(p) ≥ f(q), the algorithm decrements q to shrink the interval from the right.",
+  "FUN-7": "When p ≥ q, searching becomes false, marking that the maximum index has been found.",
+  "SAF-1": "As long as searching is true, the maximum of f is always contained within the current interval [p..q].",
+  "SAF-2": "The interval [p..q] is never empty until termination, guaranteeing the maximum is not lost.",
+  "SAF-3": "The final guard p≥q implies the abstract condition that p is the index of the maximum.",
+  "DEG-1": "If n=0 (empty domain), no maximum can be defined and the algorithm cannot proceed.",
+  "DEG-2": "If n=1, initialization directly satisfies the final condition (p=q=0)."
+}

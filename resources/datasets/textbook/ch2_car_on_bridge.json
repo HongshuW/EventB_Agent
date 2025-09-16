@@ -1,0 +1,10 @@
+{
+    "FUN-1": "The system is controlling cars on a bridge connecting the mainland to an island.",
+    "FUN-2": "The number of cars on bridge and island is limited.",
+    "FUN-3": "The bridge is one-way or the other, not both at the same time.",
+    "EQP-1": "The system is equipped with two traffic lights with two colors: green and red.",
+    "EQP-2": "The traffic lights control the entrance to the bridge at both ends of it.",
+    "EQP-3": "Cars are not supposed to pass on a red traffic light, only on a green one.",
+    "EQP-4": "The system is equipped with four sensors with two states: on or off.",
+    "EQP-5": "The sensors are used to detect the presence of a car entering or leaving the bridge: “on” means that a car is willing to enter the bridge or to leave it."
+}
