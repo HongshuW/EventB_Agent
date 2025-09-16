@@ -1,0 +1,7 @@
+{
+    "ENV-1": "We have a set of nodes forming a tree.",
+    "FUN-1": "Each node has a counter, which is a natural number.",
+    "FUN-2": "The difference between any two counters is at most equal to 1.",
+    "FUN-3": "Each node can only read the counter of its immediate neighbors in the tree.",
+    "FUN-4": "The counter of a node can be modified by this node only."
+}

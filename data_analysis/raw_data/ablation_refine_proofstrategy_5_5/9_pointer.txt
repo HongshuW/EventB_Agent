@@ -1,0 +1,127 @@
+REFINE,null,0,92489,8711,,
+SYNTHESIS,null,0,85625,10216,,
+FIX_COMPILATION,null,0,70337,8362,,
+FIX_COMPILATION,null,1,58287,6476,,
+FIX_COMPILATION,null,2,5,0,,
+COMPILATION_CHECKER,null,5,6,0,0/0,
+FIX_MODEL_CHECKING,null,0,32991,3889,ok_not_all_nodes_considered,
+PO_CHECKER,null,0,3945,0,16/2/1,
+FIX_PROOF,INITIALISATION/inv_typ_g/INV,0,29509,6506,applyProofTactic:{"proof_tactic":"removeMembership","predicate_id":0,"node_id":3},
+FIX_PROOF,INITIALISATION/inv_typ_g/INV,1,0,0,PO discharged,
+FIX_PROOF,null,0,0,0,All POs checked.,
+PO_CHECKER,null,0,29,0,16/0,
+SYNTHESIS,null,0,164979,0,llm returns invalid json, try again...,
+SYNTHESIS,null,1,252073,15618,,
+FIX_COMPILATION,null,0,92902,8805,,
+FIX_COMPILATION,null,1,4,0,,
+COMPILATION_CHECKER,null,5,5,0,0/0,
+FIX_MODEL_CHECKING,null,0,355324,3865,llm returns invalid json, try again...,
+FIX_MODEL_CHECKING,null,1,265891,20604,,
+FIX_MODEL_CHECKING,null,2,277550,21227,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:0
+
+,
+FIX_MODEL_CHECKING,null,3,257105,18974,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:0
+
+,
+FIX_MODEL_CHECKING,null,4,282770,3964,FIX_MODEL_CHECKING: reached maximum number of allowed attempts.,
+PO_CHECKER,null,0,20840,0,66/26/4,
+FIX_PROOF,StepToN/gluing_inv_1_2_completion_link/INV,0,104777,0,llm returns invalid json, try again...,
+FIX_PROOF,StepToN/gluing_inv_1_2_completion_link/INV,1,82199,0,llm returns invalid json, try again...,
+FIX_PROOF,StepToN/gluing_inv_1_2_completion_link/INV,2,100872,40739,updateAction:{"event_name":"StepToN","action":{"assignment":"fn := TRUE","label_name":"act_fn_to_true"},"node_id":19},
+FIX_PROOF,StepToN/gluing_inv_1_2_completion_link/INV,3,0,0,PO discharged,
+FIX_PROOF,StepToN/gluing_inv_1_2_StateFlags/INV,0,40480,28085,updateAction:{"event_name":"StepToN","action":{"assignment":"fs := FALSE","label_name":"act_fs_to_false"},"node_id":13},
+FIX_PROOF,StepToN/gluing_inv_1_2_StateFlags/INV,1,0,0,PO discharged,
+FIX_PROOF,Step/r/EQL,0,96456,32716,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:0
+
+,
+FIX_PROOF,Step/r/EQL,1,73422,32639,updateAction:{"event_name":"Step","action":{"assignment":"r := r","label_name":"act_r"},"node_id":16},
+FIX_PROOF,Step/r/EQL,2,0,0,PO discharged,
+FIX_PROOF,StepToN/r/EQL,0,43941,24918,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_PROOF,StepToN/r/EQL,1,96412,26687,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:0
+
+,
+FIX_PROOF,StepToN/r/EQL,2,48831,25840,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:0
+
+,
+FIX_PROOF,StepToN/r/EQL,3,68380,26857,updateAction:{"event_name":"StepToN","action":{"assignment":"r := r","label_name":"act_r"},"node_id":13},
+FIX_PROOF,StepToN/r/EQL,4,0,0,PO discharged,
+FIX_PROOF,StepToN/fn/EQL,0,87539,34464,updateAction:{"event_name":"StepToN","action":{"assignment":"r := n","label_name":"act_r"},"node_id":16},
+FIX_PROOF,StepToN/fn/EQL,1,129565,36245,applySMT:{"node_id":16},
+FIX_PROOF,StepToN/fn/EQL,2,58441,32978,addHypothesesToGuard:{"similar_hypothesis":"(r=n \\land dom(g)=1 .. n - 1 \\land ran(g)=0 .. n - 2 \\land (\\forall i \\cdot i \\in 1 .. n - 1 \\Rightarrow g(i)=i - 1)) \\Rightarrow fn=TRUE","goal":"TRUE=fn","guard":{"predicate":"\\forall i \\cdot i \\in 1 .. n - 1 \\Rightarrow g(i)=i - 1","label_name":"grd_rule"},"event_name":"StepToN","instantiations":[],"node_id":16},
+FIX_PROOF,StepToN/fn/EQL,3,107916,31625,applySMT:{"node_id":14},
+FIX_PROOF,StepToN/fn/EQL,4,82993,31269,applySMT:{"node_id":15},
+FIX_PROOF,StepToN/fn/EQL,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,StepToN/fs/EQL,0,77394,27948,applySMT:{"node_id":13},
+FIX_PROOF,StepToN/fs/EQL,1,38680,31831,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:0
+
+,
+FIX_PROOF,StepToN/fs/EQL,2,92313,35067,applySMT:{"node_id":16},
+FIX_PROOF,StepToN/fs/EQL,3,52409,34688,applySMT:{"node_id":17},
+FIX_PROOF,StepToN/fs/EQL,4,164192,40582,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_PROOF,StepToN/fs/EQL,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,INITIALISATION/act_r/SIM,0,66331,8669,updateAction,
+FIX_PROOF,INITIALISATION/act_r/SIM,1,0,0,PO discharged,
+PO_CHECKER,null,0,284,0,72/2,
+SYNTHESIS,null,0,309709,21836,,
+FIX_COMPILATION,null,0,150763,16085,,
+FIX_COMPILATION,null,1,7,0,,
+COMPILATION_CHECKER,null,5,7,0,0/1,
+FIX_MODEL_CHECKING,null,0,271725,23772,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_MODEL_CHECKING,null,1,247429,22360,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:0
+
+,
+FIX_MODEL_CHECKING,null,2,96705,8533,ok_not_all_nodes_considered,
+PO_CHECKER,null,0,85149,0,135/44/9,
+FIX_PROOF,Step/p/EQL,0,111851,84061,ok_not_all_nodes_considered,
+FIX_PROOF,Step/p/EQL,1,224204,88568,strengthenGuard:{"guard":{"predicate":"y = p","label_name":"grd_y_eq_p"},"event_name":"Step","node_id":19},
+FIX_PROOF,Step/p/EQL,2,22099,9240,applySMT:{"node_id":0},
+FIX_PROOF,Step/p/EQL,3,0,0,PO discharged,
+FIX_PROOF,INITIALISATION/DEG_2_inv_1/INV,0,82012,0,llm returns invalid json, try again...,
+FIX_PROOF,INITIALISATION/DEG_2_inv_1/INV,1,86902,0,llm returns invalid json, try again...,
+FIX_PROOF,INITIALISATION/DEG_2_inv_1/INV,2,67789,0,llm returns invalid json, try again...,
+FIX_PROOF,INITIALISATION/DEG_2_inv_1/INV,3,83402,0,llm returns invalid json, try again...,
+FIX_PROOF,INITIALISATION/DEG_2_inv_1/INV,4,84643,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,INITIALISATION/DEG_2_inv_1/INV,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,INITIALISATION/act_r/SIM,0,30087,11054,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"r := 0","label_name":"act_r"},"node_id":4},
+FIX_PROOF,INITIALISATION/act_r/SIM,1,26959,11128,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"r := 1","label_name":"act_r"},"node_id":4},
+FIX_PROOF,INITIALISATION/act_r/SIM,2,35155,12362,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"r := 0","label_name":"act_r"},"node_id":4},
+FIX_PROOF,INITIALISATION/act_r/SIM,3,21367,10844,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"r := 1","label_name":"act_r"},"node_id":4},
+FIX_PROOF,INITIALISATION/act_r/SIM,4,31508,12014,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"r := 0","label_name":"act_r"},"node_id":4},
+FIX_PROOF,INITIALISATION/act_r/SIM,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+FIX_PROOF,INITIALISATION/act_p/SIM,0,57448,13936,applyProofTactic:{"proof_tactic":"equality","predicate_id":0,"node_id":6},
+FIX_PROOF,INITIALISATION/act_p/SIM,1,67917,14607,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"p := p0","label_name":"act_p"},"node_id":6},
+FIX_PROOF,INITIALISATION/act_p/SIM,2,0,0,Exception,
+FIX_PROOF,INITIALISATION/act_q/SIM,0,92245,15472,applyProofTactic:{"proof_tactic":"equality","predicate_id":0,"node_id":6},
+FIX_PROOF,INITIALISATION/act_q/SIM,1,70639,14727,applyProofTactic:{"proof_tactic":"equality","predicate_id":0,"node_id":6},
+FIX_PROOF,INITIALISATION/act_q/SIM,2,96306,15811,addHypothesesToGuard:{"similar_hypothesis":"Q1 \\in PTR","goal":"Q1=q0","guard":{"predicate":"q0 = Q1","label_name":"wit_q"},"event_name":"INITIALISATION","instantiations":[],"node_id":6},
+FIX_PROOF,INITIALISATION/act_q/SIM,3,49990,12587,applySMT:{"node_id":6},
+FIX_PROOF,INITIALISATION/act_q/SIM,4,53238,14440,applyProofTactic:{"proof_tactic":"equality","predicate_id":0,"node_id":6},
+FIX_PROOF,INITIALISATION/act_q/SIM,5,0,0,FIX_PROOF: reached maximum number of allowed attempts.,
+PO_CHECKER,null,0,812,0,135/4,
+6887609

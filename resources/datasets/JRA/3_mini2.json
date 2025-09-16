@@ -1,0 +1,16 @@
+{
+  "EQP-1": "Provides a finite natural number function f defined on the domain {0..n−1}.",
+  "EQP-2": "Provides n as the size of the domain of f.",
+  "FUN-1": "The system must determine an index p such that f(p) = min(ran(f)).",
+  "FUN-2": "In the abstract model m0, the final condition requires p ∈ dom(f) and f(p) = min(ran(f)).",
+  "FUN-3": "In the refined model m1, the system introduces a Boolean variable narrowing to indicate whether the interval containing the minimum is still being reduced. The algorithm maintains an interval [p..q] that is guaranteed to contain the minimum value of f.",
+  "FUN-4": "Initialization sets p = 0 and q = n−1 (covering the full domain of f), with narrowing = true.",
+  "FUN-5": "While narrowing is true, if p < q and f(p) < f(q), then decrement q (discard the right boundary of the interval) to shrink the range containing the minimum.",
+  "FUN-6": "While narrowing is true, if p < q and f(p) ≥ f(q), then increment p (discard the left boundary of the interval) to shrink the range containing the minimum.",
+  "FUN-7": "When p ≥ q, narrowing becomes false, marking the end of interval reduction; at this point, the index p indicates the position of the minimum value of f.",
+  "SAF-1": "Invariant ensures min(f[0..n−1]) always lies within f[p..q].",
+  "SAF-2": "The interval [p..q] shrinks monotonically while preserving the true minimum.",
+  "SAF-3": "At termination (when narrowing is false and p ≥ q), the unique index p is guaranteed to point to the global minimum value of f.",
+  "DEG-1": "If n=0, the domain is empty and no minimum can be defined.",
+  "DEG-2": "If n=1, initialization directly sets p=0 and q=0, which immediately makes p ≥ q; narrowing becomes false, and the final condition is satisfied without further interval reduction."
+}

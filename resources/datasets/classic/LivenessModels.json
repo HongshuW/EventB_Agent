@@ -1,0 +1,11 @@
+{
+  "EQP-1": "Provides a Mode set with two values {on, off}.",
+  "EQP-2": "Provides an integer threshold used by calibration and working conditions.",
+  "FUN-1": "The system supports calibration: when Mode=on, the current value changes gradually and converges toward the desired value; when Mode=off, the value remains unchanged.",
+  "FUN-2": "Calibration timing: initializes with clock t=0 and state s ∈ {on, off}.",
+  "FUN-3": "The system models Peterson’s mutual exclusion algorithm with two processes. Each process may request access to the critical section. Boolean variables `req1`, `req2` are used to capture requests and scheduling.",
+  "FUN-4": "The system provides a bounded buffer of capacity 3 with a logical reader/writer interface. Counters track the number of elements written and read, ensuring valid operations.",
+  "SAF-1": "Mutual exclusion: Peterson’s algorithm guarantees that at most one process is in the critical section at any time.",
+  "SAF-2": "Progress: if a process requests entry (`req1=true` or `req2=true`), it will eventually be granted access.",
+  "SAF-3": "Buffer safety: counters are natural numbers, and the number of stored elements never exceeds the buffer capacity."
+}

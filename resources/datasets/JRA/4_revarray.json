@@ -1,0 +1,15 @@
+{
+  "EQP-1": "Provides a finite function f: 0..n−1 → ℕ.",
+  "EQP-2": "Provides n, the size of the sequence to reverse.",
+  "FUN-1": "The system must reverse the function f, i.e., produce g such that g(i)=f(n−i−1) for all i∈0..n−1.",
+  "FUN-2": "Abstract machine rev_m0 specifies this reversal as the guard condition of event final.",
+  "FUN-3": "Machine rev_m1 refines rev_m0 by introducing a Boolean variable fr to indicate whether the sequence reversal is still in progress. It also uses indices i and j to implement a step-by-step reversal of the sequence.",
+  "FUN-4": "Initialization sets g = f (copying the original sequence to g), i = 0, j = n−1, and fr = true. While reversing is true, at each step, swap the values of g(i) and g(j), then increment i and decrement j to move indices symmetrically inward.",
+  "FUN-5": "When j ≤ i, fr becomes false, marking the end of the sequence reversal process; at this point, the sequence g is completely reversed relative to the original function f.",
+  "SAF-1": "Invariant ensures i and j always remain in 0..n−1.",
+  "SAF-2": "Invariant i+j = n−1 guarantees that indices move symmetrically inward.",
+  "SAF-3": "Invariant partition: g[0..i−1] and g[j+1..n−1] are already reversed, g[i..j] still equals the original segment of f.",
+  "DEG-1": "If n=0, g is empty, the final condition holds trivially.",
+  "DEG-2": "If n=1, initialization directly sets i=0 and j=0, which immediately makes j ≤ i; fr becomes false, and g remains equal to f (no swap is needed as a single-element sequence is its own reverse).",
+  "DEG-3": "If n=2, initialization sets i=0 and j=1. While fr is true, only one swap between g(0) and g(1) is performed; after swapping, i increments to 1 and j decrements to 0, making j ≤ i, fr becomes false, and the sequence reversal is completed."
+}

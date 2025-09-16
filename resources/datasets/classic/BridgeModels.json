@@ -1,0 +1,10 @@
+{
+    "FUN-1": "The model represents an island connected to the mainland by a one-way bridge.",
+    "FUN-2": "The state consists of cars on the island, cars on the bridge in the direction of the island, and cars on the bridge in the direction of the mainland.",
+    "FUN-3": "The system initializes with no cars on the island, bridge, or mainland.",
+    "EQP-1": "The environment defines a finite set of cars (CARS).",
+    "EQP-2": "The environment specifies a maximum bridge capacity, which bounds the number of cars in the system.",
+    "SAF-1": "The sets of cars are finite.",
+    "SAF-2": "The total number of cars does not exceed the bridge capacity.",
+    "SAF-3": "Cars cannot simultaneously occupy both the island and the mainland (one-way constraint)."
+}

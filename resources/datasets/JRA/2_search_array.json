@@ -1,0 +1,15 @@
+{
+  "EQP-1": "Provides a function f defined on a finite domain and a value v to be searched.",
+  "EQP-2": "The domain of f is assumed to be well-defined and finite.",
+  "FUN-1": "The system searches for an index i such that f(i) = v.",
+  "FUN-2": "In the abstract model m0, the final condition requires that i belongs to dom(f) and f(i) = v.",
+  "FUN-3": "In the refinement m1, the system introduces a Boolean variable searching that indicates whether the search is ongoing. When searching is true, the procedure explores indices starting from n−1 downward.",
+  "FUN-4": "Initialization sets i := n−1 to establish loop invariants.",
+  "FUN-5": "If f(i) ≠ v, then the algorithm decrements i and continues.",
+  "FUN-6": "A Boolean variable found represents whether the target has been located. When found becomes true, it must hold that f(i) = v and searching becomes false.",
+  "SAF-1": "During the search, if searching is true, the condition v ∈ f[0..i] must always hold, ensuring that the target value remains within the considered subdomain.",
+  "SAF-2": "At all times, the condition i ∈ dom(f) must hold. This ensures the algorithm never discards potential indices incorrectly.",
+  "SAF-3": "When found is true, the property f(i) = v implies that the abstract requirement i ∈ dom(f) ∧ f(i) = v is satisfied.",
+  "DEG-1": "If v is not present in the function image f[dom(f)], then found never becomes true and the search cannot succeed.",
+  "DEG-2": "If the function f is undefined on some indices, the invariant i ∈ dom(f) may be violated."
+}

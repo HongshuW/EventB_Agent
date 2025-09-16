@@ -1,0 +1,20 @@
+{
+  "EQP-1": "The system provides a finite increasing function f : ℕ → ℕ (or an array) of size n.",
+  "EQP-2": "The system provides a natural number n as the search key.",
+  "FUN-1": "The goal is to find an index r such that f(r) ≤ n < f(r+1).",
+  "FUN-2": "Boolean variables are introduced: fs indicates the search is ongoing, fn indicates the target index has been found, and nf indicates the search ends with no valid index. At any time, exactly one of these holds true.",
+  "FUN-3": "In the abstract model m0, the requirement is expressed in the guards of the final event: when fn = true, r must satisfy f(r) ≤ n < f(r+1).",
+  "FUN-4": "Machine m1 introduces an interval [r..q] with fs = true, representing the current candidate range where the solution must lie.",
+  "FUN-5": "Machine m1 defines two progress events: inc increases the lower bound r, and dec decreases the upper bound q, while keeping the condition f(r) ≤ n < f(q+1).",
+  "FUN-6": "Machine m2 refines m1 by choosing the midpoint (r+1+q) ÷ 2 as the candidate index in both inc and dec, making the search strategy deterministic.",
+  "FUN-7": "The final event occurs when fs becomes false. If fn = true, then r=q and f(r) ≤ n < f(r+1). If nf = true, the interval is exhausted without a valid index.",
+  "SAF-1": "At all times when fs = true, r and q remain natural numbers with r ≤ q.",
+  "SAF-2": "The interval invariant f(r) ≤ n < f(q+1) is preserved while fs = true, ensuring correctness of the shrinking interval.",
+  "SAF-3": "This guarantees that the correct boundary index, if it exists, is never excluded during the search.",
+  "SAF-4": "When fn = true, the algorithm ensures that r satisfies f(r) ≤ n < f(r+1).",
+  "SAF-5": "When nf = true, it is guaranteed that no index satisfies the condition.",
+  "DEG-1": "If n < f(0), the algorithm stabilizes with nf = true at r=0, q=0 (no valid index).",
+  "DEG-2": "If n ≥ f(max), the algorithm stabilizes with nf = true at r=max, q=max (beyond range).",
+  "DEG-3": "If n lies strictly between two consecutive values of f, the algorithm converges to the boundary with fn = true.",
+  "DEG-4": "If n exactly equals f(k), the algorithm converges with fn = true and r=k."
+}

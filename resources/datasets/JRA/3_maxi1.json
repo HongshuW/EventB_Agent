@@ -1,0 +1,15 @@
+{
+  "EQP-1": "Pprovides a finite natural number function f with domain {0..n−1}.",
+  "EQP-2": "Defines n as the size of the function's domain.",
+  "FUN-1": "The system must determine an index j such that f(j) = max(ran(f)).",
+  "FUN-2": "In the abstract model maxi_m0, the final condition requires j ∈ dom(f) and f(j) = max(ran(f)).",
+  "FUN-3": "In the refined model maxi_m1, the system introduces a Boolean variable searching to indicate whether the scan is still in progress. The search begins with j = 0 and i = 1.",
+  "FUN-4": "If searching is true and the current value f(i) > f(j), then the algorithm updates j := i and increments i.",
+  "FUN-5": "If searching is true and the current value f(i) ≤ f(j), then the algorithm keeps j unchanged and increments i.",
+  "FUN-6": "When i reaches n, searching becomes false and a Boolean variable done is set to true, marking that the maximum index has been found.",
+  "SAF-1": "As long as searching is true, the chosen index j always refers to the position of the maximum among the already scanned elements f[0..i−1].",
+  "SAF-2": "The loop invariant guarantees correctness: once the loop ends, j points to the global maximum of f.",
+  "SAF-3": "Proof obligations show that the concrete loop maintains the abstract post-condition from maxi_m0.",
+  "DEG-1": "If n = 0 (empty domain), no maximum can be defined and the algorithm cannot proceed.",
+  "DEG-2": "If f has only one element (n=1), the initialization already yields the maximum without entering the loop."
+}

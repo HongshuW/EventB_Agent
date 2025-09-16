@@ -1,0 +1,80 @@
+REFINE,null,0,63811,5228,,
+SYNTHESIS,null,0,135316,7848,,
+FIX_COMPILATION,null,0,85897,5999,,
+FIX_COMPILATION,null,1,3,0,,
+COMPILATION_CHECKER,null,5,4,0,0/0,
+FIX_MODEL_CHECKING,null,0,20081,2155,ok_not_all_nodes_considered,
+PO_CHECKER,null,0,36,0,10/0/0,
+FIX_PROOF,null,0,0,0,All POs checked.,
+PO_CHECKER,null,0,12,0,10/0,
+SYNTHESIS,null,0,254119,13636,,
+FIX_COMPILATION,null,0,232953,14674,,
+FIX_COMPILATION,null,1,140921,11655,,
+FIX_COMPILATION,null,2,179919,10568,,
+FIX_COMPILATION,null,3,157587,11181,,
+FIX_COMPILATION,null,4,150193,9893,FIX_COMPILATION: reached maximum number of allowed attempts.,
+COMPILATION_CHECKER,null,5,4,0,1/0,
+FIX_MODEL_CHECKING,null,0,417280,20551,state_error,
+FIX_MODEL_CHECKING,null,1,207542,16361,state_error,
+FIX_MODEL_CHECKING,null,2,237949,16668,state_error,
+FIX_MODEL_CHECKING,null,3,273338,16588,state_error,
+FIX_MODEL_CHECKING,null,4,172398,13171,FIX_MODEL_CHECKING: reached maximum number of allowed attempts.,
+PO_CHECKER,null,0,21409,0,41/12/5,
+FIX_PROOF,dec_when_mismatch/i/EQL,0,164676,19392,strengthenGuard:{"guard":{"predicate":"i = toI(idx - 1)","label_name":"eq_i_prev_idx"},"event_name":"dec_when_mismatch","node_id":13},
+FIX_PROOF,dec_when_mismatch/i/EQL,1,0,0,PO discharged,
+FIX_PROOF,dec_when_not_in_dom/i/EQL,0,36532,12894,strengthenGuard:{"guard":{"predicate":"i = toI(idx - 1)","label_name":"eq_i_prev_idx"},"event_name":"dec_when_not_in_dom","node_id":11},
+FIX_PROOF,dec_when_not_in_dom/i/EQL,1,0,0,PO discharged,
+FIX_PROOF,search_found/grd1/GRD,0,74970,14703,strengthenGuard:{"guard":{"predicate":"j = toI(k)","label_name":"grd5"},"event_name":"search_found","node_id":8},
+FIX_PROOF,search_found/grd1/GRD,1,0,0,PO discharged,
+FIX_PROOF,search_found/grd5/WD,0,35629,9426,strengthenGuard:{"guard":{"predicate":"k \\in dom(toI)","label_name":"wd_toI_k"},"event_name":"search_found","node_id":6},
+FIX_PROOF,search_found/grd5/WD,1,0,0,PO discharged,
+FIX_PROOF,null,0,0,0,All POs checked.,
+PO_CHECKER,null,0,110,0,44/0,
+SYNTHESIS,null,0,217446,16440,,
+FIX_COMPILATION,null,0,155014,12963,,
+FIX_COMPILATION,null,1,5,0,,
+COMPILATION_CHECKER,null,5,6,0,0/0,
+FIX_MODEL_CHECKING,null,0,267949,19727,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_MODEL_CHECKING,null,1,263624,18445,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_MODEL_CHECKING,null,2,274618,21850,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:0
+
+,
+FIX_MODEL_CHECKING,null,3,376753,24516,ProB reported errors:
+INITIALISATION FAILS
+ ERROR CONTEXT: EVENT:INITIALISATION, State ID:3
+
+,
+FIX_MODEL_CHECKING,null,4,272204,18561,FIX_MODEL_CHECKING: reached maximum number of allowed attempts.,
+PO_CHECKER,null,0,6460,0,64/6/2,
+FIX_PROOF,INITIALISATION/act_idx/SIM,0,30640,9909,updateAction,
+FIX_PROOF,INITIALISATION/act_idx/SIM,1,0,0,PO discharged,
+FIX_PROOF,INITIALISATION/act_i/SIM,0,29617,9664,updateAction,
+FIX_PROOF,INITIALISATION/act_i/SIM,1,0,0,PO discharged,
+FIX_PROOF,null,0,0,0,All POs checked.,
+PO_CHECKER,null,0,252,0,61/0,
+SYNTHESIS,null,0,205766,15003,,
+FIX_COMPILATION,null,0,164361,11437,,
+FIX_COMPILATION,null,1,6,0,,
+COMPILATION_CHECKER,null,5,6,0,0/0,
+FIX_MODEL_CHECKING,null,0,33663,4631,ok_not_all_nodes_considered,
+PO_CHECKER,null,0,16833,0,103/11/2,
+FIX_PROOF,INITIALISATION/SAF_2_inv_1/INV,0,87740,11561,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"idx := 0","label_name":"act_idx"},"node_id":5},
+FIX_PROOF,INITIALISATION/SAF_2_inv_1/INV,1,42009,9921,updateAction:{"event_name":"INITIALISATION","action":{"assignment":"i := toI(0)","label_name":"act_i"},"node_id":5},
+FIX_PROOF,INITIALISATION/SAF_2_inv_1/INV,2,0,0,PO discharged,
+FIX_PROOF,INITIALISATION/act_idx/SIM,0,40160,9845,updateAction,
+FIX_PROOF,INITIALISATION/act_idx/SIM,1,0,0,PO discharged,
+FIX_PROOF,INITIALISATION/act_i/SIM,0,27580,9938,updateAction,
+FIX_PROOF,INITIALISATION/act_i/SIM,1,0,0,PO discharged,
+FIX_PROOF,null,0,0,0,All POs checked.,
+PO_CHECKER,null,0,558,0,103/0,
+5700271

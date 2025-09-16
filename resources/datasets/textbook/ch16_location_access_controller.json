@@ -1,0 +1,20 @@
+{
+    "FUN-1": "The system concerns people and locations.",
+    "FUN-2": "People are permanently assigned the authorization to access certain locations.",
+    "FUN-3": "A person which is in a location must be authorized to be there.",
+    "FUN-4": "Turnstiles are normally blocked.",
+    "FUN-5": "A person willing to pass through a turnsile puts its card in the fence of the card reader.",
+    "FUN-6": "If the person is accepted, the green light is lit and the turnstile is unblocked for at most 30 seconds.",
+    "FUN-7": "If the person is not accepted, the red light is lit for 2 seconds and the turnstile remains blocked.",
+    "FUN-8": "As soon as an accepted person has gone through an unblocked turnstile, the green light is turned off and the turnstile is blocked again.",
+    "FUN-9": "If nobody goes through an unblocked turnstile during the 30 seconds period, the green light is turned off and the turnstile is blocked again.",
+    "EQP-1": "Each person receives a personal magnetic card.",
+    "EQP-2": "Each entrance and exit of a location is equipped with a card reader.",
+    "EQP-3": "Each card reader has two lights: one green light and one red light.",
+    "EQP-4": "Each light can be “on” or “off”.",
+    "EQP-5": "Locations communicate via one-way turstiles.",
+    "EQP-6": "A sensor detects the passage of a person through a turnstile.",
+    "SAF-1": "No persons must remain blocked in a location.",
+    "SAF-2": "Any person authorized to be in a location must also be authorized to go in another location which communicates with the first one.",
+    "SAF-3": "Any person authorized to be in a location which is not “outside”, must also be authorized to be in another location communicating with the former and leading towards outside."
+}

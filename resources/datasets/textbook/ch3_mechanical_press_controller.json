@@ -1,0 +1,12 @@
+{
+    "EQP-1": "The system has got the following pieces of equipment: a Motor, a Clutch, and a Door.",
+    "EQP-2": "Four Buttons are used to start and stop the motor, and engage and disengage the clutch.",
+    "EQP-3": "A Controller is supposed to manage these equipment.",
+    "FUN-1": "Buttons and Controller are weakly synchronized.",
+    "FUN-2": "Controller and Equipment are strongly synchronized",
+    "FUN-3": "When the clutch is disengaged, the door cannot be closed several times, ONLY ONCE.",
+    "FUN-4": "When the door is closed, the clutch cannot be disengaged several times, ONLY ONCE.",
+    "FUN-5": "Opening and closing the door is not independent. It must be synchronized with disengaging and engaging the clutch.",
+    "SAF-1": "When the clutch is engaged, the motor must work.",
+    "SAF-2": "When the clutch is engaged, the door must be closed."
+}

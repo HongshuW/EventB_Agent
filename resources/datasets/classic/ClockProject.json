@@ -1,0 +1,7 @@
+{
+  "FUN-1": "The model defines a clock operating in a 12-hour format with a meridian indicator (AM or PM).",
+  "FUN-2": "At system start, the clock is initialized to 12:00 AM.",
+  "EQP-1": "The Meridian Set consists of two constants representing the possible values of the meridian: AM and PM.",
+  "SAF-1": "The clock format is always correct: the hour is between 1 and 12, the minutes are between 0 and 59, and the meridian is either AM or PM.",
+  "SAF-2": "When the hour passes from 11:59 to 12:00, the meridian switches between AM and PM, ensuring that time progression converges correctly to the next half-day cycle."
+}

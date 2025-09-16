@@ -1,0 +1,19 @@
+{
+  "EQP-1": "The system provides a finite natural number function f defined on domain 0..n−1.",
+  "EQP-2": "The system provides n, the size of the sequence to be sorted.",
+  "FUN-1": "The goal is to sort the elements of f into ascending order.",
+  "FUN-2": "Boolean variables are introduced: fs indicates that sorting is in progress, fn indicates that the array has been successfully sorted, and nf indicates abnormal termination (e.g., if sorting cannot be completed). At any time, exactly one of these holds true.",
+  "FUN-3": "In the abstract machine sr_m0, sorting is defined in the final condition: when fn = true, g is a bijection over 0..n−1 into ℕ, ran(g) = ran(f), and g is strictly increasing.",
+  "FUN-4": "Machine sr_m1 refines sr_m0 by implementing selection sort. While fs = true, the algorithm finds the minimum element of the unsorted suffix g[k..n−1] and swaps it with g(k).",
+  "FUN-5": "Variable k tracks the boundary between the sorted prefix [0..k−1] and the unsorted suffix [k..n−1]. The loop maintains fs = true until k = n−1.",
+  "FUN-6": "Machine sr_m2 refines sr_m1 by detailing how the minimum is located in g[k..n−1], using variables l and j as scanning indices. While fs = true, invariants ensure that min(g[k..n−1]) is always in g[l..j].",
+  "FUN-7": "When l = j, the minimum has been identified; it is swapped into position k, then k is incremented. If k = n−1 after increment, fs becomes false and fn becomes true.",
+  "SAF-1": "While fs = true, the prefix g[0..k−1] is always sorted in strictly increasing order.",
+  "SAF-2": "At all times, ran(g) = ran(f), ensuring no element is lost or duplicated during sorting.",
+  "SAF-3": "During refinement sr_m2, invariants ensure that the candidate minimum is never lost during scanning: min(g[k..n−1]) ∈ g[l..j].",
+  "SAF-4": "When fn = true, the entire array g is sorted in strictly increasing order.",
+  "SAF-5": "If nf = true, then some error condition must have occurred, but the algorithm ensures fs and fn are never true simultaneously with nf.",
+  "DEG-1": "If n = 0, the input is empty. fs immediately becomes false and fn is true; the final condition is trivially satisfied.",
+  "DEG-2": "If n = 1, initialization sets k=0, and fs immediately becomes false with fn = true, since the array is already sorted.",
+  "DEG-3": "If all elements of f are equal, every swap is redundant, but fs still eventually becomes false with fn = true, yielding a valid sorted array."
+}
