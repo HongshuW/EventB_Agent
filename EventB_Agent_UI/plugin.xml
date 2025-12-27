@@ -82,6 +82,16 @@
             id="EventB_Agent_UI.collectdata"
             name="Collect Evaluation Data">
       </command>
+      <command
+            defaultHandler="eventb_agent_ui.handlers.POCountingHandler"
+            id="EventB_Agent_UI.collectpodata"
+            name="Collect PO Data">
+      </command>
+      <command
+            defaultHandler="eventb_agent_ui.handlers.LoPCountingHandler"
+            id="EventB_Agent_UI.collectlopdata"
+            name="Collect LoP Data">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
@@ -128,6 +138,16 @@
             <command
                   commandId="EventB_Agent_UI.collectdata"
                   label="Collect Evaluation Data"
+                  style="push">
+            </command>
+            <command
+                  commandId="EventB_Agent_UI.collectpodata"
+                  label="Collect PO Data"
+                  style="push">
+            </command>
+            <command
+                  commandId="EventB_Agent_UI.collectlopdata"
+                  label="Collect LoP Data"
                   style="push">
             </command>
          </menu>
