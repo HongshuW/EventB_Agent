@@ -47,6 +47,7 @@ public class NewModelWizardPage extends WizardPage {
 	EventBProjectValidator projectValidator;
 
 	private String systemDesc;
+	private SystemRequirements systemRequirements;
 	private List<Pair<Combo, Text>> requirements;
 	private Button addRequirementButton;
 
@@ -289,6 +290,7 @@ public class NewModelWizardPage extends WizardPage {
 			composite.layout(true, true);
 			composite.getShell().pack();
 			this.systemDesc = requirements.toString();
+			this.systemRequirements = requirements;
 		}
 	}
 
@@ -354,6 +356,10 @@ public class NewModelWizardPage extends WizardPage {
 	public String getSystemDesc() {
 		buildSystemDescription();
 		return systemDesc;
+	}
+
+	public SystemRequirements getSystemReqs() {
+		return systemRequirements;
 	}
 
 }

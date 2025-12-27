@@ -8,7 +8,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eventb.core.IEventBRoot;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPORoot;
-import org.eventb.core.IPOSequent;
+import org.eventb.core.IPRProof;
 import org.eventb.core.IPSRoot;
 import org.eventb.core.IPSStatus;
 import org.eventb.core.ast.Predicate;
@@ -114,6 +114,14 @@ public class ProofUtils {
 		}
 
 		return proofAttempt;
+	}
+	
+	public static IProofTree getDefaultProofTree(String poName, IMachineRoot machineRoot) throws CoreException {
+		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
+		
+		IPRProof proof = proofComponent.getPRRoot().getProof(poName);
+		IProofTree proofTree = proof.getProofTree(null);
+		return proofTree;
 	}
 
 	public static void saveProofAttempt(IMachineRoot machineRoot, IProofAttempt proofAttempt) throws CoreException {

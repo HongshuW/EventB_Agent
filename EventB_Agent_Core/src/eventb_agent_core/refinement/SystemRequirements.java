@@ -23,7 +23,13 @@ public class SystemRequirements {
 	public SystemRequirements(Path path) {
 		this.requirements = new ArrayList<>();
 		JSONObject requirementsJSON = FileUtils.readJSON(path);
+		
+		List<String> keys = new ArrayList<>();
 		for (String key : requirementsJSON.keySet()) {
+			keys.add(key);
+		}
+		keys.sort(null);
+		for (String key : keys) {
 			String reqText = requirementsJSON.getString(key);
 			String typeString = key.split("-")[0];
 			RequirementType reqType = RequirementType.valueOf(typeString);

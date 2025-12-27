@@ -103,15 +103,25 @@ public class NewModelWizard extends Wizard implements INewWizard {
 			System.out.println(e.getMessage());
 		}
 
+		ScrollableMessageDialog popUp = new ScrollableMessageDialog(getShell(), "Refinement Strategy",
+				refinementSteps.toString(2));
+		popUp.open();
+
 		// create models
 		ModelInfo previousModel = null;
 		for (int i = 0; i < refinementSteps.length(); i++) {
 			JSONObject refStepJSON = refinementSteps.getJSONObject(i);
-			RefinementStep refinementStep = llmResponseParser.getRefinementStep(refStepJSON);
+			RefinementStep refinementStep = llmResponseParser.getRefinementStep(refStepJSON, page.getSystemReqs());
 
 			final String projectName = page.getProjectName();
 			try {
 				previousModel = modelWorkspaceInteractor.createModel(projectName, refinementStep, previousModel);
+
+				String message = "Covered Description:\n" + previousModel.getSystemDescription();
+				message += "\n\nCovered Requirements:\n" + previousModel.getSystemRequirement();
+
+				popUp = new ScrollableMessageDialog(getShell(), "Formal Model", message);
+				popUp.open();
 			} catch (InterruptedException e) {
 				return false;
 			} catch (InvocationTargetException e) {

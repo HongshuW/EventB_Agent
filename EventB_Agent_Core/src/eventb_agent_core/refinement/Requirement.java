@@ -22,7 +22,7 @@ public class Requirement {
 	}
 
 	public String toString(int id) {
-		return this.requirementType.toString() + "-" + String.valueOf(id) + ": " + this.requirementText;
+		return this.requirementType.toString() + "_" + String.valueOf(id) + ": " + this.requirementText;
 	}
 
 	public boolean hasID() {
