@@ -34,6 +34,9 @@ import eventb_agent_core.utils.Constants;
 import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.proof.ProofUtils;
 
+/**
+ * This handler is responsible for manual invocation of agent prover.
+ */
 public class AgentProverHandler extends AbstractHandler implements IHandler {
 
 	private LLMRequestSender llmRequestSender;

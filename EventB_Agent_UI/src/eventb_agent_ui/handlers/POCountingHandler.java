@@ -23,6 +23,9 @@ import org.rodinp.core.IRodinProject;
 import eventb_agent_core.proof.POManager;
 import eventb_agent_core.utils.RodinUtils;
 
+/**
+ * This handler counts the number of POs.
+ */
 public class POCountingHandler extends AbstractHandler implements IHandler {
 
 	private String[] simple = new String[] { "ch4_simple_file_transfer_protocol", "ch11_tree_shaped_network",

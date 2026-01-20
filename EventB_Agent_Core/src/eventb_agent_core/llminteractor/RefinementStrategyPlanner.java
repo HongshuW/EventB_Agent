@@ -22,8 +22,17 @@ public class RefinementStrategyPlanner extends AbstractLLMInteractor {
 		return llmResponseParser.getRefinementStepsJSONArray(response);
 	}
 	
-	public JSONArray getSingleRefinementStep(String sysDesc) throws ReachMaxAttemptException {
-		JSONObject response = getLLMResponse(new String[] { sysDesc + "\n\nReturn one refinement step with all the requirements." }, LLMRequestTypes.REFINE_STRATEGY);
-		return llmResponseParser.getRefinementStepsJSONArray(response);
+	public JSONArray getSingleRefinementStep(JSONArray reqIDs) throws ReachMaxAttemptException {
+//		JSONObject response = getLLMResponse(new String[] { sysDesc + "\n\nReturn one refinement step with all the requirements." }, LLMRequestTypes.REFINE_STRATEGY);
+//		return llmResponseParser.getRefinementStepsJSONArray(response);
+		
+		JSONArray responseArray = new JSONArray();
+		JSONObject response = new JSONObject();
+		response.put("refinement_no", 1);
+		response.put("gluing_invariants", new JSONArray());
+		response.put("model_description", "");
+		response.put("requirement_ids", reqIDs);
+		responseArray.put(response);
+		return responseArray;
 	}
 }

@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import eventb_agent_core.utils.FileUtils;
@@ -94,6 +95,54 @@ public class SystemRequirements {
 		}
 
 		return output.toString();
+	}
+
+	public JSONArray toJSONArray() {
+		JSONArray output = new JSONArray();
+
+		int funID = 1;
+		int eqpID = 1;
+		int envID = 1;
+		int safID = 1;
+		int degID = 1;
+		int delID = 1;
+
+		for (Requirement req : this.requirements) {
+			String reqString = "";
+			if (req.hasID()) {
+				reqString = req.toSimpleString();
+			} else {
+				switch (req.getRequirementType()) {
+				case FUN:
+					reqString = req.toSimpleString(funID);
+					funID += 1;
+					break;
+				case EQP:
+					reqString = req.toSimpleString(eqpID);
+					eqpID += 1;
+					break;
+				case ENV:
+					reqString = req.toSimpleString(envID);
+					envID += 1;
+					break;
+				case SAF:
+					reqString = req.toSimpleString(safID);
+					safID += 1;
+					break;
+				case DEG:
+					reqString = req.toSimpleString(degID);
+					degID += 1;
+					break;
+				case DEL:
+					reqString = req.toSimpleString(delID);
+					delID += 1;
+					break;
+				}
+			}
+			output.put(reqString);
+		}
+
+		return output;
 	}
 
 }

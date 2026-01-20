@@ -26,6 +26,9 @@ import eventb_agent_core.proof.POManager;
 import eventb_agent_core.utils.RodinUtils;
 import eventb_agent_core.utils.proof.ProofUtils;
 
+/**
+ * This handler computes lines of proofs.
+ */
 public class LoPCountingHandler extends AbstractHandler implements IHandler {
 
 	@Override

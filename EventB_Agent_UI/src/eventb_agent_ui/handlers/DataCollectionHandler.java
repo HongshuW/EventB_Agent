@@ -55,10 +55,16 @@ import eventb_agent_core.utils.RetrieveModelUtils;
 import eventb_agent_core.utils.RodinUtils;
 import eventb_agent_core.utils.proof.ProofUtils;
 
+/**
+ * This handler computes PDR, RC, RF metrics.
+ * 
+ * Note: before running this script, import the group Event-B projects to be
+ * analyzed in the Eclipse application.
+ */
 public class DataCollectionHandler extends AbstractHandler implements IHandler {
 
-	private String GROUP = "ablation_refine_noproofstrategy";
-//	private String GROUP = "EventBAgent";
+//	private String GROUP = "ablation_refine_proofstrategy";
+	private String GROUP = "SMT_retry_with_bug_fixed";
 
 	public DataCollectionHandler() {
 		super();
@@ -192,8 +198,6 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					addCoveredReqs(variants, requirements, coveredRequirements);
 
 					/* 3. No errors, POs generated => covered. */
-					System.out.println();
-
 					IPOSequent[] contextPOs = poManager.getAllPOs(contextRoot);
 					Set<String> notDischargedSet = new HashSet<>();
 					addUnfulfilledReqs(POs, requirements, coveredRequirements, coveredButNotDischarged, machineRoot,
@@ -234,6 +238,9 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					write(outputPath, project.getName(), totalPOCount, dischargedPOCount, totalRequirementCount,
 							coveredRequirementCount, fulfilledRequirementCount, totalRefinePOCount,
 							dischargedRefinePOCount);
+//					write(outputPath, project.getName(), totalPOCount, dischargedPOCount, totalRequirementCount,
+//							coveredRequirementCount, fulfilledRequirementCount, totalRefinePOCount,
+//							dischargedRefinePOCount, fulfilledRequirements);
 
 //					int allPOsAboutRequirements = 0;
 //					int dischargedPOsAboutRequirements = 0;
@@ -270,6 +277,31 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 		contents.append(String.valueOf(fulfilledRequirementCount) + ",");
 		contents.append(String.valueOf(totalRefinePOCount) + ",");
 		contents.append(String.valueOf(dischargedRefinePOCount) + ",\n");
+
+		try (FileWriter writer = new FileWriter(path, true)) {
+			writer.append(contents.toString());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void write(String path, String projectName, int totalPOCount, int dischargedPOCount,
+			int totalRequirementCount, int coveredRequirementCount, int fulfilledRequirementCount,
+			int totalRefinePOCount, int dischargedRefinePOCount, Map<String, Integer> fulfilledReqs) {
+		StringBuilder contents = new StringBuilder();
+		contents.append("" + ",");
+		contents.append(projectName + ",");
+		contents.append(String.valueOf(totalPOCount) + ",");
+		contents.append(String.valueOf(dischargedPOCount) + ",");
+		contents.append(String.valueOf(totalRequirementCount) + ",");
+		contents.append(String.valueOf(coveredRequirementCount) + ",");
+		contents.append(String.valueOf(fulfilledRequirementCount) + ",");
+		contents.append(String.valueOf(totalRefinePOCount) + ",");
+		contents.append(String.valueOf(dischargedRefinePOCount) + ",");
+		for (String req : fulfilledReqs.keySet()) {
+			contents.append(req + ",");
+		}
+		contents.append("\n");
 
 		try (FileWriter writer = new FileWriter(path, true)) {
 			writer.append(contents.toString());

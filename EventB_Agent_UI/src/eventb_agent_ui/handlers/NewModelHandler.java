@@ -10,6 +10,9 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 import eventb_agent_ui.popups.NewModelWizard;
 
+/**
+ * This handler is responsible for manual creation of new model.
+ */
 public class NewModelHandler extends AbstractHandler implements IHandler {
 
 	@Override

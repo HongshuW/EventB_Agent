@@ -39,7 +39,7 @@ import eventb_agent_ui.workspaceinteractor.ModelInfo;
 import eventb_agent_ui.workspaceinteractor.ModelWorkspaceInteractor;
 
 /**
- * This class runs the experiments for Event-B Agent.
+ * This class runs the main experiment for Event-B Agent and the baselines.
  */
 public class EvaluationHandler extends AbstractHandler implements IHandler {
 
@@ -127,7 +127,8 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 						if (enableRefinement) {
 							refinementSteps = refinementStrategyPlanner.getRefinementSteps(systemReqs.toString());
 						} else {
-							refinementSteps = refinementStrategyPlanner.getSingleRefinementStep(systemReqs.toString());
+							refinementSteps = refinementStrategyPlanner
+									.getSingleRefinementStep(systemReqs.toJSONArray());
 						}
 					} catch (ReachMaxAttemptException e) {
 						EvaluationManager.setErrorToLatestAction(e.getMessage());

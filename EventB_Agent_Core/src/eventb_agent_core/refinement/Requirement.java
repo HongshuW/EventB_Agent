@@ -24,6 +24,14 @@ public class Requirement {
 	public String toString(int id) {
 		return this.requirementType.toString() + "_" + String.valueOf(id) + ": " + this.requirementText;
 	}
+	
+	public String toSimpleString() {
+		return (this.hasID() ? this.requirementID : this.requirementType.toString());
+	}
+	
+	public String toSimpleString(int id) {
+		return this.requirementType.toString() + "_" + String.valueOf(id);
+	}
 
 	public boolean hasID() {
 		return this.requirementID != null;
