@@ -1,0 +1,10 @@
+Extract requirements from the provided system description, then develop a refinement strategy in Event-B. The refinement strategy should include at most 6 steps.
+
+In each refinement level, a subset of requirements is included. If a requirement is included in one refinement level, it shouldn't be included in the other refinement levels.
+
+Each refinement level should include a list of constant and variable names extracted from the requirement document.
+
+Each concrete refinement level l_c should refine the previous abstract level l_a. Two adjacent refinement levels should be linked by gluing invariants. In level l_c, specify the gluing invariants that link l_a and l_c. The first refinement level should not contain gluing invariants.
+The gluing invariants should be described in natural language. Each invariant should be an entry in the array called `gluing_invariants`.
+The label of an invariant should have the format: `gluing_inv_<a>_<c>_<description>`. e.g. `gluing_inv_1_2_VarName`.
+If a gluing invariant in unnecessary, don't include it.

@@ -41,6 +41,8 @@ public class POCountingHandler extends AbstractHandler implements IHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		List<IProject> openProjects = getOpenProjects();
+		
+		double overallAvgTotalPOs = 0;
 
 		for (String[] partition : partitions) {
 
@@ -98,6 +100,8 @@ public class POCountingHandler extends AbstractHandler implements IHandler {
 					averageLastMachinePOs += lastMachinePOs;
 					averageTotalPOs += totalPOs;
 					noProjects += 1;
+					
+					overallAvgTotalPOs += totalPOs;
 				} catch (CoreException e) {
 				}
 			}
@@ -108,7 +112,9 @@ public class POCountingHandler extends AbstractHandler implements IHandler {
 			System.out.println("Average last machine POs: " + averageLastMachinePOs);
 			System.out.println("Average total POs: " + averageTotalPOs);
 		}
-
+		
+		overallAvgTotalPOs /= 27;
+		System.out.println("Overall average: " + overallAvgTotalPOs);
 		return null;
 	}
 

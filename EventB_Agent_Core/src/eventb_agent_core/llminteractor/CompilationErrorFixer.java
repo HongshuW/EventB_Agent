@@ -151,10 +151,15 @@ public class CompilationErrorFixer extends AbstractLLMInteractor {
 			e.printStackTrace();
 		}
 
-		JSONObject response = getLLMResponse(
-				new String[] { ParserUtils.reverseLex(modelJSON),
-						ParserUtils.reverseLex(getErrorsPlaceHolderContent(errorMessages)) },
-				LLMRequestTypes.FIX_COMPILATION_ERRS);
+		JSONObject response = isFileInput
+				? getLLMResponseWithNewSchema(
+						new String[] { ParserUtils.reverseLex(modelJSON),
+								ParserUtils.reverseLex(getErrorsPlaceHolderContent(errorMessages)) },
+						LLMRequestTypes.FIX_COMPILATION_ERRS)
+				: getLLMResponse(
+						new String[] { ParserUtils.reverseLex(modelJSON),
+								ParserUtils.reverseLex(getErrorsPlaceHolderContent(errorMessages)) },
+						LLMRequestTypes.FIX_COMPILATION_ERRS);
 
 		return response;
 	}

@@ -1,0 +1,67 @@
+{
+	"type": "json_schema",
+	"name": "refinement_schema",
+	"strict": true,
+	"schema": {
+		"type": "object",
+		"required": [
+			"refinement_strategy"
+		],
+		"properties": {
+			"refinement_strategy": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"required": [
+						"refinement_no",
+						"requirement_ids",
+						"constants_and_variables",
+						"model_description",
+						"gluing_invariants"
+					],
+					"properties": {
+						"refinement_no": {
+							"type": "integer"
+						},
+						"requirement_ids": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						},
+						"constants_and_variables": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						},
+						"model_description": {
+							"type": "string"
+						},
+						"gluing_invariants": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"required": [
+									"label_name",
+									"invariant"
+								],
+								"properties": {
+									"label_name": {
+										"type": "string"
+									},
+									"invariant": {
+										"type": "string"
+									}
+								},
+								"additionalProperties": false
+							}
+						}
+					},
+					"additionalProperties": false
+				}
+			}
+		},
+		"additionalProperties": false
+	}
+}

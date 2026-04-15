@@ -32,6 +32,14 @@ public abstract class RequestBuilder {
 		return json;
 	}
 
+	protected Map<String, Object> getSimplifiedSchema(LLMRequestTypes requestType) {
+		Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "schemas",
+				"simplified", getSchemaFileNameFromType(requestType));
+		Map<String, Object> json = FileUtils.readOrderedJSON(path);
+
+		return json;
+	}
+
 	protected List<Map<String, Object>> getFunctionSchemas(LLMRequestTypes requestType) throws IOException {
 		List<Map<String, Object>> functionSchemas = new ArrayList<>();
 		String[] files = getFunctionFileNamesFromType(requestType);
@@ -60,6 +68,14 @@ public abstract class RequestBuilder {
 	public abstract void addReasoningHistory(List<LinkedHashMap<String, Object>> history, JSONObject reasoning);
 
 	public abstract String getRequestPlain(String prompt) throws IOException;
+
+	public abstract String getRequestWithFileInput(String prompt, Path inputFilePath, String fileID,
+			LLMRequestTypes requestType) throws IOException;
+
+	public abstract String getRequestUploadFile(Path inputFilePath) throws IOException;
+
+	public abstract String getRequestWithSimplifiedPrompt(String prompt, LLMRequestTypes requestType)
+			throws IOException;
 
 	public abstract HttpURLConnection getURLConnection(String apiEndpoint, String apiKey) throws IOException;
 

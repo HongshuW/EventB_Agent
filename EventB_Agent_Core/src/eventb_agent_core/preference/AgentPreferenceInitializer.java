@@ -18,6 +18,7 @@ public class AgentPreferenceInitializer extends AbstractPreferenceInitializer {
 	public static final String PREF_ENABLE_FIX = "enable_fix_strategy";
 	public static final String PREF_MAX_ATTEMPTS_SYNTH = "max_attempts_synth";
 	public static final String PREF_MAX_ATTEMPTS_PROOF = "max_attempts_proof";
+	public static final String PREF_IS_PDF_INPUT = "is_pdf_input";
 
 	@Override
 	public void initializeDefaultPreferences() {
@@ -32,6 +33,7 @@ public class AgentPreferenceInitializer extends AbstractPreferenceInitializer {
 		prefs.putBoolean(PREF_ENABLE_FIX, true);
 		prefs.putInt(PREF_MAX_ATTEMPTS_SYNTH, 5);
 		prefs.putInt(PREF_MAX_ATTEMPTS_PROOF, 5);
+		prefs.putBoolean(PREF_IS_PDF_INPUT, false);
 	}
 
 }

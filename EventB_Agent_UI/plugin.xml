@@ -92,6 +92,11 @@
             id="EventB_Agent_UI.collectlopdata"
             name="Collect LoP Data">
       </command>
+      <command
+            defaultHandler="eventb_agent_ui.handlers.ModelJsonExtractionHandler"
+            id="EventB_Agent_UI.converttojson"
+            name="Convert Event-B Model to JSON">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
@@ -148,6 +153,11 @@
             <command
                   commandId="EventB_Agent_UI.collectlopdata"
                   label="Collect LoP Data"
+                  style="push">
+            </command>
+            <command
+                  commandId="EventB_Agent_UI.converttojson"
+                  label="Convert Event-B Model to JSON"
                   style="push">
             </command>
          </menu>

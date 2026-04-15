@@ -17,7 +17,10 @@ Bundle-ClassPath:
  lib/json-20220924.jar,
  lib/jackson-databind-2.17.1.jar,
  lib/jackson-core-2.17.1.jar,
- lib/jackson-annotations-2.17.1.jar
+ lib/jackson-annotations-2.17.1.jar,
+ lib/okhttp-4.12.0.jar,
+ lib/okio-3.0.0-alpha.3.jar,
+ lib/kotlin-stdlib-1.9.0.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: EventB.Agent.Core
 Bundle-ActivationPolicy: lazy

@@ -1,11 +1,20 @@
 package eventb_agent_core.llm;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -26,6 +35,8 @@ public abstract class LLMRequestSender {
 	protected abstract String getAPIKey();
 
 	protected abstract String getAPIEndpoint();
+
+	protected abstract String getFileUploadAPIEndpoint();
 
 	public RequestBuilder getRequestBuilder() {
 		return LLMInstanceFactory.getRequestBuilder(modelType);
@@ -61,6 +72,29 @@ public abstract class LLMRequestSender {
 		}
 	}
 
+	private String getFileUploadRequest(String filePath) throws IOException {
+		File pdf = new File(filePath);
+
+		RequestBody fileBody = RequestBody.create(pdf, MediaType.parse("application/pdf"));
+
+		MultipartBody requestBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
+				.addFormDataPart("purpose", "assistants").addFormDataPart("file", pdf.getName(), fileBody)
+				.addFormDataPart("expires_after[anchor]", "created_at")
+				.addFormDataPart("expires_after[seconds]", "10800") // TODO: change this
+				.build();
+
+		Request request = new Request.Builder().url(getFileUploadAPIEndpoint())
+				.addHeader("Authorization", "Bearer " + getAPIKey()).post(requestBody).build();
+
+		OkHttpClient client = new OkHttpClient();
+		try (Response response = client.newCall(request).execute()) {
+			System.out.println("HTTP " + response.code());
+
+			String responseString = response.body() != null ? response.body().string() : "";
+			return responseString;
+		}
+	}
+
 	public String sendRequest(String[] contentInPlaceHolders, LLMRequestTypes requestType,
 			List<LinkedHashMap<String, Object>> history, ProofScenarioType poType) throws IOException {
 		String[] placeHolders = requestType.getPlaceHolders();
@@ -88,4 +122,47 @@ public abstract class LLMRequestSender {
 		return getRequest(requestBuilder, request);
 	}
 
+	/**
+	 * This function uploads a file and sends a request with this file as input.
+	 * 
+	 * @param inputFilePath
+	 * @param requestType
+	 * @return
+	 * @throws IOException
+	 */
+	public String sendRequestWithFile(String fileID, String[] contentInPlaceHolders, LLMRequestTypes requestType)
+			throws IOException {
+		String[] placeHolders = requestType.getSimplifiedPlaceHolders();
+		int length = Math.min(contentInPlaceHolders.length, placeHolders.length);
+		RequestBuilder requestBuilder = getRequestBuilder();
+		String prompt = requestType.getSimplifiedPrompt();
+
+		for (int i = 0; i < length; i++) {
+			String contentInPlaceHolder = ParserUtils.reverseLex(contentInPlaceHolders[i]);
+			prompt = prompt.replace(placeHolders[i], contentInPlaceHolder);
+		}
+
+		String request = requestBuilder.getRequestWithFileInput(prompt, null, fileID, requestType);
+		return getRequest(requestBuilder, request);
+	}
+
+	public String sendRequestUploadFile(Path inputFilePath) throws IOException {
+		return getFileUploadRequest(inputFilePath.toString());
+	}
+
+	public String sendRequestWithNewSchema(String[] contentInPlaceHolders, LLMRequestTypes requestType)
+			throws IOException {
+		String[] placeHolders = requestType.getSimplifiedPlaceHolders();
+		int length = Math.min(contentInPlaceHolders.length, placeHolders.length);
+		RequestBuilder requestBuilder = getRequestBuilder();
+		String prompt = requestType.getSimplifiedPrompt();
+
+		for (int i = 0; i < length; i++) {
+			String contentInPlaceHolder = ParserUtils.reverseLex(contentInPlaceHolders[i]);
+			prompt = prompt.replace(placeHolders[i], contentInPlaceHolder);
+		}
+
+		String request = requestBuilder.getRequestWithSimplifiedPrompt(prompt, requestType);
+		return getRequest(requestBuilder, request);
+	}
 }

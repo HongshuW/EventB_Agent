@@ -147,7 +147,7 @@ public class EvaluationHandler extends AbstractHandler implements IHandler {
 									llmRequestSender, llmResponseParser, enableFixStrategy, maxAttemptsSynth,
 									maxAttemptsProof, window);
 							previousModel = modelWorkspaceInteractor.createModel(projectName, refinementStep,
-									previousModel);
+									previousModel, null);
 						} catch (ReachMaxAttemptException e) {
 							e.printStackTrace();
 							EvaluationManager

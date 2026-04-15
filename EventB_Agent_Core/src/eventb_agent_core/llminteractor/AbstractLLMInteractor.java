@@ -1,6 +1,7 @@
 package eventb_agent_core.llminteractor;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -29,6 +30,8 @@ public abstract class AbstractLLMInteractor {
 	protected int maxAttemptsSynth;
 	protected int maxAttemptsProof;
 
+	protected boolean isFileInput;
+
 	public AbstractLLMInteractor(LLMRequestSender llmRequestSender, LLMResponseParser llmResponseParser) {
 		this.llmRequestSender = llmRequestSender;
 		this.llmResponseParser = llmResponseParser;
@@ -36,6 +39,8 @@ public abstract class AbstractLLMInteractor {
 		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
 		maxAttemptsSynth = Integer.valueOf(prefs.get(AgentPreferenceInitializer.PREF_MAX_ATTEMPTS_SYNTH, "5"));
 		maxAttemptsProof = Integer.valueOf(prefs.get(AgentPreferenceInitializer.PREF_MAX_ATTEMPTS_PROOF, "1"));
+
+		isFileInput = prefs.getBoolean(AgentPreferenceInitializer.PREF_IS_PDF_INPUT, false);
 	}
 
 	public JSONObject getLLMResponse(String[] placeHolderContents, LLMRequestTypes requestType)
@@ -46,6 +51,37 @@ public abstract class AbstractLLMInteractor {
 	public JSONObject getLLMResponseWithTools(String[] placeHolderContents, LLMRequestTypes requestType,
 			List<LinkedHashMap<String, Object>> history, ProofScenarioType poType) throws ReachMaxAttemptException {
 		return getLLMResponse(placeHolderContents, requestType, true, history, poType);
+	}
+
+	public JSONObject getLLMResponseWithFile(String fileID, String[] placeHolderContents, LLMRequestTypes requestType)
+			throws ReachMaxAttemptException {
+		return getLLMResponseWithFileHelper(fileID, placeHolderContents, requestType);
+	}
+
+	/**
+	 * TODO: UPDATE name of this function later. This function uses the new prompts
+	 * and schema (ABZ), but do not attach files.
+	 * 
+	 * @return
+	 */
+	public JSONObject getLLMResponseWithNewSchema(String[] placeHolderContents, LLMRequestTypes requestType)
+			throws ReachMaxAttemptException {
+		return getLLMResponseWithNewSchemaHelper(placeHolderContents, requestType);
+	}
+
+	public JSONObject getLLMResponseUploadFile(Path inputPath) throws ReachMaxAttemptException {
+		String response = "";
+		try {
+			response = llmRequestSender.sendRequestUploadFile(inputPath);
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+			EvaluationManager.setErrorToLatestAction(e.getMessage());
+			return reattemptDueToInvalidCharsUploadFile(response, inputPath);
+		}
+
+		System.out.println(response);
+
+		return new JSONObject(response);
 	}
 
 	private JSONObject getLLMResponse(String[] placeHolderContents, LLMRequestTypes requestType, boolean useTools,
@@ -92,16 +128,116 @@ public abstract class AbstractLLMInteractor {
 		return null;
 	}
 
-	private JSONObject reattemptDueToInvalidChars(String response, String[] placeHolderContents,
-			LLMRequestTypes requestType, boolean useTools, List<LinkedHashMap<String, Object>> history, ProofScenarioType poType)
+	private JSONObject getLLMResponseWithFileHelper(String fileID, String[] placeHolderContents,
+			LLMRequestTypes requestType) throws ReachMaxAttemptException {
+		String response;
+		try {
+			response = llmRequestSender.sendRequestWithFile(fileID, placeHolderContents, requestType);
+			try {
+				response = decodeUnicodeEscapes(response);
+			} catch (InvalidCharacterException e) {
+				System.out.println(e.getMessage());
+				EvaluationManager.setErrorToLatestAction(e.getMessage());
+				return reattemptDueToInvalidCharsWithFile(response, fileID, placeHolderContents, requestType);
+			}
+
+			System.out.println(response);
+
+			if (containsInvalidXmlChar(response)) {
+				String message = "LLM response contains invalid xml character";
+				System.out.println(message);
+				EvaluationManager.setErrorToLatestAction(message);
+				return reattemptDueToInvalidCharsWithFile(response, fileID, placeHolderContents, requestType);
+			}
+			updateTokenCount(response);
+			return llmResponseParser.getResponseContent(response);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			String message = "llm returns invalid json, try again...";
+			System.out.println(message);
+
+			// token count updated in try block
+			EvaluationManager.setErrorToLatestAction(message);
+			reattemptAction();
+			return getLLMResponseWithFileHelper(fileID, placeHolderContents, requestType);
+		}
+
+		return null;
+	}
+
+	private JSONObject getLLMResponseWithNewSchemaHelper(String[] placeHolderContents, LLMRequestTypes requestType)
 			throws ReachMaxAttemptException {
+		String response;
+		try {
+			response = llmRequestSender.sendRequestWithNewSchema(placeHolderContents, requestType);
+			try {
+				response = decodeUnicodeEscapes(response);
+			} catch (InvalidCharacterException e) {
+				System.out.println(e.getMessage());
+				EvaluationManager.setErrorToLatestAction(e.getMessage());
+				return reattemptDueToInvalidCharsWithNewSchema(response, placeHolderContents, requestType);
+			}
+
+			System.out.println(response);
+
+			if (containsInvalidXmlChar(response)) {
+				String message = "LLM response contains invalid xml character";
+				System.out.println(message);
+				EvaluationManager.setErrorToLatestAction(message);
+				return reattemptDueToInvalidCharsWithNewSchema(response, placeHolderContents, requestType);
+			}
+			updateTokenCount(response);
+			return llmResponseParser.getResponseContent(response);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			String message = "llm returns invalid json, try again...";
+			System.out.println(message);
+
+			// token count updated in try block
+			EvaluationManager.setErrorToLatestAction(message);
+			reattemptAction();
+			return getLLMResponseWithNewSchemaHelper(placeHolderContents, requestType);
+		}
+
+		return null;
+	}
+
+	private JSONObject reattemptDueToInvalidChars(String response, String[] placeHolderContents,
+			LLMRequestTypes requestType, boolean useTools, List<LinkedHashMap<String, Object>> history,
+			ProofScenarioType poType) throws ReachMaxAttemptException {
 		updateTokenCount(response);
 		reattemptAction();
 		return getLLMResponse(placeHolderContents, requestType, useTools, history, poType);
 	}
 
+	private JSONObject reattemptDueToInvalidCharsWithFile(String response, String fileID, String[] placeHolderContents,
+			LLMRequestTypes requestType) throws ReachMaxAttemptException {
+		updateTokenCount(response);
+		reattemptAction();
+		return getLLMResponseWithFileHelper(fileID, placeHolderContents, requestType);
+	}
+
+	private JSONObject reattemptDueToInvalidCharsUploadFile(String response, Path inputFilePath)
+			throws ReachMaxAttemptException {
+		updateTokenCount(response);
+		reattemptAction();
+		return getLLMResponseUploadFile(inputFilePath);
+	}
+
+	private JSONObject reattemptDueToInvalidCharsWithNewSchema(String response, String[] placeHolderContents,
+			LLMRequestTypes requestType) throws ReachMaxAttemptException {
+		updateTokenCount(response);
+		reattemptAction();
+		return getLLMResponseWithNewSchema(placeHolderContents, requestType);
+	}
+
 	private void updateTokenCount(String response) {
-		long tokens = llmResponseParser.getTokens(response);
+		long tokens = 0L;
+		if (!response.equals("")) {
+			tokens = llmResponseParser.getTokens(response);
+		}
 		EvaluationManager.addTokensToLatestAction(tokens);
 	}
 

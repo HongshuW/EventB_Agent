@@ -10,6 +10,8 @@ import org.json.JSONObject;
 import eventb_agent_core.utils.FileUtils;
 
 public class SystemRequirements {
+	
+	public static Path INPUT_PDF_PATH; // set in `NewModelWizardPage`
 
 	private List<Requirement> requirements;
 

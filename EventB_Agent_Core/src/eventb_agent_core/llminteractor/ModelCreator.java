@@ -49,6 +49,29 @@ public class ModelCreator extends AbstractLLMInteractor {
 	}
 
 	/**
+	 * Synthesize the Event-B model based on the refinement step, with an input file
+	 * attached. Return the created model in JSON.
+	 * 
+	 * @param refinementStep
+	 * @param fileID
+	 * @return the created model in JSON.
+	 * @throws InvocationTargetException
+	 * @throws ReachMaxAttemptException
+	 */
+	public JSONObject synthesizeModelWithFile(RefinementStep refinementStep, String fileID)
+			throws InvocationTargetException, ReachMaxAttemptException {
+		String refinementID = String.valueOf(refinementStep.getRefinementNo());
+		String symbols = refinementStep.getSymbolsString();
+		String systemDesc = refinementStep.getModelDesc();
+		String systemReqs = refinementStep.getSysReqString();
+
+		JSONObject response = getLLMResponseWithFile(fileID,
+				new String[] { refinementID, symbols, systemDesc, systemReqs }, LLMRequestTypes.SYNTHESIS);
+
+		return response;
+	}
+
+	/**
 	 * Refine the given Event-B model. Return the refined model in JSON.
 	 * 
 	 * @param projectName
@@ -80,6 +103,31 @@ public class ModelCreator extends AbstractLLMInteractor {
 
 		JSONObject response = getLLMResponse(new String[] { refinementID, previousSysDesc, previousSysReq,
 				ParserUtils.reverseLex(modelJSON), refineSysDesc, refineSysReq, gluingInvs },
+				LLMRequestTypes.REFINE_MODEL);
+
+		return response;
+	}
+
+	public JSONObject refineModelWithFile(final String projectName, String[] fileNames, String previousSysDesc,
+			String previousSysReq, RefinementStep refinementStep, String fileID)
+			throws CoreException, InvocationTargetException, InterruptedException, ReachMaxAttemptException {
+
+		// retrieve model in JSON form
+		IRodinProject rodinProject = RodinUtils.getRodinProject(projectName);
+		IRodinFile ctxFile = rodinProject.getRodinFile(fileNames[0]);
+		IRodinFile mchFile = rodinProject.getRodinFile(fileNames[1]);
+		IContextRoot contextRoot = (IContextRoot) ctxFile.getRoot();
+		IMachineRoot machineRoot = (IMachineRoot) mchFile.getRoot();
+		String modelJSON = RetrieveModelUtils.getModelJSON(machineRoot, contextRoot);
+
+		String refinementID = String.valueOf(refinementStep.getRefinementNo());
+		String symbols = refinementStep.getSymbolsString();
+		String refineSysDesc = refinementStep.getModelDesc();
+		String refineSysReq = refinementStep.getSysReqString();
+		String gluingInvs = refinementStep.getGluingInvariantsString();
+
+		JSONObject response = getLLMResponseWithFile(fileID, new String[] { refinementID, previousSysDesc,
+				previousSysReq, ParserUtils.reverseLex(modelJSON), symbols, refineSysDesc, refineSysReq, gluingInvs },
 				LLMRequestTypes.REFINE_MODEL);
 
 		return response;

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eventb.core.EventBAttributes;
 import org.eventb.core.IAction;
 import org.eventb.core.IAssignmentElement;
 import org.eventb.core.IAxiom;
@@ -129,7 +130,7 @@ public class RetrieveModelUtils {
 		}
 	}
 
-	private static LinkedHashMap<String, Object> getContextJSON(IContextRoot contextRoot) throws RodinDBException {
+	public static LinkedHashMap<String, Object> getContextJSON(IContextRoot contextRoot) throws RodinDBException {
 		LinkedHashMap<String, Object> contextJSON = new LinkedHashMap<>();
 
 		String contextName = contextRoot.getComponentName();
@@ -143,7 +144,7 @@ public class RetrieveModelUtils {
 		return contextJSON;
 	}
 
-	private static LinkedHashMap<String, Object> getMachineJSON(IMachineRoot machineRoot) throws RodinDBException {
+	public static LinkedHashMap<String, Object> getMachineJSON(IMachineRoot machineRoot) throws RodinDBException {
 		LinkedHashMap<String, Object> machineJSON = new LinkedHashMap<>();
 
 		String machineName = machineRoot.getComponentName();
@@ -176,9 +177,14 @@ public class RetrieveModelUtils {
 	private static LinkedHashMap<String, Object> getLabeledPredicate(IInternalElement element) throws RodinDBException {
 		String label = ((ILabeledElement) element).getLabel();
 		String predicate = ((IPredicateElement) element).getPredicateString();
+		String comments = "";
+		if (element.hasAttribute(EventBAttributes.COMMENT_ATTRIBUTE)) {
+			comments = element.getAttributeValue(EventBAttributes.COMMENT_ATTRIBUTE);
+		}
 		LinkedHashMap<String, Object> elementJSON = new LinkedHashMap<>();
 		elementJSON.put(SchemaKeys.LABEL, label);
 		elementJSON.put(SchemaKeys.PRED, predicate);
+		elementJSON.put(SchemaKeys.CMT, comments);
 		return elementJSON;
 	}
 
@@ -195,9 +201,14 @@ public class RetrieveModelUtils {
 			throws RodinDBException {
 		String label = ((ILabeledElement) element).getLabel();
 		String expression = ((IExpressionElement) element).getExpressionString();
+		String comments = "";
+		if (element.hasAttribute(EventBAttributes.COMMENT_ATTRIBUTE)) {
+			comments = element.getAttributeValue(EventBAttributes.COMMENT_ATTRIBUTE);
+		}
 		LinkedHashMap<String, Object> elementJSON = new LinkedHashMap<>();
 		elementJSON.put(SchemaKeys.LABEL, label);
 		elementJSON.put(SchemaKeys.EXPR, expression);
+		elementJSON.put(SchemaKeys.CMT, comments);
 		return elementJSON;
 	}
 
@@ -214,9 +225,14 @@ public class RetrieveModelUtils {
 			throws RodinDBException {
 		String label = ((ILabeledElement) element).getLabel();
 		String assignment = ((IAssignmentElement) element).getAssignmentString();
+		String comments = "";
+		if (element.hasAttribute(EventBAttributes.COMMENT_ATTRIBUTE)) {
+			comments = element.getAttributeValue(EventBAttributes.COMMENT_ATTRIBUTE);
+		}
 		LinkedHashMap<String, Object> elementJSON = new LinkedHashMap<>();
 		elementJSON.put(SchemaKeys.LABEL, label);
 		elementJSON.put(SchemaKeys.ASSIGN, assignment);
+		elementJSON.put(SchemaKeys.CMT, comments);
 		return elementJSON;
 	}
 

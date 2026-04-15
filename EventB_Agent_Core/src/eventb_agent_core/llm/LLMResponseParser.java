@@ -80,12 +80,14 @@ public abstract class LLMResponseParser {
 		JSONArray array = json.getJSONArray(keyForArray);
 		List<String[]> results = new ArrayList<>();
 		for (int i = 0; i < array.length(); i++) {
-			String[] labeledPredInfo = new String[2];
+			String[] labeledPredInfo = new String[3];
 			JSONObject labeledObject = array.getJSONObject(i);
 			String label = labeledObject.getString(SchemaKeys.LABEL);
 			String predicate = labeledObject.getString(keyForFormulae);
+			String comments = labeledObject.getString(SchemaKeys.CMT);
 			labeledPredInfo[0] = label;
 			labeledPredInfo[1] = ParserUtils.lex(predicate);
+			labeledPredInfo[2] = comments;
 			results.add(labeledPredInfo);
 		}
 		return results;
@@ -208,6 +210,11 @@ public abstract class LLMResponseParser {
 		String modelDesc = refStepJSON.getString(SchemaKeys.MODEL_DESC);
 		JSONArray gluingInvs = refStepJSON.getJSONArray(SchemaKeys.GLUING_INVS);
 
+		JSONArray symbols = null;
+		if (refStepJSON.has(SchemaKeys.SYMBOLS)) {
+			symbols = refStepJSON.getJSONArray(SchemaKeys.SYMBOLS);
+		}
+
 		List<String> reqIDList = new ArrayList<>();
 		for (int i = 0; i < reqIDs.length(); i++) {
 			reqIDList.add(reqIDs.getString(i));
@@ -221,7 +228,14 @@ public abstract class LLMResponseParser {
 			gluingInvsMap.put(key, val);
 		}
 
-		return new RefinementStep(refNo, reqIDList, modelDesc, gluingInvsMap, systemReqs);
+		List<String> symbolList = new ArrayList<>();
+		if (symbols != null) {
+			for (int i = 0; i < symbols.length(); i++) {
+				symbolList.add(symbols.getString(i));
+			}
+		}
+
+		return new RefinementStep(refNo, reqIDList, modelDesc, gluingInvsMap, systemReqs, symbolList);
 	}
 
 }

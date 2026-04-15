@@ -94,6 +94,9 @@ public class ModelWorkspaceInteractor {
 	private Set<String> visitedPOs;
 
 	private String previousModel;
+	
+	private String fileID;
+	private boolean isFileInput;
 
 	public ModelWorkspaceInteractor(LLMRequestSender llmRequestSender, LLMResponseParser llmResponseParser,
 			boolean enableFixStrategy, int maxAttemptsSynth, int maxAttemptsProof, IRunnableContext runnableContext) {
@@ -124,6 +127,7 @@ public class ModelWorkspaceInteractor {
 	 * 
 	 * @param projectName
 	 * @param refinementStep
+	 * @param fileID          TODO
 	 * @param isAbstractModel
 	 * @return
 	 * @throws InterruptedException
@@ -131,8 +135,12 @@ public class ModelWorkspaceInteractor {
 	 * @throws CoreException
 	 * @throws ReachMaxAttemptException
 	 */
-	public ModelInfo createModel(String projectName, RefinementStep refinementStep, ModelInfo previousModel)
+	public ModelInfo createModel(String projectName, RefinementStep refinementStep, ModelInfo previousModel,
+			String fileID)
 			throws InvocationTargetException, InterruptedException, CoreException, ReachMaxAttemptException {
+
+		this.fileID = fileID;
+		this.isFileInput = fileID != null & !fileID.equals("");
 		EvaluationManager.addAndStartNewAction(ComponentType.SYNTHESIS, 0);
 
 		String[] fileNames = new String[2];
@@ -151,7 +159,8 @@ public class ModelWorkspaceInteractor {
 			// synthesize abstract model
 			JSONObject response = new JSONObject();
 			try {
-				response = modelCreator.synthesizeModel(refinementStep);
+				response = isFileInput ? modelCreator.synthesizeModelWithFile(refinementStep, fileID)
+						: modelCreator.synthesizeModel(refinementStep);
 			} catch (ReachMaxAttemptException e) {
 				System.out.println(e.getMessage());
 				EvaluationManager.setErrorToLatestAction(e.getMessage());
@@ -162,10 +171,10 @@ public class ModelWorkspaceInteractor {
 			fixCompilationErrors(projectName, fileNames);
 			countCompilationErrors(projectName, fileNames);
 
-			fixBasedOnModelCheckingResults(projectName, fileNames);
+//			fixBasedOnModelCheckingResults(projectName, fileNames);
 
 			runAutoProvers(projectName, fileNames);
-			fixPOs(projectName, fileNames, null);
+//			fixPOs(projectName, fileNames, null);
 			countPOs(projectName, fileNames);
 			sysDesc = newSysDesc;
 			sysReq = newSysReq;
@@ -173,7 +182,10 @@ public class ModelWorkspaceInteractor {
 			// refine the previous model
 			JSONObject response = new JSONObject();
 			try {
-				response = modelCreator.refineModel(projectName, fileNames, sysDesc, sysReq, refinementStep);
+				response = isFileInput
+						? modelCreator.refineModelWithFile(projectName, fileNames, sysDesc, sysReq, refinementStep,
+								fileID)
+						: modelCreator.refineModel(projectName, fileNames, sysDesc, sysReq, refinementStep);
 			} catch (ReachMaxAttemptException e) {
 				System.out.println(e.getMessage());
 				EvaluationManager.setErrorToLatestAction(e.getMessage());

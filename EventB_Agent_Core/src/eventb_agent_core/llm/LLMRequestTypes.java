@@ -25,6 +25,12 @@ public enum LLMRequestTypes {
 		return FileUtils.readText(path);
 	}
 
+	public String getSimplifiedPrompt() {
+		Path path = Paths.get(FileUtils.getCoreDirectoryPath(), "src", "eventb_agent_core", "llm", "prompts",
+				"simplified", getPromptFileNameFromType());
+		return FileUtils.readText(path);
+	}
+
 	private String getPromptFileNameFromType() {
 		switch (this) {
 		case REFINE_STRATEGY:
@@ -73,6 +79,25 @@ public enum LLMRequestTypes {
 					Constants.PROOF_TREE_PLACE_HOLDER };
 		default:
 			return new String[] { Constants.DEFAULT_PLACE_HOLDER };
+		}
+	}
+
+	public String[] getSimplifiedPlaceHolders() {
+		switch (this) {
+		case REFINE_STRATEGY:
+			return new String[] {};
+		case SYNTHESIS:
+			return new String[] { Constants.REFINEMENT_ID_PLACE_HOLDER, Constants.SYMBOL_PLACE_HOLDER,
+					Constants.SYS_DESC_PLACE_HOLDER, Constants.SYS_REQ_PLACE_HOLDER };
+		case FIX_COMPILATION_ERRS:
+			return new String[] { Constants.MODEL_PLACE_HOLDER, Constants.ERRORS_PLACE_HOLDER };
+		case REFINE_MODEL:
+			return new String[] { Constants.REFINEMENT_ID_PLACE_HOLDER, Constants.PREV_SYS_DESC_PLACE_HOLDER,
+					Constants.PREV_SYS_REQ_PLACE_HOLDER, Constants.MODEL_PLACE_HOLDER, Constants.SYMBOL_PLACE_HOLDER,
+					Constants.SYS_DESC_PLACE_HOLDER, Constants.SYS_REQ_PLACE_HOLDER,
+					Constants.GLUING_INVS_PLACE_HOLDER };
+		default:
+			return new String[] {};
 		}
 	}
 
