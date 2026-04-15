@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardPage;
@@ -33,9 +35,12 @@ import org.eventb.ui.EventBUIPlugin;
 import org.rodinp.core.IRodinElement;
 import org.rodinp.core.IRodinProject;
 
+import eventb_agent_core.llm.LLMRequestSender;
+import eventb_agent_core.preference.AgentPreferenceInitializer;
 import eventb_agent_core.refinement.Requirement;
 import eventb_agent_core.refinement.RequirementType;
 import eventb_agent_core.refinement.SystemRequirements;
+import eventb_agent_core.utils.Constants;
 
 /**
  * This page is the UI layout for {@code NewModelWizard}.
@@ -54,6 +59,9 @@ public class NewModelWizardPage extends WizardPage {
 	// The selection when the wizard is launched.
 	private ISelection selection;
 
+	// Whether input form is PDF
+	private boolean isPDFInput;
+
 	/**
 	 * Constructor for NewComponentWizardPage.
 	 * <p>
@@ -66,6 +74,9 @@ public class NewModelWizardPage extends WizardPage {
 		setDescription(
 				"This wizard creates a new pair of Event-B context and machine that can be opened by a multi-page editor.");
 		this.selection = selection;
+
+		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
+		this.isPDFInput = prefs.getBoolean(AgentPreferenceInitializer.PREF_IS_PDF_INPUT, false);
 	}
 
 	/**
@@ -103,7 +114,7 @@ public class NewModelWizardPage extends WizardPage {
 
 		/* Requirements */
 		Label requirementsLabel = new Label(composite, SWT.NULL);
-		requirementsLabel.setText("Requirements of the System:");
+		requirementsLabel.setText("Requirements of the System (default: .json, set .pdf in the preference):");
 		GridData reqsGD = new GridData(GridData.FILL_HORIZONTAL);
 		reqsGD.horizontalSpan = 2;
 		requirementsLabel.setLayoutData(reqsGD);
@@ -273,24 +284,33 @@ public class NewModelWizardPage extends WizardPage {
 
 		FileDialog dlg = new FileDialog(shell, SWT.OPEN);
 		dlg.setText("Select Requirement File");
-		dlg.setFilterExtensions(new String[] { "*.json" });
-		dlg.setFilterNames(new String[] { "JSON files (*.json)" });
+		if (isPDFInput) {
+			dlg.setFilterExtensions(new String[] { "*.pdf" });
+			dlg.setFilterNames(new String[] { "PDF files (*.pdf)" });
+		} else {
+			dlg.setFilterExtensions(new String[] { "*.json" });
+			dlg.setFilterNames(new String[] { "JSON files (*.json)" });
+		}
 
 		String selected = dlg.open();
 		if (selected != null) {
 			Path path = Path.of(selected);
-			SystemRequirements requirements = new SystemRequirements(path);
-			List<Requirement> reqList = requirements.getRequirements();
-			addRequirementButton.dispose();
-			for (int i = 0; i < reqList.size(); i++) {
-				Requirement req = reqList.get(i);
-				addNewRequirement(composite, listener, i == reqList.size() - 1, req.getRequirementType(),
-						req.getRequirementText());
+			if (isPDFInput) {
+				SystemRequirements.INPUT_PDF_PATH = path;
+			} else {
+				SystemRequirements requirements = new SystemRequirements(path);
+				List<Requirement> reqList = requirements.getRequirements();
+				addRequirementButton.dispose();
+				for (int i = 0; i < reqList.size(); i++) {
+					Requirement req = reqList.get(i);
+					addNewRequirement(composite, listener, i == reqList.size() - 1, req.getRequirementType(),
+							req.getRequirementText());
+				}
+				composite.layout(true, true);
+				composite.getShell().pack();
+				this.systemDesc = requirements.toString();
+				this.systemRequirements = requirements;
 			}
-			composite.layout(true, true);
-			composite.getShell().pack();
-			this.systemDesc = requirements.toString();
-			this.systemRequirements = requirements;
 		}
 	}
 
@@ -309,7 +329,7 @@ public class NewModelWizardPage extends WizardPage {
 
 			final IEventBProject evbProject = projectValidator.getEventBProject();
 			final String sysDesc = getSystemDesc();
-			if (sysDesc.length() == 0) {
+			if (sysDesc.length() == 0 && !isPDFInput) {
 				updateStatus("System description must be specified");
 				return;
 			}

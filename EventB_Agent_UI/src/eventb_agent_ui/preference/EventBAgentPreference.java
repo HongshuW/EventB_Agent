@@ -38,6 +38,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 	public static final String ENABLE_FIX_STRATEGY = AgentPreferenceInitializer.PREF_ENABLE_FIX;
 	public static final String MAX_ATTEMPTS_SYNTH = AgentPreferenceInitializer.PREF_MAX_ATTEMPTS_SYNTH;
 	public static final String MAX_ATTEMPTS_PROOF = AgentPreferenceInitializer.PREF_MAX_ATTEMPTS_PROOF;
+	public static final String IS_PDF_INPUT = AgentPreferenceInitializer.PREF_IS_PDF_INPUT;
 
 	/* llm config */
 	private Combo llmModelCombo;
@@ -52,6 +53,9 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 	private Button enableFixStrategyButton;
 	private Text maxAttemptsSynthText;
 	private Text maxAttemptsProofText;
+
+	/* input config */
+	private Button isPDFInputButton;
 
 	private String defaultLLMModel = LLMModels.GPT4_1.toString();
 
@@ -83,6 +87,8 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		this.maxAttemptsSynthText = null;
 		this.maxAttemptsProofText = null;
 
+		this.isPDFInputButton = null;
+
 		setDescription("Preference Page for Event-B Agent Plug-in.");
 		setTitle("Event-B Agent");
 		setMessage("Event-B Agent Settings");
@@ -96,6 +102,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 
 		createLLMGroup(composite);
 		createExperimentGroup(composite);
+		createInputGroup(composite);
 
 		return composite;
 	}
@@ -150,6 +157,15 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		String maxAttemptsProofLabel = "Max Number of Attempts for Proof Fixing";
 		this.maxAttemptsProofText = createText(experimentSettingGroup, maxAttemptsProofLabel,
 				getPreferenceStore().getString(MAX_ATTEMPTS_PROOF));
+	}
+
+	private void createInputGroup(final Composite parent) {
+		String title = "Input Setting";
+		Group inputSettingGroup = initGroup(parent, title);
+
+		String isPDFInputLabel = "Is using PDF input";
+		this.isPDFInputButton = createButton(inputSettingGroup, isPDFInputLabel,
+				getPreferenceStore().getBoolean(IS_PDF_INPUT));
 	}
 
 	private Group initGroup(final Composite parent, String title) {
@@ -217,6 +233,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		getPreferenceStore().setValue(ENABLE_FIX_STRATEGY, enableFixStrategyButton.getSelection());
 		getPreferenceStore().setValue(MAX_ATTEMPTS_SYNTH, maxAttemptsSynthText.getText());
 		getPreferenceStore().setValue(MAX_ATTEMPTS_PROOF, maxAttemptsProofText.getText());
+		getPreferenceStore().setValue(IS_PDF_INPUT, isPDFInputButton.getSelection());
 
 		try {
 			((ScopedPreferenceStore) getPreferenceStore()).save();
@@ -258,6 +275,9 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 
 		getPreferenceStore().setToDefault(MAX_ATTEMPTS_PROOF);
 		maxAttemptsProofText.setText(getPreferenceStore().getString(MAX_ATTEMPTS_PROOF));
+
+		getPreferenceStore().setToDefault(IS_PDF_INPUT);
+		isPDFInputButton.setSelection(getPreferenceStore().getBoolean(IS_PDF_INPUT));
 
 		super.performDefaults();
 	}

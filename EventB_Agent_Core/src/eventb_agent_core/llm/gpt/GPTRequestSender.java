@@ -29,4 +29,8 @@ public class GPTRequestSender extends LLMRequestSender {
 		return Constants.GPT_ENDPOINT;
 	}
 
+	@Override
+	protected String getFileUploadAPIEndpoint() {
+		return Constants.GPT_FILE_UPLOAD_ENDPOINT;
+	}
 }

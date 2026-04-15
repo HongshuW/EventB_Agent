@@ -3,8 +3,11 @@ package eventb_agent_core.llm.gpt;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -236,6 +239,144 @@ public class GPTRequestBuilder extends RequestBuilder {
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public String getRequestWithFileInput(String prompt, Path inputFilePath, String fileID, LLMRequestTypes requestType)
+			throws IOException {
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
+
+		request.put("model", llmModel.getModelTypeAPI());
+
+		LinkedHashMap<String, Object> requestMessage = new LinkedHashMap<>();
+		requestMessage.put("role", "user");
+		LinkedHashMap<String, Object> contentText = new LinkedHashMap<>();
+		contentText.put("type", "input_text");
+		contentText.put("text", prompt);
+		LinkedHashMap<String, Object> contentFile = new LinkedHashMap<>();
+		contentFile.put("type", "input_file");
+		contentFile.put("file_id", fileID);
+//		contentFile.put("filename", "document_v2.pdf");
+//		contentFile.put("file_data", fileToByte(inputFilePath));
+		requestMessage.put("content", Arrays.asList(contentText, contentFile));
+		request.put("input", Arrays.asList(requestMessage));
+
+		Map<String, Object> jsonSchema = getSimplifiedSchema(requestType);
+		if (isGPT4()) {
+			LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
+			textFormat.put("format", jsonSchema);
+			request.put("text", textFormat);
+		} else {
+			String schemaString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonSchema);
+			prompt += "\nYou must return a ***json*** according to the JSON Schema below, do not include extra explanation.\n"
+					+ schemaString;
+			contentText.put("text", prompt);
+			LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
+			textFormat.put("verbosity", Constants.VERBOSITY);
+			LinkedHashMap<String, Object> type = new LinkedHashMap<>();
+			type.put("type", "json_object");
+			textFormat.put("format", type);
+			request.put("text", textFormat);
+		}
+
+		if (!isGPT4()) {
+			LinkedHashMap<String, Object> reasoningEffort = new LinkedHashMap<>();
+			reasoningEffort.put("effort", Constants.REASONING);
+			request.put("reasoning", reasoningEffort);
+		} else {
+			request.put("temperature", Constants.TEMPERATURE);
+			request.put("top_p", Constants.TOP_P);
+			request.put("max_output_tokens", Constants.TOKEN_LIMIT);
+		}
+
+		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+		return jsonStr;
+	}
+
+	@Override
+	public String getRequestUploadFile(Path inputFilePath) throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+
+		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
+
+		request.put("purpose", "assistants");
+		request.put("file", "@" + inputFilePath.toString());
+
+		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+		return jsonStr;
+	}
+
+	@Override
+	public String getRequestWithSimplifiedPrompt(String prompt, LLMRequestTypes requestType) throws IOException {
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
+
+		request.put("model", llmModel.getModelTypeAPI());
+
+		LinkedHashMap<String, Object> requestMessage = new LinkedHashMap<>();
+		requestMessage.put("role", "user");
+		LinkedHashMap<String, Object> contentText = new LinkedHashMap<>();
+		contentText.put("type", "input_text");
+		contentText.put("text", prompt);
+		requestMessage.put("content", Arrays.asList(contentText));
+		request.put("input", Arrays.asList(requestMessage));
+
+		Map<String, Object> jsonSchema = getSimplifiedSchema(requestType);
+		if (isGPT4()) {
+			LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
+			textFormat.put("format", jsonSchema);
+			request.put("text", textFormat);
+		} else {
+			String schemaString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonSchema);
+			prompt += "\nYou must return a ***json*** according to the JSON Schema below, do not include extra explanation.\n"
+					+ schemaString;
+			contentText.put("text", prompt);
+			LinkedHashMap<String, Object> textFormat = new LinkedHashMap<>();
+			textFormat.put("verbosity", Constants.VERBOSITY);
+			LinkedHashMap<String, Object> type = new LinkedHashMap<>();
+			type.put("type", "json_object");
+			textFormat.put("format", type);
+			request.put("text", textFormat);
+		}
+
+		if (!isGPT4()) {
+			LinkedHashMap<String, Object> reasoningEffort = new LinkedHashMap<>();
+			reasoningEffort.put("effort", Constants.REASONING);
+			request.put("reasoning", reasoningEffort);
+		} else {
+			request.put("temperature", Constants.TEMPERATURE);
+			request.put("top_p", Constants.TOP_P);
+			request.put("max_output_tokens", Constants.TOKEN_LIMIT);
+		}
+
+		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+		return jsonStr;
+	}
+
+	/**
+	 * Convert file to Base64 form. Note that this consumes a significant amount of
+	 * tokens.
+	 * 
+	 * @param inputFilePath
+	 * @return
+	 */
+	private String fileToByte(Path inputFilePath) {
+		try {
+			byte[] pdfBytes = Files.readAllBytes(inputFilePath);
+			String base64String = Base64.getEncoder().encodeToString(pdfBytes);
+			System.out.println("Base64 encoded PDF string:\n" + base64String);
+
+			return "data:application/pdf;base64," + base64String;
+		} catch (IOException e) {
+			System.err.println("Error reading the PDF file: " + e.getMessage());
+			e.printStackTrace();
+		}
+		return "";
 	}
 
 }

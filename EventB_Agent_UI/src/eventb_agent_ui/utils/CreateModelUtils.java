@@ -75,6 +75,7 @@ public class CreateModelUtils {
 			IAxiom axiom = internalElement.createChild(IAxiom.ELEMENT_TYPE, null, pMonitor);
 			axiom.setLabel(labeledAxiom[0], pMonitor);
 			axiom.setPredicateString(labeledAxiom[1], pMonitor);
+			axiom.setComment(labeledAxiom[2], pMonitor);
 		}
 	}
 
@@ -130,6 +131,7 @@ public class CreateModelUtils {
 			IInvariant invariant = internalElement.createChild(IInvariant.ELEMENT_TYPE, null, pMonitor);
 			invariant.setLabel(labeledInvariant[0], pMonitor);
 			invariant.setPredicateString(labeledInvariant[1], pMonitor);
+			invariant.setComment(labeledInvariant[2], pMonitor);
 		}
 	}
 
@@ -139,6 +141,7 @@ public class CreateModelUtils {
 			IVariant variant = internalElement.createChild(IVariant.ELEMENT_TYPE, null, pMonitor);
 			variant.setLabel(labeledVariant[0], pMonitor);
 			variant.setExpressionString(labeledVariant[1], pMonitor);
+			variant.setComment(labeledVariant[2], pMonitor);
 		}
 	}
 
@@ -189,6 +192,7 @@ public class CreateModelUtils {
 			IGuard labeledGuard = internalElement.createChild(IGuard.ELEMENT_TYPE, null, pMonitor);
 			labeledGuard.setLabel(guard[0], pMonitor);
 			labeledGuard.setPredicateString(guard[1], pMonitor);
+			labeledGuard.setComment(guard[2], pMonitor);
 		}
 	}
 
@@ -198,6 +202,7 @@ public class CreateModelUtils {
 			IWitness labeledWitness = internalElement.createChild(IWitness.ELEMENT_TYPE, null, pMonitor);
 			labeledWitness.setLabel(witness[0], pMonitor);
 			labeledWitness.setPredicateString(witness[1], pMonitor);
+			labeledWitness.setComment(witness[2], pMonitor);
 		}
 	}
 
@@ -207,6 +212,7 @@ public class CreateModelUtils {
 			IAction labeledAction = internalElement.createChild(IAction.ELEMENT_TYPE, null, pMonitor);
 			labeledAction.setLabel(action[0], pMonitor);
 			labeledAction.setAssignmentString(action[1], pMonitor);
+			labeledAction.setComment(action[2], pMonitor);
 		}
 	}
 

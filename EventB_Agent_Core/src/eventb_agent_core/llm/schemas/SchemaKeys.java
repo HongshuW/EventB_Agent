@@ -28,6 +28,7 @@ public class SchemaKeys {
 	public static final String PRED = "predicate";
 	public static final String ASSIGN = "assignment";
 	public static final String EXPR = "expression";
+	public static final String CMT = "comments";
 
 	/* internal keys for events */
 
@@ -44,6 +45,7 @@ public class SchemaKeys {
 	public static final String REQUIREMENT_IDS = "requirement_ids";
 	public static final String MODEL_DESC = "model_description";
 	public static final String GLUING_INVS = "gluing_invariants";
+	public static final String SYMBOLS = "constants_and_variables";
 
 	/* keys for proof fixing */
 	public static final String PROOF_TACTIC = "proof_tactic";

@@ -11,6 +11,7 @@ public class RefinementStep {
 	private List<String> requirementList;
 	private String modelDesc;
 	private Map<String, String> gluingInvariants;
+	private List<String> symbols; // list of constants and variables
 
 	public RefinementStep(int refinementNo, List<String> requirementIDs, String modelDesc,
 			Map<String, String> gluingInvariants, SystemRequirements requirements) {
@@ -19,6 +20,17 @@ public class RefinementStep {
 		this.requirementList = initRequirementList(requirements);
 		this.modelDesc = modelDesc;
 		this.gluingInvariants = gluingInvariants;
+		this.symbols = new ArrayList<>();
+	}
+
+	public RefinementStep(int refinementNo, List<String> requirementIDs, String modelDesc,
+			Map<String, String> gluingInvariants, SystemRequirements requirements, List<String> symbols) {
+		this.refinementNo = refinementNo;
+		this.requirementIDs = requirementIDs;
+		this.requirementList = initRequirementList(requirements);
+		this.modelDesc = modelDesc;
+		this.gluingInvariants = gluingInvariants;
+		this.symbols = symbols;
 	}
 
 	private List<String> initRequirementList(SystemRequirements systemReqs) {
@@ -50,15 +62,26 @@ public class RefinementStep {
 	public String getModelDesc() {
 		return modelDesc;
 	}
+	
+	public List<String> getSymbols() {
+		return symbols;
+	}
 
 	public String getSysReqString() {
 		StringBuilder systemRequirements = new StringBuilder();
-		for (String req : requirementList) {
-			systemRequirements.append(req + "\n");
+		if (!requirementList.isEmpty()) {
+			for (String req : requirementList) {
+				systemRequirements.append(req + "\n");
+			}
+		} else if (!requirementIDs.isEmpty()) {
+			for (String reqID : requirementIDs) {
+				systemRequirements.append(reqID + "\n");
+			}
 		}
+
 		return systemRequirements.toString();
 	}
-	
+
 	public String getGluingInvariantsString() {
 		StringBuilder gluingInvs = new StringBuilder();
 		for (String key : gluingInvariants.keySet()) {
@@ -66,6 +89,14 @@ public class RefinementStep {
 			gluingInvs.append(gluingInvariants.get(key) + "\n");
 		}
 		return gluingInvs.toString();
+	}
+	
+	public String getSymbolsString() {
+		StringBuilder symbolsString = new StringBuilder();
+		for (String symbol : symbols) {
+			symbolsString.append(symbol + "\n");
+		}
+		return symbolsString.toString();
 	}
 
 }

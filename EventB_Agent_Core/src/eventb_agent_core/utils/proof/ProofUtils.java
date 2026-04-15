@@ -5,21 +5,33 @@ import java.util.List;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eventb.core.EventBPlugin;
 import org.eventb.core.IEventBRoot;
 import org.eventb.core.IMachineRoot;
 import org.eventb.core.IPORoot;
+import org.eventb.core.IPOSequent;
 import org.eventb.core.IPRProof;
 import org.eventb.core.IPSRoot;
 import org.eventb.core.IPSStatus;
+import org.eventb.core.ast.FormulaFactory;
+import org.eventb.core.ast.ITypeEnvironmentBuilder;
 import org.eventb.core.ast.Predicate;
 import org.eventb.core.pm.IProofAttempt;
 import org.eventb.core.pm.IProofComponent;
 import org.eventb.core.seqprover.IConfidence;
+import org.eventb.core.seqprover.IProofSkeleton;
 import org.eventb.core.seqprover.IProofTree;
 import org.eventb.core.seqprover.IProofTreeNode;
+import org.eventb.core.seqprover.IProverSequent;
 import org.eventb.core.seqprover.ITactic;
+import org.eventb.core.seqprover.ProverFactory;
 import org.eventb.core.seqprover.eventbExtensions.Tactics;
+import org.eventb.core.seqprover.tactics.BasicTactics;
+import org.eventb.internal.core.FormulaExtensionProviderRegistry;
 import org.eventb.internal.core.pm.ProofManager;
+import org.eventb.internal.core.pm.UserSupport;
+import org.eventb.smt.core.internal.tactics.SMTAutoTactic;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.RodinDBException;
 
@@ -115,12 +127,63 @@ public class ProofUtils {
 
 		return proofAttempt;
 	}
-	
+
 	public static IProofTree getDefaultProofTree(String poName, IMachineRoot machineRoot) throws CoreException {
 		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
-		
+
 		IPRProof proof = proofComponent.getPRRoot().getProof(poName);
 		IProofTree proofTree = proof.getProofTree(null);
+		return proofTree;
+	}
+
+	public static IProofTree getDefaultProofTreeForCountingLoP(String poName, IMachineRoot machineRoot)
+			throws CoreException {
+		IProofComponent proofComponent = ProofManager.getDefault().getProofComponent(machineRoot);
+
+		IPRProof proof = proofComponent.getPRRoot().getProof(poName);
+		IProofTree proofTree = proof.getProofTree(null);
+
+		if (proofTree == null) {
+			// Create a proof attempt to load the existing proof
+			IProofAttempt pa = proofComponent.createProofAttempt(poName, "org.eventb.core.seqprover.autoTactics",
+					new NullProgressMonitor());
+			if (pa == null) {
+				return null;
+			}
+
+			try {
+				// Get the proof tree from the proof attempt
+				proofTree = pa.getProofTree();
+				if (proofTree == null) {
+					return null;
+				}
+
+				// Get the root and apply auto tactics
+				IProofTreeNode root = proofTree.getRoot();
+				if (root != null && !root.isClosed()) {
+					Tactics.lasoo().apply(root, null);
+
+					IProofTreeNode node = ProofUtils.getLastUndischargedNodeFromTree(pa);
+					if (node != null) {
+						ITactic autoTactics = EventBPlugin.getAutoPostTacticManager()
+								.getSelectedAutoTactics(machineRoot);
+						ITactic basicTactics = BasicTactics.onAllPending(autoTactics);
+						basicTactics.apply(node, null);
+
+						node = ProofUtils.getLastUndischargedNodeFromTree(pa);
+						if (node != null) {
+							ITactic smt = new SMTAutoTactic();
+							smt.apply(node, null);
+						}
+					}
+				}
+
+				return proofTree;
+			} finally {
+				// Clean up the proof attempt
+				pa.dispose();
+			}
+		}
 		return proofTree;
 	}
 

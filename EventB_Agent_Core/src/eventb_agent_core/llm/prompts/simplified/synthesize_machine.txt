@@ -1,0 +1,33 @@
+Generate a pair of Event-B machine and context. The machine must see the context.
+
+Use the provided constant and variable names whenever possible. Additional symbols are allowed if necessary.
+For each variable v in machine, include an invariant `v \\in | \\subset | \\subseteq ...` to specify its type.
+For each constant c in context, include an axiom `c \\in | \\subset | \\subseteq ...` to specify its type.
+Make sure sets are not misplaced into constants, e.g. sets are types that are capitalized.
+If a constant `fun` is used, make sure define its type, use format fun(x) if x is an element, and fun[X] if X is a set.
+Any variable, constant or parameter in event must have a corresponding invariant, axiom, or guard to define its type.
+Try to use latex commands to represent special symbols, make sure that only commands with a corresponding symbol in Event-B are included, e.g. exclude commands like \\bcmin, \\quad, etc.
+Clauses such as "if...else..." are not supported by Event-B, use two events with different guards to represent the logic.
+(x,y) is not supported and you must use x |-> y.
+If a boolean value is required, use BOOL instead of BOOLEAN.
+If a boolean expression is required, use bool(expr).
+
+Avoid livelock (loops in events) in the generated machine.
+
+The context name should be <ContextName>_<ID>, and the machine name should be <MachineName>_<ID>.
+
+***You must follow the naming convention for each requirement, otherwise the requirement will be considered `not fulfilled`:***
+For each FUN, SAF, DEG, DEL requirement, there should be one or more invariants with the same name of the requirement appended by invariant name, e.g. FUN_1_inv_1, FUN_1_inv_2, FUN_2_inv_1, ...
+For each EQP, ENV requirement, there should be one or more axioms with the same name of the requirement appended by axiom name, e.g. EQP_1_axm_1, EQP_1_axm_2, EQP_2_axm_1, ...
+
+ID:
+{{refinement_id}}
+
+Constants and Variables:
+{{constants_and_variables}}
+
+System Description:
+{{system_desc}}
+
+System Requirements:
+{{system_req}}

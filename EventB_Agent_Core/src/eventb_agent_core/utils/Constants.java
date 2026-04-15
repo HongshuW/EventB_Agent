@@ -9,6 +9,7 @@ public class Constants {
 	/* OpenAI parameters */
 
 	public static final String GPT_ENDPOINT = "https://api.openai.com/v1/responses";
+	public static final String GPT_FILE_UPLOAD_ENDPOINT = "https://api.openai.com/v1/files";
 	public static final String GPT_MODEL = "gpt-4.1";
 	public static final String GPT_MINI_MODEL = "gpt-4.1-mini";
 	public static final String GPT_5_MODEL = "gpt-5";
@@ -41,6 +42,7 @@ public class Constants {
 	public static final String REFINEMENT_ID_PLACE_HOLDER = "{{refinement_id}}";
 	public static final String SYS_DESC_PLACE_HOLDER = "{{system_desc}}";
 	public static final String SYS_REQ_PLACE_HOLDER = "{{system_req}}";
+	public static final String SYMBOL_PLACE_HOLDER = "{{constants_and_variables}}";
 	public static final String MODEL_PLACE_HOLDER = "{{model}}";
 	public static final String PO_NAME_PLACE_HOLDER = "{{po_name}}";
 	public static final String PROOF_TREE_PLACE_HOLDER = "{{proof_tree}}";
