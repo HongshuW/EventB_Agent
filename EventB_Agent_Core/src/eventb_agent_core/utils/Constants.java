@@ -10,13 +10,14 @@ public class Constants {
 
 	public static final String GPT_ENDPOINT = "https://api.openai.com/v1/responses";
 	public static final String GPT_FILE_UPLOAD_ENDPOINT = "https://api.openai.com/v1/files";
-	public static final String GPT_MODEL = "gpt-4.1";
-	public static final String GPT_MINI_MODEL = "gpt-4.1-mini";
+	public static final String GPT_4_1_MODEL = "gpt-4.1";
+	public static final String GPT_4_1_MINI_MODEL = "gpt-4.1-mini";
 	public static final String GPT_5_MODEL = "gpt-5";
 	public static final String GPT_5_MINI_MODEL = "gpt-5-mini";
 	public static final String GPT_5_NANO_MODEL = "gpt-5-nano";
 	public static final String GPT_O3_MODEL = "o3";
 	public static final String GPT_O3_MINI_MODEL = "o3-mini";
+	public static final String GPT_5_4_MINI_MODEL = "gpt-5.4-mini";
 
 	/* Claude parameters */
 

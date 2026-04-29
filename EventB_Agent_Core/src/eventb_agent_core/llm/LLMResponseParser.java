@@ -84,7 +84,7 @@ public abstract class LLMResponseParser {
 			JSONObject labeledObject = array.getJSONObject(i);
 			String label = labeledObject.getString(SchemaKeys.LABEL);
 			String predicate = labeledObject.getString(keyForFormulae);
-			String comments = labeledObject.getString(SchemaKeys.CMT);
+			String comments = labeledObject.has(SchemaKeys.CMT) ? labeledObject.getString(SchemaKeys.CMT) : "";
 			labeledPredInfo[0] = label;
 			labeledPredInfo[1] = ParserUtils.lex(predicate);
 			labeledPredInfo[2] = comments;

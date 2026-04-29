@@ -140,7 +140,7 @@ public class ModelWorkspaceInteractor {
 			throws InvocationTargetException, InterruptedException, CoreException, ReachMaxAttemptException {
 
 		this.fileID = fileID;
-		this.isFileInput = fileID != null & !fileID.equals("");
+		this.isFileInput = fileID != null && !fileID.equals("");
 		EvaluationManager.addAndStartNewAction(ComponentType.SYNTHESIS, 0);
 
 		String[] fileNames = new String[2];

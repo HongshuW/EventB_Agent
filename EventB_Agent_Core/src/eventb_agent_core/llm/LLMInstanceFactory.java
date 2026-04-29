@@ -14,6 +14,7 @@ public class LLMInstanceFactory {
 
 	public static LLMRequestSender getRequestSender(LLMModels model) {
 		switch (model) {
+		case GPT5_4_MINI:
 		case GPT5:
 		case GPT5_MINI:
 		case GPT5_NANO:
@@ -33,6 +34,7 @@ public class LLMInstanceFactory {
 
 	public static RequestBuilder getRequestBuilder(LLMModels model) {
 		switch (model) {
+		case GPT5_4_MINI:
 		case GPT5:
 		case GPT5_MINI:
 		case GPT5_NANO:
@@ -52,6 +54,7 @@ public class LLMInstanceFactory {
 
 	public static LLMResponseParser getResponseParser(LLMModels model) {
 		switch (model) {
+		case GPT5_4_MINI:
 		case GPT5:
 		case GPT5_MINI:
 		case GPT5_NANO:
