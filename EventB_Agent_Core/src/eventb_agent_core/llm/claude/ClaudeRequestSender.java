@@ -25,4 +25,13 @@ public class ClaudeRequestSender extends LLMRequestSender {
 		return Constants.CLAUDE_ENDPOINT;
 	}
 
+	/**
+	 * TODO: implement this later.
+	 */
+	@Override
+	protected String getFileUploadAPIEndpoint() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

@@ -22,7 +22,7 @@ public class Constants {
 	/* Claude parameters */
 
 	public static final String CLAUDE_ENDPOINT = "https://api.anthropic.com/v1/messages";
-	public static final String CLAUDE_MODEL = "claude-3-opus-latest";
+	public static final String CLAUDE_MODEL = "claude-opus-4-7";
 	public static final String ANTHROPIC_VERSION = "2023-06-01";
 
 	/* Gemini parameters */

@@ -23,7 +23,7 @@ public class LLMInstanceFactory {
 		case GPT4_1:
 		case GPT4_1_MINI:
 			return new GPTRequestSender(model);
-		case CLAUDE3_OPUS:
+		case CLAUDE4_7_OPUS:
 			return new ClaudeRequestSender(model);
 		case GEMINI2_5_FLASH:
 			return new GeminiRequestSender(model);
@@ -43,7 +43,7 @@ public class LLMInstanceFactory {
 		case GPT4_1:
 		case GPT4_1_MINI:
 			return new GPTRequestBuilder(model);
-		case CLAUDE3_OPUS:
+		case CLAUDE4_7_OPUS:
 			return new ClaudeRequestBuilder(model);
 		case GEMINI2_5_FLASH:
 			return new GeminiRequestBuilder(model);
@@ -63,7 +63,7 @@ public class LLMInstanceFactory {
 		case GPT4_1:
 		case GPT4_1_MINI:
 			return new GPTResponseParser(model);
-		case CLAUDE3_OPUS:
+		case CLAUDE4_7_OPUS:
 			return new ClaudeResponseParser(model);
 		case GEMINI2_5_FLASH:
 			return new GeminiResponseParser(model);

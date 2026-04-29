@@ -3,6 +3,7 @@ package eventb_agent_core.llm.claude;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,13 +27,22 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 	@Override
 	protected String getSchemaFileNameFromType(LLMRequestTypes requestType) {
 		switch (requestType) {
-		// TODO: case REFINE_STRATEGY
-		// TODO: case FIX_PROOF_NO_STRATEGY
+		case REFINE_STRATEGY:
+			return "gpt_refine_strategy_schema.json";
 		case SYNTHESIS:
+			return "gpt_eventb_base_schema.json";
+		case FIX_COMPILATION_ERRS:
+			return "gpt_eventb_schema.json";
 		case REFINE_MODEL:
-			return "claude_eventb_schema.json";
+			return "gpt_eventb_schema.json";
+		case MODEL_CHECKING_PARAMS:
+			return "gpt_model_checking_schema.json";
+		case FIX_MODEL_CHECKING:
+			return "gpt_eventb_schema.json";
+		case FIX_PROOF_NO_STRATEGY:
+			return "gpt_eventb_schema.json";
 		default:
-			return "claude_eventb_schema.json";
+			return "gpt_eventb_schema.json";
 		}
 	}
 
@@ -46,20 +56,22 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 	public String getRequestWithSchema(String prompt, LLMRequestTypes requestType) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 
-		Map<String, Object> jsonSchema = getSchema(requestType);
-		String schemaString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonSchema);
-		prompt += "\nFollow the grammar in your response:\n" + schemaString;
-
 		LinkedHashMap<String, Object> request = new LinkedHashMap<>();
 
 		request.put("model", llmModel.getModelTypeAPI());
+		request.put("max_tokens", Constants.TOKEN_LIMIT);
 
 		LinkedHashMap<String, Object> requestMessage = new LinkedHashMap<>();
 		requestMessage.put("role", "user");
 		requestMessage.put("content", prompt);
 		request.put("messages", Arrays.asList(requestMessage));
 
-		request.put("max_tokens", Constants.TOKEN_LIMIT);
+		LinkedHashMap<String, Object> outputConfig = new LinkedHashMap<>();
+		Map<String, Object> jsonSchema = getSchema(requestType);
+		jsonSchema.remove("name");
+		jsonSchema.remove("strict");
+		outputConfig.put("format", jsonSchema);
+		request.put("output_config", outputConfig);
 
 		String jsonStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
 		return jsonStr;
@@ -95,6 +107,31 @@ public class ClaudeRequestBuilder extends RequestBuilder {
 			JSONObject functionCall) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void addReasoningHistory(List<LinkedHashMap<String, Object>> history, JSONObject reasoning) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public String getRequestWithFileInput(String prompt, Path inputFilePath, String fileID, LLMRequestTypes requestType)
+			throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getRequestUploadFile(Path inputFilePath) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getRequestWithSimplifiedPrompt(String prompt, LLMRequestTypes requestType) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

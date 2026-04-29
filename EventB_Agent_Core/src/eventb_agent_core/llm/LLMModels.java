@@ -9,7 +9,7 @@ import eventb_agent_core.utils.Constants;
 
 public enum LLMModels {
 	GPT5_4_MINI("GPT 5.4 mini"), GPT5("GPT 5"), GPT5_MINI("GPT 5 mini"), GPT5_NANO("GPT 5 nano"), GPT_O3("GPT o3"),
-	GPT_O3_MINI("GPT o3 mini"), GPT4_1("GPT 4.1"), GPT4_1_MINI("GPT 4.1 mini"), CLAUDE3_OPUS("Claude 3 opus"),
+	GPT_O3_MINI("GPT o3 mini"), GPT4_1("GPT 4.1"), GPT4_1_MINI("GPT 4.1 mini"), CLAUDE4_7_OPUS("Claude 4.7 Opus"),
 	GEMINI2_5_FLASH("Gemini 2.5 flash");
 
 	private final String stringValue;
@@ -47,7 +47,7 @@ public enum LLMModels {
 			return Constants.GPT_4_1_MODEL;
 		case GPT4_1_MINI:
 			return Constants.GPT_4_1_MINI_MODEL;
-		case CLAUDE3_OPUS:
+		case CLAUDE4_7_OPUS:
 			return Constants.CLAUDE_MODEL;
 		case GEMINI2_5_FLASH:
 			return Constants.GEMINI_MODEL;
