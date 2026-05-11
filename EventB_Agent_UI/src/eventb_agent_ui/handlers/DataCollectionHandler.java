@@ -63,11 +63,17 @@ import eventb_agent_core.utils.proof.ProofUtils;
  */
 public class DataCollectionHandler extends AbstractHandler implements IHandler {
 
-//	private String GROUP = "ablation_refine_proofstrategy";
-	private String GROUP = "SMT_retry_with_bug_fixed";
+	private String datasetPath;
+	private String dataAnalysisPath;
+	private String group;
 
 	public DataCollectionHandler() {
 		super();
+
+		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
+		datasetPath = prefs.get(AgentPreferenceInitializer.PREF_DATASET_LOC, "");
+		dataAnalysisPath = prefs.get(AgentPreferenceInitializer.PREF_DATA_ANALYSIS_LOC, "");
+		group = prefs.get(AgentPreferenceInitializer.PREF_DATA_ANALYSIS_GROUP, "");
 	}
 
 	private final Set<String> REFINEMENT_KINDS = Set.of("GRD", "SIM", "WFD", "VAR", "EQL", "WIT", "MRG");
@@ -83,8 +89,6 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 				System.out.println("==========\n" + project.getName() + "\n==========");
 				IRodinProject rodinProject = RodinUtils.getRodinProject(project.getName());
 
-				IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(Constants.PREF_NODE_ID);
-				String datasetPath = prefs.get(AgentPreferenceInitializer.PREF_DATASET_LOC, "");
 				String inputPath = datasetPath + File.separator + project.getName() + ".json";
 
 				SystemRequirements systemReqs = new SystemRequirements(Path.of(inputPath));
@@ -234,7 +238,7 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 					System.out.println("All requirements: " + String.valueOf(totalRequirementCount));
 					System.out.println();
 
-					String outputPath = "C:\\Users\\admin\\Downloads\\data_analysis\\" + GROUP + ".txt";
+					String outputPath = dataAnalysisPath + File.separator + group + ".txt";
 					write(outputPath, project.getName(), totalPOCount, dischargedPOCount, totalRequirementCount,
 							coveredRequirementCount, fulfilledRequirementCount, totalRefinePOCount,
 							dischargedRefinePOCount);
@@ -284,7 +288,7 @@ public class DataCollectionHandler extends AbstractHandler implements IHandler {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void write(String path, String projectName, int totalPOCount, int dischargedPOCount,
 			int totalRequirementCount, int coveredRequirementCount, int fulfilledRequirementCount,
 			int totalRefinePOCount, int dischargedRefinePOCount, Map<String, Integer> fulfilledReqs) {
