@@ -1,7 +1,6 @@
 # Event-B Agent
 
-Event-B Agent is a Rodin plug-in.
-This project includes both the core and UI components of the plug-in.
+This is an implementation of the paper "Event-B Agent: Towards LLM Agent for Formal Model Synthesis and Repair" (FSE'26).
 
 ## Prerequisite
 Java 17 <br>
@@ -29,6 +28,31 @@ In Run Configurations, double click on `Eclipse Application` to create a new run
 Under "Program to Run", select `Run an application`. <br>
 Select `Plug-ins > Launch with: Plug-ins selected below`. Search for `test` and then click on `Deselect All`. Click on `Validate Plug-ins` to detect issues with the selected plug-ins. <br>
 Apply and Run.
+
+## Run Event-B Agent
+### Configuration
+Run the Rodin plug-in as instructed above.
+
+In `Window > Preferences > Event-B Agent Preference`, configure preferences for running the experiments.
+
+#### LLM Setting
+Select a LLM and provide the API key.
+
+#### Experiment Setting
+- Dataset Location: full path to the dataset, e.g. `<path to Event-B Agent>\resources\datasets`
+- Log Location: specify a directory to store the logs during the experiments
+- Data Analysis Results Location: specify a directory to store the data analysis results, e.g. `<path to Event-B Agent>\data_analysis`
+- Group of Analyzed Data: specify a file name to store extract data, e.g., `EventBAgent`, then the extracted will be stored in `<path to Event-B Agent>\data_analysis\EventBAgent.txt` for further analysis
+- The remaining options control which component of Event-B Agent is enabled, and how many iterations of LLM invocations are allowed as specified in the paper
+
+#### Input Setting
+To run experiments in the paper, do not select `Is using PDF input`.
+
+### Run the Experiments
+`Event-B Agent > Evaluation`
+
+### Data Analysis
+`Event-B Agent > Collect Evaluation Data` will extract the data and save to `<path to Event-B Agent>\data_analysis` directory.
 
 ## Project Structure
 **EventB_Agent_Core** <br>

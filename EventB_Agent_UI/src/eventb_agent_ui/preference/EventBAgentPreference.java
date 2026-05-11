@@ -160,7 +160,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		this.enableRefinementButton = createButton(experimentSettingGroup, enableRefinementLabel,
 				getPreferenceStore().getBoolean(ENABLE_REFINEMENT));
 
-		String enableProofFixingLabel = "Enable Proof Fixing";
+		String enableProofFixingLabel = "Enable Model and Proof Repair";
 		this.enableFixStrategyButton = createButton(experimentSettingGroup, enableProofFixingLabel,
 				getPreferenceStore().getBoolean(ENABLE_FIX_STRATEGY));
 
@@ -168,7 +168,7 @@ public class EventBAgentPreference extends PreferencePage implements IWorkbenchP
 		this.maxAttemptsSynthText = createText(experimentSettingGroup, maxAttemptsSynthLabel,
 				getPreferenceStore().getString(MAX_ATTEMPTS_SYNTH));
 
-		String maxAttemptsProofLabel = "Max Number of Attempts for Proof Fixing";
+		String maxAttemptsProofLabel = "Max Number of Attempts for Model and Proof Repair";
 		this.maxAttemptsProofText = createText(experimentSettingGroup, maxAttemptsProofLabel,
 				getPreferenceStore().getString(MAX_ATTEMPTS_PROOF));
 	}
