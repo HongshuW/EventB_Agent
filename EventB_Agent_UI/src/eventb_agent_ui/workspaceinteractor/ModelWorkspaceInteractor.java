@@ -727,27 +727,33 @@ public class ModelWorkspaceInteractor {
 			}
 
 		} catch (ReachMaxAttemptException e) {
-			reattemptFixPO(e, projectName, fileNames, poName);
+			reattemptFixPO(e, projectName, fileNames, poName, true);
+		} catch (NullPointerException e) {
+			reattemptFixPO(null, projectName, fileNames, ModelWorkspaceInteractor.poName, false);
 		} catch (Exception e) {
-			reattemptFixPO(null, projectName, fileNames, ModelWorkspaceInteractor.poName);
+			reattemptFixPO(null, projectName, fileNames, ModelWorkspaceInteractor.poName, true);
+		} catch (Error e) {
+			reattemptFixPO(null, projectName, fileNames, ModelWorkspaceInteractor.poName, true);
 		}
 
 		return new String[] { contextFileName, machineFileName };
 	}
 
-	private void reattemptFixPO(ReachMaxAttemptException e, String projectName, String[] fileNames, String poName)
-			throws InvocationTargetException {
+	private void reattemptFixPO(ReachMaxAttemptException e, String projectName, String[] fileNames, String poName,
+			boolean withBacktrack) throws InvocationTargetException {
 		EvaluationManager.endLatestAction();
 		EvaluationManager.copyActionForInfoRecording(e == null ? "Exception" : e.getMessage());
 		visitedPOs.add((e == null || e.poName == null) ? poName : e.poName);
 		try {
-			backtrackToPreviousModel(projectName);
+			if (withBacktrack) {
+				backtrackToPreviousModel(projectName);
+			}
 			fixPOs(projectName, fileNames, null);
 		} catch (InvocationTargetException | InterruptedException e1) {
 			e1.printStackTrace();
 			throw new InvocationTargetException(e1);
 		} catch (ReachMaxAttemptException e1) {
-			reattemptFixPO(e1, projectName, fileNames, null);
+			reattemptFixPO(e1, projectName, fileNames, null, withBacktrack);
 		}
 	}
 
